@@ -65,4 +65,10 @@ public class TurretIOSim implements TurretIO {
         inputs.turretVelocity = RadiansPerSecond.of(sim.getAngularVelocityRadPerSec());
         inputs.appliedVoltage = Volts.of(appliedVolts);
     }
+
+    @Override
+    public void setCurrent(double amps) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'setCurrent'");
+    }
 }

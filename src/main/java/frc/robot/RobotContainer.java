@@ -37,15 +37,29 @@ public class RobotContainer {
     private final Vision vision;
 
     public RobotContainer() {
+        switch (RobotConstants.getRobotMode()) {
+            case REAL: {
+                turret = subsystemRegistry.register(new Turret(new TurretIOReal()));
+                break;
+            }
+            case SIMULATION, REPLAY: {
+                turret = subsystemRegistry.register(new Turret(new TurretIOSim()));
+                break;
+            }
+            default:
+                throw new IllegalStateException("robot somehow not in state");
+        }
+
         drive = subsystemRegistry.register(createDrive());
-        turret = subsystemRegistry.register(createTurret());
         vision = subsystemRegistry.register(Vision.fromCameraConstants(
                 this::acceptVisionMeasurement,
                 this::seedPoseFromVision,
                 drive::getFieldGyroRotation3d,
                 drive::getRawGyroVelocityRadPerSec,
                 drive::getPose));
+
         autoChooser = new Autos(subsystemRegistry).createChooser();
+
         SmartDashboard.putData("Auto Chooser", autoChooser);
         configureBindings();
     }
@@ -64,13 +78,6 @@ public class RobotContainer {
                     new ModuleIOSim(TunerConstants.FrontRight),
                     new ModuleIOSim(TunerConstants.BackLeft),
                     new ModuleIOSim(TunerConstants.BackRight));
-        };
-    }
-
-    private Turret createTurret() {
-        return switch (RobotConstants.getRobotMode()) {
-            case REAL -> new Turret(new TurretIOReal());
-            case SIMULATION, REPLAY -> new Turret(new TurretIOSim());
         };
     }
 

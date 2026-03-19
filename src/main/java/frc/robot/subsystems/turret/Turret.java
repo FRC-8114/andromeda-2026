@@ -3,6 +3,7 @@ package frc.robot.subsystems.turret;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.Second;
+import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 
 import java.util.List;
@@ -35,10 +36,10 @@ public class Turret extends SubsystemBase implements SysIDMechanism {
 
         sysId = new SysIdRoutine(
                 new SysIdRoutine.Config(
-                        Volts.of(0.5).per(Second), Volts.of(2.5), null,
+                        Volts.of(0.5).per(Second), Volts.of(2.5), Seconds.of(12),
                         (state) -> Logger.recordOutput("Turret/SysIdState", state.toString())),
                 new SysIdRoutine.Mechanism(
-                        (voltage) -> pivotMotor.setVoltage(voltage.in(Volts)), null, this));
+                        (voltage) -> pivotMotor.setCurrent(voltage.in(Volts)), null, this));
 
     }
 

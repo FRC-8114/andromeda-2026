@@ -15,6 +15,7 @@ import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.SoftwareLimitSwitchConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.PositionTorqueCurrentFOC;
+import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -94,6 +95,8 @@ public class TurretIOReal implements TurretIO {
     private final PositionTorqueCurrentFOC control = new PositionTorqueCurrentFOC(0);
     private final VoltageOut voltageControl = new VoltageOut(0);
     private final MedianFilter crtMedianFilter = new MedianFilter(Constants.CRT_MEDIAN_TAPS);
+
+    private final TorqueCurrentFOC currentControl = new TorqueCurrentFOC(0);
 
     private Angle targetAngle = Constants.DEFAULT_ANGLE;
 
@@ -192,6 +195,11 @@ public class TurretIOReal implements TurretIO {
             reseedCounter = 0;
             inputs.motorPositionErrorCounter = 0;
         }
+    }
+
+    @Override
+    public void setCurrent(double amps) {
+        currentControl.withOutput(amps);
     }
 
 }
