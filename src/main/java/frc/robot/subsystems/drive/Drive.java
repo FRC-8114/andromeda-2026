@@ -36,14 +36,16 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.RobotConstants;
 import frc.robot.RobotConstants.RobotMode;
 import frc.robot.generated.TunerConstants;
+import frc.robot.util.SysIDMechanism;
 import frc.robot.subsystems.vision.AngularVelocity3d;
 
+import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
-public class Drive extends SubsystemBase {
+public class Drive extends SubsystemBase implements SysIDMechanism {
     private class Constants {
         public static final double HOLONOMIC_DRIVE_KP = 5.0;
         public static final double HOLONOMIC_DRIVE_KI = 0.0;
@@ -80,6 +82,7 @@ public class Drive extends SubsystemBase {
     private final SysIdRoutine translationSysId;
     private final SysIdRoutine steerSysId;
     private final SysIdRoutine rotationSysId;
+    private final List<SysIDMechanism.NamedMechanism> sysIdMechanisms;
     private final Alert gyroDisconnectedAlert = new Alert("Disconnected gyro, using kinematics as fallback.",
             AlertType.kError);
 
@@ -155,6 +158,16 @@ public class Drive extends SubsystemBase {
                         (voltage) -> runRotationCharacterization(voltage.in(Volts)),
                         (log) -> logRotationSysIdTelemetry(),
                         this));
+
+        sysIdMechanisms = List.of(
+                SysIDMechanism.named("Drive Translation", this::sysIdDynamic, this::sysIdQuasistatic),
+                SysIDMechanism.named("Drive Steer", this::sysIdSteerDynamic, this::sysIdSteerQuasistatic),
+                SysIDMechanism.named("Drive Rotation", this::sysIdRotationDynamic, this::sysIdRotationQuasistatic));
+    }
+
+    @Override
+    public List<SysIDMechanism.NamedMechanism> sysIdMechanisms() {
+        return sysIdMechanisms;
     }
 
     @Override

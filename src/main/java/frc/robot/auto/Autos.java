@@ -9,10 +9,15 @@ import choreo.trajectory.Trajectory;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.subsystems.drive.Drive;
+import frc.robot.util.SubsystemRegistry;
+import frc.robot.util.SysIDMechanism;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.BooleanSupplier;
 import org.littletonrobotics.junction.Logger;
 
@@ -29,11 +34,13 @@ public class Autos {
     private record TrajectoryChain(AutoTrajectory firstTrajectory, AutoTrajectory lastTrajectory) {
     }
 
+    private final SubsystemRegistry subsystemRegistry;
     private final Drive drive;
     private final AutoFactory autoFactory;
 
-    public Autos(Drive drive) {
-        this.drive = drive;
+    public Autos(SubsystemRegistry subsystemRegistry) {
+        this.subsystemRegistry = subsystemRegistry;
+        drive = subsystemRegistry.require(Drive.class);
         autoFactory = new AutoFactory(
                 drive::getPose,
                 drive::setPose,
@@ -55,7 +62,23 @@ public class Autos {
     public AutoChooser createChooser() {
         AutoChooser chooser = new AutoChooser();
         Trajectories.addAutos(chooser, this);
+        addSysIdCommands(chooser);
         return chooser;
+    }
+
+    public List<SysIDMechanism.NamedMechanism> sysIdMechanisms() {
+        List<SysIDMechanism.NamedMechanism> mechanisms = subsystemRegistry.all(SysIDMechanism.class).stream()
+                .flatMap(provider -> provider.sysIdMechanisms().stream())
+                .toList();
+
+        Set<String> names = new HashSet<>();
+        for (SysIDMechanism.NamedMechanism mechanism : mechanisms) {
+            if (!names.add(mechanism.name())) {
+                throw new IllegalStateException("Duplicate SysId mechanism name: " + mechanism.name());
+            }
+        }
+
+        return mechanisms;
     }
 
     public AutoRoutine routine(String routineName) {
@@ -213,6 +236,27 @@ public class Autos {
 
     public Command stopCommand() {
         return Commands.runOnce(drive::stop, drive);
+    }
+
+    private void addSysIdCommands(AutoChooser chooser) {
+        for (SysIDMechanism.NamedMechanism mechanism : sysIdMechanisms()) {
+            chooser.addCmd(
+                    sysIdCommandName(mechanism, "Quasistatic Forward"),
+                    () -> mechanism.quasistatic().apply(SysIdRoutine.Direction.kForward));
+            chooser.addCmd(
+                    sysIdCommandName(mechanism, "Quasistatic Reverse"),
+                    () -> mechanism.quasistatic().apply(SysIdRoutine.Direction.kReverse));
+            chooser.addCmd(
+                    sysIdCommandName(mechanism, "Dynamic Forward"),
+                    () -> mechanism.dynamic().apply(SysIdRoutine.Direction.kForward));
+            chooser.addCmd(
+                    sysIdCommandName(mechanism, "Dynamic Reverse"),
+                    () -> mechanism.dynamic().apply(SysIdRoutine.Direction.kReverse));
+        }
+    }
+
+    private static String sysIdCommandName(SysIDMechanism.NamedMechanism mechanism, String testType) {
+        return "SysId: " + mechanism.name() + " " + testType;
     }
 
     private static void logTrajectory(Trajectory<SwerveSample> trajectory, Boolean active) {

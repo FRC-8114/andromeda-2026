@@ -5,6 +5,7 @@ import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Volts;
 
+import java.util.List;
 import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.Logger;
@@ -14,8 +15,9 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.util.SysIDMechanism;
 
-public class Turret extends SubsystemBase {
+public class Turret extends SubsystemBase implements SysIDMechanism {
     public static class Constants {
         private static final Angle ANGLE_TOLERANCE = Degrees.of(1);
 
@@ -163,5 +165,10 @@ public class Turret extends SubsystemBase {
                 .andThen(sysId.dynamic(direction)
                         .until(this::isOutOfBounds)
                         .finallyDo(() -> pivotMotor.setVoltage(0.0)));
+    }
+
+    @Override
+    public List<SysIDMechanism.NamedMechanism> sysIdMechanisms() {
+        return List.of(SysIDMechanism.named("Turret", this::sysIdDynamic, this::sysIdQuasistatic));
     }
 }

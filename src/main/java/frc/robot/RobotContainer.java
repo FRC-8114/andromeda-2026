@@ -7,6 +7,7 @@ package frc.robot;
 import static edu.wpi.first.units.Units.Seconds;
 
 import choreo.auto.AutoChooser;
+import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.auto.Autos;
@@ -16,57 +17,84 @@ import frc.robot.subsystems.drive.GyroIOPigeon2;
 import frc.robot.subsystems.drive.GyroIOSim;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
+import frc.robot.subsystems.turret.Turret;
+import frc.robot.subsystems.turret.TurretIOReal;
+import frc.robot.subsystems.turret.TurretIOSim;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIO.PoseEstimation;
+import frc.robot.util.SubsystemRegistry;
+import java.util.Optional;
 
 public class RobotContainer {
-  private final Drive drive;
-  private final AutoChooser autoChooser;
-  
-  @SuppressWarnings("unused")
-  private final Vision vision;
+    private final SubsystemRegistry subsystemRegistry = new SubsystemRegistry();
+    private final Drive drive;
+    private final AutoChooser autoChooser;
 
-  public RobotContainer() {
-    drive = createDrive();
-    autoChooser = new Autos(drive).createChooser();
-    vision = Vision.fromCameraConstants(
-        this::acceptVisionMeasurement,
-        this::seedPoseFromVision,
-        drive::getFieldGyroRotation3d,
-        drive::getRawGyroVelocityRadPerSec,
-        drive::getPose);
-    SmartDashboard.putData("Auto Chooser", autoChooser);
-    configureBindings();
-  }
+    @SuppressWarnings("unused")
+    private final Turret turret;
 
-  private Drive createDrive() {
-    return switch (RobotConstants.getRobotMode()) {
-      case REAL -> new Drive(
-          new GyroIOPigeon2(),
-          new ModuleIOTalonFX(TunerConstants.FrontLeft),
-          new ModuleIOTalonFX(TunerConstants.FrontRight),
-          new ModuleIOTalonFX(TunerConstants.BackLeft),
-          new ModuleIOTalonFX(TunerConstants.BackRight));
-      case SIMULATION, REPLAY -> new Drive(
-          new GyroIOSim(),
-          new ModuleIOSim(TunerConstants.FrontLeft),
-          new ModuleIOSim(TunerConstants.FrontRight),
-          new ModuleIOSim(TunerConstants.BackLeft),
-          new ModuleIOSim(TunerConstants.BackRight));
-    };
-  }
+    @SuppressWarnings("unused")
+    private final Vision vision;
 
-  private void acceptVisionMeasurement(PoseEstimation observation) {
-    drive.addVisionMeasurement(observation.pose().toPose2d(), observation.timestamp().in(Seconds), observation.stddev());
-  }
+    public RobotContainer() {
+        drive = subsystemRegistry.register(createDrive());
+        turret = subsystemRegistry.register(createTurret());
+        vision = subsystemRegistry.register(Vision.fromCameraConstants(
+                this::acceptVisionMeasurement,
+                this::seedPoseFromVision,
+                drive::getFieldGyroRotation3d,
+                drive::getRawGyroVelocityRadPerSec,
+                drive::getPose));
+        autoChooser = new Autos(subsystemRegistry).createChooser();
+        SmartDashboard.putData("Auto Chooser", autoChooser);
+        configureBindings();
+    }
 
-  private void seedPoseFromVision(PoseEstimation observation) {
-    drive.setPose(observation.pose().toPose2d());
-  }
+    private Drive createDrive() {
+        return switch (RobotConstants.getRobotMode()) {
+            case REAL -> new Drive(
+                    new GyroIOPigeon2(),
+                    new ModuleIOTalonFX(TunerConstants.FrontLeft),
+                    new ModuleIOTalonFX(TunerConstants.FrontRight),
+                    new ModuleIOTalonFX(TunerConstants.BackLeft),
+                    new ModuleIOTalonFX(TunerConstants.BackRight));
+            case SIMULATION, REPLAY -> new Drive(
+                    new GyroIOSim(),
+                    new ModuleIOSim(TunerConstants.FrontLeft),
+                    new ModuleIOSim(TunerConstants.FrontRight),
+                    new ModuleIOSim(TunerConstants.BackLeft),
+                    new ModuleIOSim(TunerConstants.BackRight));
+        };
+    }
 
-  private void configureBindings() {}
+    private Turret createTurret() {
+        return switch (RobotConstants.getRobotMode()) {
+            case REAL -> new Turret(new TurretIOReal());
+            case SIMULATION, REPLAY -> new Turret(new TurretIOSim());
+        };
+    }
 
-  public Command getAutonomousCommand() {
-    return autoChooser.selectedCommand();
-  }
+    private void acceptVisionMeasurement(PoseEstimation observation) {
+        drive.addVisionMeasurement(observation.pose().toPose2d(), observation.timestamp().in(Seconds),
+                observation.stddev());
+    }
+
+    private void seedPoseFromVision(PoseEstimation observation) {
+        drive.setPose(observation.pose().toPose2d());
+    }
+
+    private void configureBindings() {
+    }
+
+    public Command getAutonomousCommand() {
+        return autoChooser.selectedCommand();
+    }
+
+    public <T extends Subsystem> Optional<T> getSubsystem(Class<T> type) {
+        return subsystemRegistry.get(type);
+    }
+
+    public <T extends Subsystem> T requireSubsystem(Class<T> type) {
+        return subsystemRegistry.require(type);
+    }
 }
