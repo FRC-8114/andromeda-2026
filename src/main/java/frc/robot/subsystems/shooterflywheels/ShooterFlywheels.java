@@ -15,13 +15,13 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
 public class ShooterFlywheels extends SubsystemBase {
     private static class Constants {
-        static final double flywheelToleranceRPM = 50;
+        static final double FLYWHEEL_TOLERANCE_RPM = 50.0;
     }
 
     private final ShooterFlywheelsIO io;
     private final ShooterInputsAutoLogged inputs = new ShooterInputsAutoLogged();
 
-    private AngularVelocity targetVelocity;
+    private AngularVelocity targetVelocity = RPM.of(0.0);
     
     private static final LoggedNetworkNumber tuneVelocity = new LoggedNetworkNumber("Tuning/TuneShooterVelocityRPM", 2000);
     
@@ -33,10 +33,14 @@ public class ShooterFlywheels extends SubsystemBase {
         sysId = new SysIdRoutine(
                 new SysIdRoutine.Config(
                         null, null, null,
-                        (state) -> Logger.recordOutput("Shooter/SysIdState", state.toString())),
+                        (state) -> Logger.recordOutput("ShooterFlywheels/SysIdState", state.toString())),
                 new SysIdRoutine.Mechanism(
                         (voltage) -> io.runVolts(voltage),
                         null, this));
+    }
+
+    private boolean isWheelAtSpeed(double velocityRpm) {
+        return RPM.of(velocityRpm).isNear(targetVelocity, Constants.FLYWHEEL_TOLERANCE_RPM);
     }
 
     public double getAverageFlywheelRPMs() {
@@ -46,15 +50,24 @@ public class ShooterFlywheels extends SubsystemBase {
     @Override
     public void periodic() {
         io.updateInputs(inputs);
-        Logger.processInputs("Shooter", inputs);
+        Logger.processInputs("ShooterFlywheels", inputs);
+        Logger.recordOutput("ShooterFlywheels/TargetRPM", targetVelocity.in(RPM));
+        Logger.recordOutput("ShooterFlywheels/AtSpeed", atSpeed.getAsBoolean());
     }
 
-    public Trigger atSpeed = new Trigger(() -> RPM.of(inputs.leftFlywheelRPMs).isNear(targetVelocity, Constants.flywheelToleranceRPM));
+    public final Trigger atSpeed = new Trigger(
+            () -> isWheelAtSpeed(inputs.leftFlywheelRPMs) && isWheelAtSpeed(inputs.rightFlywheelRPMs));
 
     public Command runFlywheelsTunableVelocity() {
         return runEnd(
-            () -> io.setFlywheelVelocity(RPM.of(tuneVelocity.get())),
-            () -> io.stopFlywheels());
+            () -> {
+                targetVelocity = RPM.of(tuneVelocity.get());
+                io.setFlywheelVelocity(targetVelocity);
+            },
+            () -> {
+                targetVelocity = RPM.of(0.0);
+                io.stopFlywheels();
+            });
     }
 
     public Command runFlywheels(AngularVelocity target) {
@@ -62,7 +75,10 @@ public class ShooterFlywheels extends SubsystemBase {
 
         return runEnd(
                 () -> io.setFlywheelVelocity(target),
-                () -> io.stopFlywheels());
+                () -> {
+                    targetVelocity = RPM.of(0.0);
+                    io.stopFlywheels();
+                });
     }
     public Command runFlywheels(Supplier<AngularVelocity> target) {
         return runEnd(
@@ -70,11 +86,17 @@ public class ShooterFlywheels extends SubsystemBase {
                     targetVelocity = target.get();
                     io.setFlywheelVelocity(targetVelocity);
                 },
-                () -> io.stopFlywheels());
+                () -> {
+                    targetVelocity = RPM.of(0.0);
+                    io.stopFlywheels();
+                });
     }
 
     public Command stopFlywheels() {
-        return runOnce(() -> io.stopFlywheels());
+        return runOnce(() -> {
+            targetVelocity = RPM.of(0.0);
+            io.stopFlywheels();
+        });
     }
 
     public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
