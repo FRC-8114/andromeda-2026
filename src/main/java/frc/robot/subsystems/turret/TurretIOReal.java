@@ -102,8 +102,6 @@ public class TurretIOReal implements TurretIO {
 
     private int reseedCounter = 0;
 
-    private final StatusSignal<Angle> positionSignal = pivotMotor.getPosition();
-
     public TurretIOReal() {
         turret19TEncoder.getConfigurator().apply(Constants.encoder1Cfg);
         turret21TEncoder.getConfigurator().apply(Constants.encoder2Cfg);
