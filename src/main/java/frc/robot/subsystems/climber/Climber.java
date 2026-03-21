@@ -12,13 +12,14 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Climber extends SubsystemBase {
-    private static class Constants {
+    public static class Constants {
         // drum diameter: 0.787in
         public static final double STOW_ROTATIONS = 0;
         public static final double DEPLOY_ROTATIONS = 3.023;
         public static final double CLIMB_ROTATIONS = 1.511;
 
         static final double rotationTolerance = 0.03;
+        static final double moveTimeoutSecs = 4.0;
     }
 
     private enum ClimbState {
@@ -35,7 +36,8 @@ public class Climber extends SubsystemBase {
 
     private Command goToRotations(double goalRotations) {
         return run(() -> io.setPosition(goalRotations))
-            .until(() -> MathUtil.isNear(goalRotations, inputs.rotations, Constants.rotationTolerance));
+            .until(() -> MathUtil.isNear(goalRotations, inputs.rotations, Constants.rotationTolerance))
+            .withTimeout(Constants.moveTimeoutSecs);
     }
 
     public Command deploy() {

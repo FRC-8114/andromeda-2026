@@ -15,13 +15,14 @@ public class Indexer extends SubsystemBase {
     private static final AngularVelocity indexerVelocityTolerance = RPM.of(100);
 
     private static final AngularVelocity indexerVelocity = RPM.of(900);
+    private static final double feedTimeoutSecs = 2.0;
 
     private final IndexerIO io;
     private final IndexerInputsAutoLogged inputs = new IndexerInputsAutoLogged();
 
     private SysIdRoutine sysId;
 
-    private final LoggedNetworkNumber tuneIndexerVelocity = new LoggedNetworkNumber("Tuning/IndexerVelocityRPM");
+    private final LoggedNetworkNumber tuneIndexerVelocity = new LoggedNetworkNumber("Tuning/IndexerVelocityRPM", indexerVelocity.in(RPM));
 
     public Indexer(IndexerIO io) {
         this.io = io;
@@ -29,7 +30,7 @@ public class Indexer extends SubsystemBase {
         sysId = new SysIdRoutine(
                 new SysIdRoutine.Config(
                         null, null, null,
-                        (state) -> Logger.recordOutput("HopperLane/SysIdState", state.toString())),
+                        (state) -> Logger.recordOutput("Indexer/SysIdState", state.toString())),
                 new SysIdRoutine.Mechanism(
                         (voltage) -> io.runVolts(voltage), null, this));
     }
@@ -37,7 +38,8 @@ public class Indexer extends SubsystemBase {
     public Command feed() {
         return runEnd(
                 () -> io.setVelocity(indexerVelocity),
-                io::stopMotor);
+                io::stopMotor)
+                .withTimeout(feedTimeoutSecs);
     }
 
     public final Trigger atSpeed = new Trigger(
@@ -65,5 +67,6 @@ public class Indexer extends SubsystemBase {
     public void periodic() {
         io.updateInputs(inputs);
         Logger.processInputs("Indexer", inputs);
+        Logger.recordOutput("Indexer/AtSpeed", atSpeed.getAsBoolean());
     }
 }

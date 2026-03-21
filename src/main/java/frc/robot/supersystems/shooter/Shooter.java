@@ -19,6 +19,8 @@ import frc.robot.subsystems.turretloader.TurretLoader;
 import frc.robot.util.AllianceFlipUtil;
 
 public class Shooter extends SubsystemBase {
+    private static final double READY_TIMEOUT_SECONDS = 2.0;
+
     private final Turret turret;
     private final ShooterFlywheels flywheels;
     private final ShooterPitch shooterPitch;
@@ -79,6 +81,7 @@ public class Shooter extends SubsystemBase {
         ShotSolution shotSolution = getShotSolution();
         return flywheels.atSpeed.getAsBoolean()
                 && turretLoader.atSpeed.getAsBoolean()
+                && indexer.atSpeed.getAsBoolean()
                 && shooterPitch.isAtAngle(shotSolution.pitch())
                 && turret.isAtAngle(shotSolution.turretYaw());
     }
@@ -102,13 +105,16 @@ public class Shooter extends SubsystemBase {
     public Command shoot() {
         return Commands.sequence(
                 Commands.deadline(
-                        Commands.waitUntil(this::isReadyToShoot),
+                        Commands.waitUntil(this::isReadyToShoot).withTimeout(READY_TIMEOUT_SECONDS),
                         prepareToShoot()),
-                Commands.parallel(
-                        aimAtGoal(),
-                        spinUp(),
-                        spinUpTurretLanes(),
-                        runIndexerLanes()));
+                Commands.either(
+                        Commands.parallel(
+                                aimAtGoal(),
+                                spinUp(),
+                                spinUpTurretLanes(),
+                                runIndexerLanes()),
+                        Commands.none(),
+                        this::isReadyToShoot));
     }
 
     @Override
@@ -117,5 +123,11 @@ public class Shooter extends SubsystemBase {
         Logger.recordOutput("ShooterSupersystem/TargetRPM", shotSolution.rpm().baseUnitMagnitude());
         Logger.recordOutput("ShooterSupersystem/TargetPitchRad", shotSolution.pitch().baseUnitMagnitude());
         Logger.recordOutput("ShooterSupersystem/TargetTurretYawRad", shotSolution.turretYaw().baseUnitMagnitude());
+        Logger.recordOutput("ShooterSupersystem/FlywheelsReady", flywheels.atSpeed.getAsBoolean());
+        Logger.recordOutput("ShooterSupersystem/TurretLoaderReady", turretLoader.atSpeed.getAsBoolean());
+        Logger.recordOutput("ShooterSupersystem/IndexerReady", indexer.atSpeed.getAsBoolean());
+        Logger.recordOutput("ShooterSupersystem/PitchReady", shooterPitch.isAtAngle(shotSolution.pitch()));
+        Logger.recordOutput("ShooterSupersystem/TurretReady", turret.isAtAngle(shotSolution.turretYaw()));
+        Logger.recordOutput("ShooterSupersystem/ReadyToShoot", isReadyToShoot());
     }
 }

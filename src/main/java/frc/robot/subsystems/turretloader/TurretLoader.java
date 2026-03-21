@@ -34,7 +34,7 @@ public class TurretLoader extends SubsystemBase {
         sysId = new SysIdRoutine(
                 new SysIdRoutine.Config(
                         null, null, null,
-                        (state) -> Logger.recordOutput("TurretLane/SysIdState", state.toString())),
+                        (state) -> Logger.recordOutput("TurretLoader/SysIdState", state.toString())),
                 new SysIdRoutine.Mechanism(
                         (voltage) -> io.runVolts(voltage), null, this));
     }
@@ -92,5 +92,6 @@ public class TurretLoader extends SubsystemBase {
     public void periodic() {
         io.updateInputs(inputs);
         Logger.processInputs("TurretLoader", inputs);
+        Logger.recordOutput("TurretLoader/AtSpeed", atSpeed.getAsBoolean());
     }
 }

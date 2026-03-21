@@ -18,8 +18,11 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 public class IntakePivot extends SubsystemBase {
     public static final Angle stowAngle = Radians.of(1.98);
     public static final Angle deployAngle = Rotations.of(0.05);
-    private static final Angle angleTolerance = Degrees.of(12);
 
+    private static final Angle angleTolerance = Degrees.of(5);
+    private static final Angle kickReleaseAngle = Degrees.of(18);
+    private static final double kickVoltage = -2.5;
+    private static final double holdDeployVoltage = 0.2;
     private IntakePivotIO io;
     private final IntakePivotInputsAutoLogged inputs = new IntakePivotInputsAutoLogged();
 
@@ -41,25 +44,25 @@ public class IntakePivot extends SubsystemBase {
 
     public Command periodicPulse() {
         return Commands.repeatingSequence(
-                run(() -> io.runVolts(Volts.of(0.1))),
-                Commands.waitTime(Seconds.of(0.25)),
-                deploy(),
-                Commands.waitTime(Seconds.of(1))
-        )
-                .finallyDo(this::deploy);
+                run(() -> io.runVolts(Volts.of(0.1))).withTimeout(0.25),
+                deploy().withTimeout(1.0),
+                Commands.waitTime(Seconds.of(1.0)))
+                .finallyDo(() -> io.setTarget(deployAngle));
     }
 
     public Command deploy() {
-        return run(() -> io.runVolts(Volts.of(-2.5)));
+        return run(() -> io.setTarget(deployAngle));
     }
 
     public Command deployWithKick() {
-        return Commands.repeatingSequence(run(() -> io.runVolts(Volts.of(-2.5))).withTimeout(2),
-                run(() -> io.runVolts(Volts.of(0.2)))).withTimeout(0.3);
+        return Commands.sequence(
+                run(() -> io.runVolts(Volts.of(kickVoltage))).until(() -> Radians.of(inputs.positionRads).lte(kickReleaseAngle)),
+                run(() -> io.runVolts(Volts.of(holdDeployVoltage))).withTimeout(0.2),
+                deploy());
     }
 
     public Command stow() {
-        return run(() -> io.runVolts(Volts.of(4)))
+        return run(() -> io.setTarget(stowAngle))
                 .until(isStowed);
     }
 
@@ -77,5 +80,7 @@ public class IntakePivot extends SubsystemBase {
     public void periodic() {
         io.updateInputs(inputs);
         Logger.processInputs("IntakePivot", inputs);
+        Logger.recordOutput("IntakePivot/IsDeployed", isDeployed.getAsBoolean());
+        Logger.recordOutput("IntakePivot/IsStowed", isStowed.getAsBoolean());
     }
 }

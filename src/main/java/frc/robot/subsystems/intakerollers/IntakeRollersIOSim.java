@@ -52,7 +52,7 @@ public class IntakeRollersIOSim implements IntakeRollersIO {
 
     @Override
     public void stopRollers() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'stopRollers'");
+        rollerClosedLoop = false;
+        rollerAppliedVolts = 0.0;
     }
 }

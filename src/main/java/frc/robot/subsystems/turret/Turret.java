@@ -44,8 +44,6 @@ public class Turret extends SubsystemBase implements SysIDMechanism {
                 new SysIdRoutine.Mechanism(
                         (voltage) -> pivotMotor.setVoltage(voltage.in(Volts)), null, this));
 
-        setDefaultCommand(setAngle(Degrees.of(180)));
-
     }
 
     public static Angle normalizeAngle(Angle angle) {

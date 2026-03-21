@@ -2,6 +2,8 @@ package frc.robot.subsystems.shooterpitch;
 
 import static edu.wpi.first.units.Units.Degree;
 import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Radians;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 
 import java.util.function.Supplier;
@@ -20,10 +22,12 @@ public class ShooterPitch extends SubsystemBase {
     }
 
     private static final Angle ANGLE_TOLERANCE = Degrees.of(1);
+    private static final double READY_VELOCITY_TOLERANCE_RAD_PER_SEC = Math.toRadians(5.0);
 
     private final ShooterPitchIO pitchMotor;
     private final ShooterPitchInputsAutoLogged inputs = new ShooterPitchInputsAutoLogged();
     private final SysIdRoutine sysId;
+    private Angle targetAngle = Constants.MIN_ANGLE;
 
     // private final LoggedNetworkNumber angle = new LoggedNetworkNumber("Tuning/ShooterPitch", Constants.MIN_ANGLE.in(Degrees));
 
@@ -42,22 +46,37 @@ public class ShooterPitch extends SubsystemBase {
         return inputs.pitchPosition;
     }
 
+    private Angle getPitchPosition() {
+        return Radians.of(inputs.pitchPosition);
+    }
+
     @Override
     public void periodic() {
         pitchMotor.updateInputs(inputs);
         Logger.processInputs("ShooterPitch", inputs);
+        Logger.recordOutput("ShooterPitch/CurrentAngleRad", getPitchPosition().in(Radians));
+        Logger.recordOutput("ShooterPitch/TargetAngleRad", targetAngle.in(Radians));
+        Logger.recordOutput("ShooterPitch/AtAngle", isAtAngle(targetAngle));
     }
 
     public boolean isAtAngle(Angle target) {
-        return target.isNear(Degrees.of(inputs.pitchPosition), ANGLE_TOLERANCE);
+        return target.isNear(getPitchPosition(), ANGLE_TOLERANCE)
+                && Math.abs(inputs.velocityRadsPerSec) <= READY_VELOCITY_TOLERANCE_RAD_PER_SEC;
     }
 
     public Command setAngle(Angle pitchAngle) {
-        return run(() -> pitchMotor.setTarget(pitchAngle));
+        return run(() -> {
+            targetAngle = pitchAngle;
+            pitchMotor.setTarget(pitchAngle);
+        });
     }
 
     public Command followAngle(Supplier<Angle> pitchAngle) {
-        return run(() -> pitchMotor.setTarget(pitchAngle.get()));
+        return run(() -> {
+            Angle target = pitchAngle.get();
+            targetAngle = target;
+            pitchMotor.setTarget(target);
+        });
     }
 
     public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {

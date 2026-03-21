@@ -5,7 +5,9 @@ import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.Volts;
 
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
+import com.ctre.phoenix6.configs.SoftwareLimitSwitchConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.PositionVoltage;
@@ -31,7 +33,17 @@ public class ClimberIOReal implements ClimberIO {
                 .withSensorToMechanismRatio(gearRatio);
         public static final TalonFXConfiguration climbMotorCfg = new TalonFXConfiguration()
                 .withSlot0(climbMotorPIDs)
-                .withFeedback(feedbackConfig);
+                .withFeedback(feedbackConfig)
+                .withSoftwareLimitSwitch(new SoftwareLimitSwitchConfigs()
+                        .withForwardSoftLimitEnable(true)
+                        .withForwardSoftLimitThreshold(Rotations.of(Climber.Constants.DEPLOY_ROTATIONS))
+                        .withReverseSoftLimitEnable(true)
+                        .withReverseSoftLimitThreshold(Rotations.of(Climber.Constants.STOW_ROTATIONS)))
+                .withCurrentLimits(new CurrentLimitsConfigs()
+                        .withStatorCurrentLimit(80)
+                        .withStatorCurrentLimitEnable(true)
+                        .withSupplyCurrentLimit(40)
+                        .withSupplyCurrentLimitEnable(true));
     }
 
     private static final TalonFX climbMotor = new TalonFX(Constants.climbMotorID, RobotConstants.canBus);

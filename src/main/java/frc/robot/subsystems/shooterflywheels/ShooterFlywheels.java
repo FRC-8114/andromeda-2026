@@ -2,6 +2,7 @@ package frc.robot.subsystems.shooterflywheels;
 
 import static edu.wpi.first.units.Units.RPM;
 
+import java.util.List;
 import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.Logger;
@@ -12,8 +13,9 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.util.SysIDMechanism;
 
-public class ShooterFlywheels extends SubsystemBase {
+public class ShooterFlywheels extends SubsystemBase implements SysIDMechanism {
     private static class Constants {
         static final double FLYWHEEL_TOLERANCE_RPM = 50.0;
     }
@@ -71,10 +73,11 @@ public class ShooterFlywheels extends SubsystemBase {
     }
 
     public Command runFlywheels(AngularVelocity target) {
-        targetVelocity = target;
-
         return runEnd(
-                () -> io.setFlywheelVelocity(target),
+                () -> {
+                    targetVelocity = target;
+                    io.setFlywheelVelocity(target);
+                },
                 () -> {
                     targetVelocity = RPM.of(0.0);
                     io.stopFlywheels();
@@ -105,5 +108,10 @@ public class ShooterFlywheels extends SubsystemBase {
 
     public Command sysIdDynamic(SysIdRoutine.Direction direction) {
         return sysId.dynamic(direction);
+    }
+
+    @Override
+    public List<SysIDMechanism.NamedMechanism> sysIdMechanisms() {
+        return List.of(SysIDMechanism.named("Shooter Flywheels", this::sysIdDynamic, this::sysIdQuasistatic));
     }
 }

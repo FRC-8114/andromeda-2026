@@ -15,6 +15,7 @@ import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.ClosedLoopGeneralConfigs;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.MagnetSensorConfigs;
+import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.SoftwareLimitSwitchConfigs;
@@ -25,6 +26,7 @@ import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.ParentDevice;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 import com.ctre.phoenix6.signals.StaticFeedforwardSignValue;
 
@@ -98,10 +100,14 @@ public class TurretIOReal implements TurretIO {
                 .withReverseSoftLimitThreshold(Turret.Constants.MIN_ANGLE)
                 .withReverseSoftLimitEnable(true);
 
+        private static final MotorOutputConfigs PIVOT_MOTOR_OUTPUT_CONFIG = new MotorOutputConfigs()
+                .withNeutralMode(NeutralModeValue.Brake);
+
         private static final TalonFXConfiguration PIVOT_MOTOR_CONFIG = new TalonFXConfiguration()
                 .withSlot0(PIVOT_PID_CONFIG)
                 .withClosedLoopGeneral(new ClosedLoopGeneralConfigs().withContinuousWrap(false))
                 .withMotionMagic(PIVOT_MOTION_MAGIC_CONFIG)
+                .withMotorOutput(PIVOT_MOTOR_OUTPUT_CONFIG)
                 .withSoftwareLimitSwitch(PIVOT_SOFTWARE_LIMITS)
                 .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(CANConfiguration.MOTOR_TO_TURRET_RATIO));
 

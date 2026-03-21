@@ -64,13 +64,13 @@ public class TurretLoaderIOSim implements TurretLoaderIO {
 
     @Override
     public void runTorqueCurrent(Current torque) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'runTorqueCurrent'");
+        closedLoop = false;
+        appliedVolts = MathUtil.clamp(torque.baseUnitMagnitude() * 0.1, -12.0, 12.0);
     }
 
     @Override
     public void runDutyCycle() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'runDutyCycle'");
+        closedLoop = false;
+        appliedVolts = 12.0;
     }
 }
