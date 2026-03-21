@@ -2,6 +2,7 @@ package frc.robot.subsystems.turret;
 
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Radians;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
@@ -20,7 +21,8 @@ import frc.robot.util.SysIDMechanism;
 
 public class Turret extends SubsystemBase implements SysIDMechanism {
     public static class Constants {
-        private static final Angle ANGLE_TOLERANCE = Degrees.of(1);
+        private static final Angle CONTROL_TOLERANCE = Degrees.of(1.5);
+        private static final double READY_VELOCITY_TOLERANCE_RAD_PER_SEC = Math.toRadians(8.0);
 
         // The reachable travel range wraps around +X, so robot-relative zero lies in
         // the deadzone.
@@ -125,11 +127,14 @@ public class Turret extends SubsystemBase implements SysIDMechanism {
     private void commandTarget(Angle target) {
         Angle normalizedTarget = normalizeAngle(target);
         Angle resolvedTarget = getResolvedTargetAngle(normalizedTarget);
+        double error = Math.abs(calculateTravelErrorRadians(getTurretPosition(), resolvedTarget));
+
         Logger.recordOutput("Turret/RequestedTargetRad", normalizedTarget.in(Radians));
         Logger.recordOutput("Turret/ResolvedTargetRad", resolvedTarget.in(Radians));
         Logger.recordOutput("Turret/RequestedTargetInDeadzone", !isWithinTravelRange(normalizedTarget));
+        Logger.recordOutput("Turret/TargetErrorRad", error);
         
-        if (!isAtAngle(target)) {
+        if (error > Constants.CONTROL_TOLERANCE.in(Radians)) {
             pivotMotor.setTarget(resolvedTarget);
         } else {
             pivotMotor.setVoltage(0);
@@ -145,7 +150,8 @@ public class Turret extends SubsystemBase implements SysIDMechanism {
 
     public boolean isAtAngle(Angle target) {
         double error = calculateTravelErrorRadians(getTurretPosition(), getResolvedTargetAngle(target));
-        return Math.abs(error) <= Constants.ANGLE_TOLERANCE.in(Radians);
+        return Math.abs(error) <= Constants.CONTROL_TOLERANCE.in(Radians)
+                && Math.abs(inputs.turretVelocity.in(RadiansPerSecond)) <= Constants.READY_VELOCITY_TOLERANCE_RAD_PER_SEC;
     }
 
     public Command setAngle(Angle angle) {
@@ -154,10 +160,6 @@ public class Turret extends SubsystemBase implements SysIDMechanism {
 
     public Command followAngle(Supplier<Angle> angle) {
         return run(() -> commandTarget(angle.get()));
-    }
-
-    private boolean isOutOfBounds() {
-        return !isWithinTravelRange(getTurretPosition());
     }
 
     public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {

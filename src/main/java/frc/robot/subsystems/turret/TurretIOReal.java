@@ -6,6 +6,10 @@ import static edu.wpi.first.units.Units.RadiansPerSecond;
 
 import java.util.Optional;
 
+import org.littletonrobotics.junction.Logger;
+
+import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.ClosedLoopGeneralConfigs;
@@ -19,6 +23,7 @@ import com.ctre.phoenix6.controls.PositionTorqueCurrentFOC;
 import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.CANcoder;
+import com.ctre.phoenix6.hardware.ParentDevice;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 import com.ctre.phoenix6.signals.StaticFeedforwardSignValue;
@@ -27,113 +32,152 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.MedianFilter;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Current;
+import edu.wpi.first.units.measure.Voltage;
 import frc.robot.RobotConstants;
 
 public class TurretIOReal implements TurretIO {
-    private static class Constants {
-        public static final int pivotMotorID = 32;
+    private static class CANConfiguration {
+        private static final int PIVOT_MOTOR_ID = 32;
+        private static final int ENCODER_19T_ID = 33;
+        private static final int ENCODER_21T_ID = 34;
 
-        // The turret encoder CANCoder which has the 19T gear
-        public static final int encoder19TID = 33;
-        // the turret encoder which has the 21T gear
-        public static final int encoder21TID = 34;
+        private static final double ENCODER_19T_OFFSET = -0.684326171875;
+        private static final double ENCODER_21T_OFFSET = -0.70166015625;
 
-        private static final double encoder19TOffset = -0.684326171875;
-        private static final double encoder21TOffset = -0.70166015625;
+        private static final double MOTOR_TO_TURRET_RATIO = 10.0;
+    }
 
-        public static final double RESEED_ERROR_THRESHOLD = Math.toRadians(4);
-        public static final double STATIONARY_VELOCITY_THRESHOLD = Math.toRadians(5);
-        public static final int RESEED_SAMPLE_COUNT = 10;
-        public static final int CRT_MEDIAN_TAPS = 5;
+    private static class Reseed {
+        private static final Angle POSITION_ERROR_THRESHOLD = Degrees.of(4.0);
+        private static final AngularVelocity STATIONARY_VELOCITY_THRESHOLD = RadiansPerSecond.of(Math.toRadians(5.0));
+        private static final int REQUIRED_SAMPLES = 10;
+        private static final int CRT_MEDIAN_TAPS = 5;
+        private static final Angle DEFAULT_ANGLE = Degrees.of(0.0);
+    }
 
-        private static final Angle DEFAULT_ANGLE = Degrees.of(0);
+    private static class CRT {
+        private static final long ENCODER_19T_TEETH = 19L;
+        private static final long ENCODER_21T_TEETH = 21L;
+        private static final long ENCODER_19T_WRAP = 21L * 10L;
+        private static final long ENCODER_21T_WRAP = 19L * 10L;
+        private static final long TURRET_GEAR_TEETH = 200L;
+        private static final long CRT_MODULUS = 399L;
+    }
 
-        private static final MagnetSensorConfigs magnetConfig = new MagnetSensorConfigs()
-                .withMagnetOffset(encoder19TOffset)
+    private static class Control {
+        private static final MagnetSensorConfigs ENCODER_19T_MAGNET_CONFIG = new MagnetSensorConfigs()
+                .withMagnetOffset(CANConfiguration.ENCODER_19T_OFFSET)
                 .withSensorDirection(SensorDirectionValue.Clockwise_Positive)
                 .withAbsoluteSensorDiscontinuityPoint(1);
 
-        private static final MagnetSensorConfigs encoder2MagnetConfigs = new MagnetSensorConfigs()
-                .withMagnetOffset(encoder21TOffset)
+        private static final MagnetSensorConfigs ENCODER_21T_MAGNET_CONFIG = new MagnetSensorConfigs()
+                .withMagnetOffset(CANConfiguration.ENCODER_21T_OFFSET)
                 .withSensorDirection(SensorDirectionValue.Clockwise_Positive)
                 .withAbsoluteSensorDiscontinuityPoint(1);
 
-        public static final CANcoderConfiguration encoder1Cfg = new CANcoderConfiguration()
-                .withMagnetSensor(magnetConfig);
+        private static final CANcoderConfiguration ENCODER_19T_CONFIG = new CANcoderConfiguration()
+                .withMagnetSensor(ENCODER_19T_MAGNET_CONFIG);
 
-        public static final CANcoderConfiguration encoder2Cfg = new CANcoderConfiguration()
-                .withMagnetSensor(encoder2MagnetConfigs);
+        private static final CANcoderConfiguration ENCODER_21T_CONFIG = new CANcoderConfiguration()
+                .withMagnetSensor(ENCODER_21T_MAGNET_CONFIG);
 
-        private static final Slot0Configs pivotMotorPIDs = new Slot0Configs()
+        private static final Slot0Configs PIVOT_PID_CONFIG = new Slot0Configs()
                 .withKS(22.8)
-                .withKP(80)
+                .withKP(120)
                 .withKD(0)
                 .withStaticFeedforwardSign(StaticFeedforwardSignValue.UseClosedLoopSign);
 
-        private static final MotionMagicConfigs pivotMotionMagicConfigs = new MotionMagicConfigs()
+        private static final MotionMagicConfigs PIVOT_MOTION_MAGIC_CONFIG = new MotionMagicConfigs()
                 .withMotionMagicAcceleration(0.5)
                 .withMotionMagicCruiseVelocity(1);
 
-        private static final SoftwareLimitSwitchConfigs softwareLimits = new SoftwareLimitSwitchConfigs()
+        private static final SoftwareLimitSwitchConfigs PIVOT_SOFTWARE_LIMITS = new SoftwareLimitSwitchConfigs()
                 .withForwardSoftLimitThreshold(Turret.Constants.MAX_ANGLE)
                 .withForwardSoftLimitEnable(true)
                 .withReverseSoftLimitThreshold(Turret.Constants.MIN_ANGLE)
                 .withReverseSoftLimitEnable(true);
 
-        public static final TalonFXConfiguration pivotMotorCfg = new TalonFXConfiguration()
-                .withSlot0(pivotMotorPIDs)
+        private static final TalonFXConfiguration PIVOT_MOTOR_CONFIG = new TalonFXConfiguration()
+                .withSlot0(PIVOT_PID_CONFIG)
                 .withClosedLoopGeneral(new ClosedLoopGeneralConfigs().withContinuousWrap(false))
-                .withMotionMagic(pivotMotionMagicConfigs)
-                .withSoftwareLimitSwitch(softwareLimits)
-                .withFeedback(new FeedbackConfigs()
-                        .withSensorToMechanismRatio(10)); // 10 rotations of the motor for 1 rotation of the turret
+                .withMotionMagic(PIVOT_MOTION_MAGIC_CONFIG)
+                .withSoftwareLimitSwitch(PIVOT_SOFTWARE_LIMITS)
+                .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(CANConfiguration.MOTOR_TO_TURRET_RATIO));
+
+        private static final double SIGNAL_UPDATE_HZ = 50.0;
     }
 
-    private final TalonFX pivotMotor = new TalonFX(Constants.pivotMotorID, RobotConstants.canBus);
-    private final CANcoder turret19TEncoder = new CANcoder(Constants.encoder19TID, RobotConstants.canBus);
-    private final CANcoder turret21TEncoder = new CANcoder(Constants.encoder21TID, RobotConstants.canBus);
-    private final PositionTorqueCurrentFOC positionControl = new PositionTorqueCurrentFOC(0);
-    private final MedianFilter crtMedianFilter = new MedianFilter(Constants.CRT_MEDIAN_TAPS);
+    private final TalonFX pivotMotor = new TalonFX(CANConfiguration.PIVOT_MOTOR_ID, RobotConstants.canBus);
+    private final CANcoder encoder19T = new CANcoder(CANConfiguration.ENCODER_19T_ID, RobotConstants.canBus);
+    private final CANcoder encoder21T = new CANcoder(CANConfiguration.ENCODER_21T_ID, RobotConstants.canBus);
 
+    private final StatusSignal<Angle> pivotPosition = pivotMotor.getPosition();
+    private final StatusSignal<AngularVelocity> pivotVelocity = pivotMotor.getVelocity();
+    private final StatusSignal<Voltage> pivotMotorVoltage = pivotMotor.getMotorVoltage();
+    private final StatusSignal<Current> pivotTorqueCurrent = pivotMotor.getTorqueCurrent();
+    private final StatusSignal<Angle> encoder19TAbsolutePosition = encoder19T.getAbsolutePosition();
+    private final StatusSignal<Angle> encoder21TAbsolutePosition = encoder21T.getAbsolutePosition();
+
+    private final PositionTorqueCurrentFOC positionControl = new PositionTorqueCurrentFOC(0);
     private final VoltageOut voltageControl = new VoltageOut(0);
     private final TorqueCurrentFOC currentControl = new TorqueCurrentFOC(0);
+    private final MedianFilter crtMedianFilter = new MedianFilter(Reseed.CRT_MEDIAN_TAPS);
 
-    private Angle targetAngle = Constants.DEFAULT_ANGLE;
-
+    private Angle targetAngle = Reseed.DEFAULT_ANGLE;
     private int reseedCounter = 0;
 
     public TurretIOReal() {
-        turret19TEncoder.getConfigurator().apply(Constants.encoder1Cfg);
-        turret21TEncoder.getConfigurator().apply(Constants.encoder2Cfg);
-        pivotMotor.getConfigurator().apply(Constants.pivotMotorCfg);
+        applyConfiguration("Turret/Encoder19TConfigStatus", encoder19T.getConfigurator().apply(Control.ENCODER_19T_CONFIG));
+        applyConfiguration("Turret/Encoder21TConfigStatus", encoder21T.getConfigurator().apply(Control.ENCODER_21T_CONFIG));
+        applyConfiguration("Turret/PivotMotorConfigStatus", pivotMotor.getConfigurator().apply(Control.PIVOT_MOTOR_CONFIG));
+
+        BaseStatusSignal.setUpdateFrequencyForAll(
+                Control.SIGNAL_UPDATE_HZ,
+                pivotPosition,
+                pivotVelocity,
+                pivotMotorVoltage,
+                pivotTorqueCurrent,
+                encoder19TAbsolutePosition,
+                encoder21TAbsolutePosition);
+        ParentDevice.optimizeBusUtilizationForAll(pivotMotor, encoder19T, encoder21T);
+
+        BaseStatusSignal.refreshAll(pivotPosition, encoder19TAbsolutePosition, encoder21TAbsolutePosition);
 
         Angle initialAngle = getSeedAngle();
         targetAngle = initialAngle;
-
         reseedPosition(initialAngle);
     }
 
-    // chinese remainder theorem is simple, actually
-    private Angle getAbsoluteCrtAngle() {
-        double rawTeeth1 = turret19TEncoder.getAbsolutePosition().getValueAsDouble() * 19.0;
-        double rawTeeth2 = turret21TEncoder.getAbsolutePosition().getValueAsDouble() * 21.0;
-        long teeth1 = Math.round(rawTeeth1) % 19l;
-        long teeth2 = Math.round(rawTeeth2) % 21l;
-        long coarse = (teeth1 * 21l * 10l + teeth2 * 19l * 10l) % 399l;
-
-        double fraction = rawTeeth2 - Math.round(rawTeeth2);
-        double turretGearTeeth = coarse + fraction;
-
-        double angle0To2Pi = MathUtil.inputModulus(turretGearTeeth * ((2 * Math.PI) / 200.0), 0, Math.PI * 2);
-        return Radians.of(angle0To2Pi);
+    private void applyConfiguration(String key, StatusCode status) {
+        Logger.recordOutput(key, status.getName());
     }
 
-    private Angle seedAngleFromCRT(Angle crtAngle) {
+    private Angle getAbsoluteCrtAngle() {
+        double raw19TTeeth = encoder19TAbsolutePosition.getValueAsDouble() * CRT.ENCODER_19T_TEETH;
+        double raw21TTeeth = encoder21TAbsolutePosition.getValueAsDouble() * CRT.ENCODER_21T_TEETH;
+
+        long wrapped19TTeeth = Math.round(raw19TTeeth) % CRT.ENCODER_19T_TEETH;
+        long wrapped21TTeeth = Math.round(raw21TTeeth) % CRT.ENCODER_21T_TEETH;
+        long coarseTurretTeeth = (wrapped19TTeeth * CRT.ENCODER_19T_WRAP + wrapped21TTeeth * CRT.ENCODER_21T_WRAP)
+                % CRT.CRT_MODULUS;
+
+        double fractional21TTooth = raw21TTeeth - Math.round(raw21TTeeth);
+        double turretGearTeeth = coarseTurretTeeth + fractional21TTooth;
+        double turretAngleRadians = MathUtil.inputModulus(
+                turretGearTeeth * ((2.0 * Math.PI) / CRT.TURRET_GEAR_TEETH),
+                0.0,
+                2.0 * Math.PI);
+
+        return Radians.of(turretAngleRadians);
+    }
+
+    private Angle seedAngleFromCrt(Angle crtAngle) {
         return Turret.normalizeAngle(Radians.of(crtAngle.in(Radians) + Math.PI));
     }
 
     private Angle getSeedAngle() {
-        return seedAngleFromCRT(getAbsoluteCrtAngle());
+        return seedAngleFromCrt(getAbsoluteCrtAngle());
     }
 
     private void reseedPosition(Angle angle) {
@@ -141,67 +185,77 @@ public class TurretIOReal implements TurretIO {
     }
 
     private static boolean isWithinLimits(Angle angle) {
-        return angle.gte(Turret.Constants.MIN_ANGLE)
-                && angle.lte(Turret.Constants.MAX_ANGLE);
+        return angle.gte(Turret.Constants.MIN_ANGLE) && angle.lte(Turret.Constants.MAX_ANGLE);
     }
 
+    private Optional<Angle> getCrtFilteredAngle() {
+        double filteredRadians = crtMedianFilter.calculate(getSeedAngle().in(Radians));
+        if (!Double.isFinite(filteredRadians)) {
+            return Optional.empty();
+        }
+
+        return Optional.of(Radians.of(filteredRadians));
+    }
+
+    private boolean shouldReseed(Optional<Angle> crtAngle, Angle position, AngularVelocity velocity) {
+        if (crtAngle.isEmpty() || !isWithinLimits(crtAngle.get())) {
+            return false;
+        }
+
+        Angle positionError = crtAngle.get().minus(position);
+        return Math.abs(velocity.in(RadiansPerSecond)) <= Reseed.STATIONARY_VELOCITY_THRESHOLD.in(RadiansPerSecond)
+                && Math.abs(positionError.in(Radians)) >= Reseed.POSITION_ERROR_THRESHOLD.in(Radians);
+    }
+
+    private void updateReseedState(TurretIOInputs inputs, Optional<Angle> crtAngle, Angle position, AngularVelocity velocity) {
+        reseedCounter = shouldReseed(crtAngle, position, velocity) ? reseedCounter + 1 : 0;
+
+        if (reseedCounter >= Reseed.REQUIRED_SAMPLES && crtAngle.isPresent()) {
+            reseedPosition(crtAngle.get());
+            reseedCounter = 0;
+        }
+
+        inputs.motorPositionErrorCounter = reseedCounter;
+    }
+
+    @Override
     public void setTarget(Angle angle) {
         targetAngle = angle;
         pivotMotor.setControl(positionControl.withPosition(angle));
     }
 
+    @Override
     public void setVoltage(double volts) {
         pivotMotor.setControl(voltageControl.withOutput(volts));
     }
 
-    Optional<Angle> getCRTFilteredAngle() {
-        double crtPosition = getSeedAngle().in(Radians);
-        double filteredCrtPosition = crtMedianFilter.calculate(crtPosition);
-
-        if (!Double.isFinite(filteredCrtPosition)) {
-            return Optional.empty();
-        }
-
-        return Optional.of(Radians.of(filteredCrtPosition));
-    }
-
+    @Override
     public void updateInputs(TurretIOInputs inputs) {
-        Angle position = Turret.normalizeAngle(pivotMotor.getPosition().getValue());
-        AngularVelocity velocity = pivotMotor.getVelocity().getValue();
-        Optional<Angle> crtAngle = getCRTFilteredAngle();
-        boolean hasValidCrt = crtAngle.isPresent();
-        boolean crtInRange = hasValidCrt && isWithinLimits(crtAngle.get());
-        double positionError = hasValidCrt
-                ? crtAngle.get().minus(position).in(Radians)
-                : 0.0;
+        StatusCode signalStatus = BaseStatusSignal.refreshAll(
+                pivotPosition,
+                pivotVelocity,
+                pivotMotorVoltage,
+                pivotTorqueCurrent,
+                encoder19TAbsolutePosition,
+                encoder21TAbsolutePosition);
+
+        Angle position = Turret.normalizeAngle(pivotPosition.getValue());
+        AngularVelocity velocity = pivotVelocity.getValue();
+        Optional<Angle> crtAngle = getCrtFilteredAngle();
 
         inputs.goalPosition = targetAngle;
         inputs.currentTurretPosition = position;
-        inputs.crtTurretPosition = crtAngle.orElse(Degrees.of(0));
-
-        inputs.hasValidCRT = hasValidCrt;
+        inputs.crtTurretPosition = crtAngle.orElse(Degrees.of(0.0));
+        inputs.hasValidCRT = signalStatus.isOK() && crtAngle.isPresent();
         inputs.turretVelocity = velocity;
-        inputs.appliedVoltage = pivotMotor.getMotorVoltage().getValue();
+        inputs.appliedVoltage = pivotMotorVoltage.getValue();
+        inputs.appliedCurrent = pivotTorqueCurrent.getValue();
 
-        inputs.appliedCurrent = pivotMotor.getTorqueCurrent().getValue();
-
-        boolean shouldReseed = crtInRange
-                && Math.abs(velocity.in(RadiansPerSecond)) <= Constants.STATIONARY_VELOCITY_THRESHOLD
-                && Math.abs(positionError) >= Constants.RESEED_ERROR_THRESHOLD;
-
-        reseedCounter = shouldReseed ? reseedCounter + 1 : 0;
-        inputs.motorPositionErrorCounter = reseedCounter;
-
-        if (reseedCounter >= Constants.RESEED_SAMPLE_COUNT) {
-            reseedPosition(crtAngle.get());
-            reseedCounter = 0;
-            inputs.motorPositionErrorCounter = 0;
-        }
+        updateReseedState(inputs, crtAngle, position, velocity);
     }
 
     @Override
     public void setCurrent(double amps) {
         pivotMotor.setControl(currentControl.withOutput(amps));
     }
-
 }
