@@ -8,6 +8,7 @@ import static edu.wpi.first.units.Units.Seconds;
 
 import choreo.auto.AutoChooser;
 import edu.wpi.first.wpilibj2.command.Subsystem;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.auto.Autos;
@@ -90,7 +91,14 @@ public class RobotContainer {
         drive.setPose(observation.pose().toPose2d());
     }
 
+    private final CommandXboxController driverController = new CommandXboxController(0);
+
     private void configureBindings() {
+      drive.setDefaultCommand(
+                                drive.joystickDrive(
+                                                () -> -driverController.getLeftY(),
+                                                () -> -driverController.getLeftX(),
+                                                () -> -driverController.getRightX()));
     }
 
     public Command getAutonomousCommand() {

@@ -22,7 +22,8 @@ public class Turret extends SubsystemBase implements SysIDMechanism {
     public static class Constants {
         private static final Angle ANGLE_TOLERANCE = Degrees.of(1);
 
-        // The reachable travel range wraps around +X, so robot-relative zero lies in the deadzone.
+        // The reachable travel range wraps around +X, so robot-relative zero lies in
+        // the deadzone.
         public static final Angle MIN_ANGLE = Degrees.of(40);
         public static final Angle MAX_ANGLE = Radians.of(4.85);
     }
@@ -36,10 +37,12 @@ public class Turret extends SubsystemBase implements SysIDMechanism {
 
         sysId = new SysIdRoutine(
                 new SysIdRoutine.Config(
-                        Volts.of(0.5).per(Second), Volts.of(2.5), Seconds.of(12),
+                        Volts.of(0.5).per(Second), Volts.of(5), Seconds.of(12),
                         (state) -> Logger.recordOutput("Turret/SysIdState", state.toString())),
                 new SysIdRoutine.Mechanism(
-                        (voltage) -> pivotMotor.setCurrent(voltage.in(Volts)), null, this));
+                        (voltage) -> pivotMotor.setVoltage(voltage.in(Volts)), null, this));
+
+        setDefaultCommand(setAngle(Degrees.of(180)));
 
     }
 
@@ -125,7 +128,12 @@ public class Turret extends SubsystemBase implements SysIDMechanism {
         Logger.recordOutput("Turret/RequestedTargetRad", normalizedTarget.in(Radians));
         Logger.recordOutput("Turret/ResolvedTargetRad", resolvedTarget.in(Radians));
         Logger.recordOutput("Turret/RequestedTargetInDeadzone", !isWithinTravelRange(normalizedTarget));
-        pivotMotor.setTarget(resolvedTarget);
+        
+        if (!isAtAngle(target)) {
+            pivotMotor.setTarget(resolvedTarget);
+        } else {
+            pivotMotor.setVoltage(0);
+        }
     }
 
     @Override
@@ -156,7 +164,7 @@ public class Turret extends SubsystemBase implements SysIDMechanism {
         return run(() -> pivotMotor.setVoltage(0.0))
                 .withTimeout(1.0)
                 .andThen(sysId.quasistatic(direction)
-                        .until(this::isOutOfBounds)
+                        // .until(this::isOutOfBounds)
                         .finallyDo(() -> pivotMotor.setVoltage(0.0)));
     }
 
@@ -164,7 +172,7 @@ public class Turret extends SubsystemBase implements SysIDMechanism {
         return run(() -> pivotMotor.setVoltage(0.0))
                 .withTimeout(1.0)
                 .andThen(sysId.dynamic(direction)
-                        .until(this::isOutOfBounds)
+                        // .until(this::isOutOfBounds)
                         .finallyDo(() -> pivotMotor.setVoltage(0.0)));
     }
 

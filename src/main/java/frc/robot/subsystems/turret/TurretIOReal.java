@@ -6,6 +6,7 @@ import static edu.wpi.first.units.Units.RadiansPerSecond;
 
 import java.util.Optional;
 
+import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.ClosedLoopGeneralConfigs;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
@@ -20,6 +21,7 @@ import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
+import com.ctre.phoenix6.signals.StaticFeedforwardSignValue;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.MedianFilter;
@@ -36,8 +38,8 @@ public class TurretIOReal implements TurretIO {
         // the turret encoder which has the 21T gear
         public static final int encoder21TID = 34;
 
-        private static final double encoder19TOffset = -0.9248046875;
-        private static final double encoder21TOffset = -0.677490234375;
+        private static final double encoder19TOffset = -0.684326171875;
+        private static final double encoder21TOffset = -0.70166015625;
 
         public static final double RESEED_ERROR_THRESHOLD = Math.toRadians(4);
         public static final double STATIONARY_VELOCITY_THRESHOLD = Math.toRadians(5);
@@ -63,12 +65,10 @@ public class TurretIOReal implements TurretIO {
                 .withMagnetSensor(encoder2MagnetConfigs);
 
         private static final Slot0Configs pivotMotorPIDs = new Slot0Configs()
-                .withKS(1.1)
-                .withKV(0.1034)
-                .withKA(0)
-                .withKP(9.78)
-                .withKI(0.0)
-                .withKD(0.0);
+                .withKS(22.8)
+                .withKP(80)
+                .withKD(0)
+                .withStaticFeedforwardSign(StaticFeedforwardSignValue.UseClosedLoopSign);
 
         private static final MotionMagicConfigs pivotMotionMagicConfigs = new MotionMagicConfigs()
                 .withMotionMagicAcceleration(0.5)
@@ -92,15 +92,17 @@ public class TurretIOReal implements TurretIO {
     private final TalonFX pivotMotor = new TalonFX(Constants.pivotMotorID, RobotConstants.canBus);
     private final CANcoder turret19TEncoder = new CANcoder(Constants.encoder19TID, RobotConstants.canBus);
     private final CANcoder turret21TEncoder = new CANcoder(Constants.encoder21TID, RobotConstants.canBus);
-    private final PositionTorqueCurrentFOC control = new PositionTorqueCurrentFOC(0);
-    private final VoltageOut voltageControl = new VoltageOut(0);
+    private final PositionTorqueCurrentFOC positionControl = new PositionTorqueCurrentFOC(0);
     private final MedianFilter crtMedianFilter = new MedianFilter(Constants.CRT_MEDIAN_TAPS);
 
+    private final VoltageOut voltageControl = new VoltageOut(0);
     private final TorqueCurrentFOC currentControl = new TorqueCurrentFOC(0);
 
     private Angle targetAngle = Constants.DEFAULT_ANGLE;
 
     private int reseedCounter = 0;
+
+    private final StatusSignal<Angle> positionSignal = pivotMotor.getPosition();
 
     public TurretIOReal() {
         turret19TEncoder.getConfigurator().apply(Constants.encoder1Cfg);
@@ -147,7 +149,7 @@ public class TurretIOReal implements TurretIO {
 
     public void setTarget(Angle angle) {
         targetAngle = angle;
-        pivotMotor.setControl(control.withPosition(angle));
+        pivotMotor.setControl(positionControl.withPosition(angle));
     }
 
     public void setVoltage(double volts) {
@@ -183,6 +185,8 @@ public class TurretIOReal implements TurretIO {
         inputs.turretVelocity = velocity;
         inputs.appliedVoltage = pivotMotor.getMotorVoltage().getValue();
 
+        inputs.appliedCurrent = pivotMotor.getTorqueCurrent().getValue();
+
         boolean shouldReseed = crtInRange
                 && Math.abs(velocity.in(RadiansPerSecond)) <= Constants.STATIONARY_VELOCITY_THRESHOLD
                 && Math.abs(positionError) >= Constants.RESEED_ERROR_THRESHOLD;
@@ -199,7 +203,7 @@ public class TurretIOReal implements TurretIO {
 
     @Override
     public void setCurrent(double amps) {
-        currentControl.withOutput(amps);
+        pivotMotor.setControl(currentControl.withOutput(amps));
     }
 
 }

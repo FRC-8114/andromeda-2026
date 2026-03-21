@@ -13,12 +13,14 @@ import choreo.trajectory.SwerveSample;
 import edu.wpi.first.hal.FRCNetComm.tInstances;
 import edu.wpi.first.hal.FRCNetComm.tResourceType;
 import edu.wpi.first.hal.HAL;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -36,12 +38,15 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.RobotConstants;
 import frc.robot.RobotConstants.RobotMode;
 import frc.robot.generated.TunerConstants;
+import frc.robot.util.AllianceFlipUtil;
 import frc.robot.util.SysIDMechanism;
 import frc.robot.subsystems.vision.AngularVelocity3d;
 
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.DoubleSupplier;
+
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
@@ -54,6 +59,9 @@ public class Drive extends SubsystemBase implements SysIDMechanism {
         public static final double HOLONOMIC_TURN_KP = 10.0;
         public static final double HOLONOMIC_TURN_KI = 0.0;
         public static final double HOLONOMIC_TURN_KD = 0.0;
+
+        private static final double DEADBAND = 0.1;
+
     }
 
     // TunerConstants doesn't include these constants, so they are declared locally
@@ -301,7 +309,8 @@ public class Drive extends SubsystemBase implements SysIDMechanism {
         Logger.recordOutput("Drive/SysIdRotation/DriveAppliedVolts", getDriveAppliedVolts());
         Logger.recordOutput("Drive/SysIdRotation/DriveCurrentAmps", getDriveCurrentsAmps());
         Logger.recordOutput("Drive/SysIdRotation/YawPositionRad", getRawGyroYaw().getRadians());
-        Logger.recordOutput("Drive/SysIdRotation/YawVelocityRadPerSec", getRotationCharacterizationYawVelocityRadPerSec());
+        Logger.recordOutput("Drive/SysIdRotation/YawVelocityRadPerSec",
+                getRotationCharacterizationYawVelocityRadPerSec());
     }
 
     private double[] getDriveAppliedVolts() {
@@ -577,5 +586,47 @@ public class Drive extends SubsystemBase implements SysIDMechanism {
         Logger.recordOutput("Drive/TrajectorySetpointPose", sample.getPose());
         Logger.recordOutput("Drive/TrajectorySetpointSpeedsFieldRelative", sample.getChassisSpeeds());
         runVelocity(speeds);
+    }
+
+    private static Translation2d getLinearVelocityFromJoysticks(double x, double y) {
+        // Apply deadband
+        double linearMagnitude = MathUtil.applyDeadband(Math.hypot(x, y), Constants.DEADBAND);
+        Rotation2d linearDirection = new Rotation2d(Math.atan2(y, x));
+
+        // Square magnitude for more precise control
+        linearMagnitude = linearMagnitude * linearMagnitude;
+
+        // Return new linear velocity
+        return new Pose2d(Translation2d.kZero, linearDirection)
+                .transformBy(new Transform2d(linearMagnitude, 0.0, Rotation2d.kZero))
+                .getTranslation();
+    }
+
+    public Command joystickDrive(
+            DoubleSupplier xSupplier,
+            DoubleSupplier ySupplier,
+            DoubleSupplier omegaSupplier) {
+        return run(
+                () -> {
+                    // Get linear velocity
+                    Translation2d linearVelocity = getLinearVelocityFromJoysticks(xSupplier.getAsDouble(),
+                            ySupplier.getAsDouble());
+
+                    // Apply rotation deadband
+                    double omega = MathUtil.applyDeadband(omegaSupplier.getAsDouble(), Constants.DEADBAND);
+
+                    // Square rotation value for more precise control
+                    omega = Math.copySign(omega * omega, omega);
+
+                    // Convert to field relative speeds & send command
+                    ChassisSpeeds speeds = new ChassisSpeeds(
+                            linearVelocity.getX() * getMaxLinearSpeedMetersPerSec(),
+                            linearVelocity.getY() * getMaxLinearSpeedMetersPerSec(),
+                            omega * getMaxAngularSpeedRadPerSec());
+                    runVelocity(
+                            ChassisSpeeds.fromFieldRelativeSpeeds(
+                                    speeds,
+                                    AllianceFlipUtil.applyFieldRelative(getRotation())));
+                });
     }
 }
