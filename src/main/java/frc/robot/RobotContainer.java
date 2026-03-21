@@ -114,6 +114,7 @@ public class RobotContainer {
         drive = subsystemRegistry.register(createDrive());
         shooter = subsystemRegistry.register(
                 new Shooter(turret, flywheels, shooterPitch, turretLoader, indexer, drive));
+        turret.setDefaultCommand(shooter.autoAimTurret());
         vision = subsystemRegistry.register(Vision.fromCameraConstants(
                 this::acceptVisionMeasurement,
                 this::seedPoseFromVision,
@@ -156,13 +157,23 @@ public class RobotContainer {
     private final CommandXboxController driverController = new CommandXboxController(0);
 
     private void configureBindings() {
-      drive.setDefaultCommand(
-                                drive.joystickDrive(
-                                                () -> -driverController.getLeftY(),
-                                                () -> -driverController.getLeftX(),
-                                                () -> -driverController.getRightX()));
+        drive.setDefaultCommand(
+                drive.joystickDrive(
+                        () -> -driverController.getLeftY(),
+                        () -> -driverController.getLeftX(),
+                        () -> -driverController.getRightX()));
+
+        driverController.leftBumper().whileTrue(shooter.shoot());
     }
 
+    public void enabledInit() {
+        vision.setIMUMode(4 /* INTERNAL_EXTERNAL_ASSIST */);
+    }
+
+    public void disabledInit() {
+        vision.setIMUMode(0 /* EXTERNAL_ONLY */);
+    }
+    
     public Command getAutonomousCommand() {
         return autoChooser.selectedCommand();
     }

@@ -71,20 +71,44 @@ public class Shooter extends SubsystemBase {
                 shooterPitch.followAngle(() -> getShotSolution().pitch()));
     }
 
+    public Command autoAimTurret() {
+        return turret.followAngle(() -> getShotSolution().turretYaw());
+    }
+
+    public boolean isReadyToShoot() {
+        ShotSolution shotSolution = getShotSolution();
+        return flywheels.atSpeed.getAsBoolean()
+                && turretLoader.atSpeed.getAsBoolean()
+                && shooterPitch.isAtAngle(shotSolution.pitch())
+                && turret.isAtAngle(shotSolution.turretYaw());
+    }
+
     public Command spinUp() {
         return flywheels.runFlywheels(() -> getShotSolution().rpm());
     }
 
-    public Command stageNote() {
-        return Commands.parallel(indexer.feed(), turretLoader.feed());
+    public Command spinUpTurretLanes() {
+        return turretLoader.feed();
+    }
+
+    public Command runIndexerLanes() {
+        return indexer.feed();
     }
 
     public Command prepareToShoot() {
-        return Commands.parallel(aimAtGoal(), spinUp());
+        return Commands.parallel(aimAtGoal(), spinUp(), spinUpTurretLanes());
     }
 
     public Command shoot() {
-        return Commands.parallel(aimAtGoal(), spinUp(), stageNote());
+        return Commands.sequence(
+                Commands.deadline(
+                        Commands.waitUntil(this::isReadyToShoot),
+                        prepareToShoot()),
+                Commands.parallel(
+                        aimAtGoal(),
+                        spinUp(),
+                        spinUpTurretLanes(),
+                        runIndexerLanes()));
     }
 
     @Override
