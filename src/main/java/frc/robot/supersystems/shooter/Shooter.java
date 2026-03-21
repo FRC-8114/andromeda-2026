@@ -107,14 +107,11 @@ public class Shooter extends SubsystemBase {
                 Commands.deadline(
                         Commands.waitUntil(this::isReadyToShoot).withTimeout(READY_TIMEOUT_SECONDS),
                         prepareToShoot()),
-                Commands.either(
                         Commands.parallel(
                                 aimAtGoal(),
                                 spinUp(),
                                 spinUpTurretLanes(),
-                                runIndexerLanes()),
-                        Commands.none(),
-                        this::isReadyToShoot));
+                                runIndexerLanes()));
     }
 
     @Override

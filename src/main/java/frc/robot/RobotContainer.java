@@ -163,7 +163,9 @@ public class RobotContainer {
                         () -> -driverController.getLeftX(),
                         () -> -driverController.getRightX()));
 
-        driverController.leftBumper().whileTrue(shooter.shoot());
+        driverController.rightTrigger().whileTrue(shooter.shoot());
+        driverController.b().onTrue(intakePivot.deploy());
+        driverController.leftTrigger().whileTrue(intakeRollers.intake());
     }
 
     public void enabledInit() {
