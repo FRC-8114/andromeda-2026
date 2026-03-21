@@ -1,4 +1,4 @@
-package frc.robot.subsystems.indexer;
+package frc.robot.subsystems.hopperlanes;
 
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Volts;
@@ -11,7 +11,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 
-public class IndexerIOSim implements IndexerIO {
+public class HopperLanesIOSim implements HopperLanesIO {
     private static final DCMotor MOTOR_GEARBOX = DCMotor.getKrakenX60Foc(1);
     private static final double GEAR_RATIO = 1.0;
     private static final double MOI = 0.001;
@@ -24,7 +24,7 @@ public class IndexerIOSim implements IndexerIO {
     private boolean closedLoop = false;
     private double appliedVolts = 0.0;
 
-    public IndexerIOSim() {
+    public HopperLanesIOSim() {
         motorSim = new DCMotorSim(
                 LinearSystemId.createDCMotorSystem(MOTOR_GEARBOX, MOI, GEAR_RATIO),
                 MOTOR_GEARBOX);
@@ -46,7 +46,7 @@ public class IndexerIOSim implements IndexerIO {
         appliedVolts = 0.0;
     }
 
-    public void updateInputs(IndexerInputs inputs) {
+    public void updateInputs(HopperLanesInputs inputs) {
         if (closedLoop) {
             appliedVolts = motorController.calculate(motorSim.getAngularVelocityRadPerSec());
         } else {

@@ -11,11 +11,11 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.FieldConstants;
 import frc.robot.subsystems.drive.Drive;
-import frc.robot.subsystems.indexer.Indexer;
+import frc.robot.subsystems.hopperlanes.HopperLanes;
 import frc.robot.subsystems.shooterflywheels.ShooterFlywheels;
 import frc.robot.subsystems.shooterpitch.ShooterPitch;
 import frc.robot.subsystems.turret.Turret;
-import frc.robot.subsystems.turretloader.TurretLoader;
+import frc.robot.subsystems.turretfeeder.TurretFeeder;
 import frc.robot.util.AllianceFlipUtil;
 
 public class Shooter extends SubsystemBase {
@@ -24,23 +24,23 @@ public class Shooter extends SubsystemBase {
     private final Turret turret;
     private final ShooterFlywheels flywheels;
     private final ShooterPitch shooterPitch;
-    private final TurretLoader turretLoader;
-    private final Indexer indexer;
+    private final TurretFeeder turretFeeder;
+    private final HopperLanes hopperLanes;
     private final Supplier<ShotSolution> shotSolver;
 
     public Shooter(
             Turret turret,
             ShooterFlywheels flywheels,
             ShooterPitch shooterPitch,
-            TurretLoader turretLoader,
-            Indexer indexer,
+            TurretFeeder turretFeeder,
+            HopperLanes hopperLanes,
             Drive drive) {
         this(
                 turret,
                 flywheels,
                 shooterPitch,
-                turretLoader,
-                indexer,
+                turretFeeder,
+                hopperLanes,
                 new TurretShotSolver(Shooter::getDefaultTargetPose, new TurretShotSolver.DriveKinematicsSupplier(drive)));
     }
 
@@ -48,14 +48,14 @@ public class Shooter extends SubsystemBase {
             Turret turret,
             frc.robot.subsystems.shooterflywheels.ShooterFlywheels flywheels,
             ShooterPitch shooterPitch,
-            TurretLoader turretLoader,
-            Indexer indexer,
+            TurretFeeder turretFeeder,
+            HopperLanes hopperLanes,
             Supplier<ShotSolution> shotSolver) {
         this.turret = turret;
         this.flywheels = flywheels;
         this.shooterPitch = shooterPitch;
-        this.turretLoader = turretLoader;
-        this.indexer = indexer;
+        this.turretFeeder = turretFeeder;
+        this.hopperLanes = hopperLanes;
         this.shotSolver = shotSolver;
     }
 
@@ -80,8 +80,8 @@ public class Shooter extends SubsystemBase {
     public boolean isReadyToShoot() {
         ShotSolution shotSolution = getShotSolution();
         return flywheels.atSpeed.getAsBoolean()
-                && turretLoader.atSpeed.getAsBoolean()
-                && indexer.atSpeed.getAsBoolean()
+                && turretFeeder.atSpeed.getAsBoolean()
+                && hopperLanes.atSpeed.getAsBoolean()
                 && shooterPitch.isAtAngle(shotSolution.pitch())
                 && turret.isAtAngle(shotSolution.turretYaw());
     }
@@ -91,11 +91,11 @@ public class Shooter extends SubsystemBase {
     }
 
     public Command spinUpTurretLanes() {
-        return turretLoader.feed();
+        return turretFeeder.feed();
     }
 
     public Command runIndexerLanes() {
-        return indexer.feed();
+        return hopperLanes.feed();
     }
 
     public Command prepareToShoot() {
@@ -121,8 +121,8 @@ public class Shooter extends SubsystemBase {
         Logger.recordOutput("ShooterSupersystem/TargetPitchRad", shotSolution.pitch().baseUnitMagnitude());
         Logger.recordOutput("ShooterSupersystem/TargetTurretYawRad", shotSolution.turretYaw().baseUnitMagnitude());
         Logger.recordOutput("ShooterSupersystem/FlywheelsReady", flywheels.atSpeed.getAsBoolean());
-        Logger.recordOutput("ShooterSupersystem/TurretLoaderReady", turretLoader.atSpeed.getAsBoolean());
-        Logger.recordOutput("ShooterSupersystem/IndexerReady", indexer.atSpeed.getAsBoolean());
+        Logger.recordOutput("ShooterSupersystem/TurretFeederReady", turretFeeder.atSpeed.getAsBoolean());
+        Logger.recordOutput("ShooterSupersystem/HopperLanesReady", hopperLanes.atSpeed.getAsBoolean());
         Logger.recordOutput("ShooterSupersystem/PitchReady", shooterPitch.isAtAngle(shotSolution.pitch()));
         Logger.recordOutput("ShooterSupersystem/TurretReady", turret.isAtAngle(shotSolution.turretYaw()));
         Logger.recordOutput("ShooterSupersystem/ReadyToShoot", isReadyToShoot());
