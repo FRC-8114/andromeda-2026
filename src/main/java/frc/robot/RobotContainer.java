@@ -21,9 +21,9 @@ import frc.robot.subsystems.drive.GyroIOPigeon2;
 import frc.robot.subsystems.drive.GyroIOSim;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
-import frc.robot.subsystems.indexer.Indexer;
-import frc.robot.subsystems.indexer.IndexerIOReal;
-import frc.robot.subsystems.indexer.IndexerIOSim;
+import frc.robot.subsystems.hopperlanes.HopperLanes;
+import frc.robot.subsystems.hopperlanes.HopperLanesIOReal;
+import frc.robot.subsystems.hopperlanes.HopperLanesIOSim;
 import frc.robot.subsystems.intakepivot.IntakePivot;
 import frc.robot.subsystems.intakepivot.IntakePivotIOReal;
 import frc.robot.subsystems.intakepivot.IntakePivotIOSim;
@@ -40,9 +40,9 @@ import frc.robot.supersystems.shooter.Shooter;
 import frc.robot.subsystems.turret.Turret;
 import frc.robot.subsystems.turret.TurretIOReal;
 import frc.robot.subsystems.turret.TurretIOSim;
-import frc.robot.subsystems.turretloader.TurretLoader;
-import frc.robot.subsystems.turretloader.TurretLoaderIOReal;
-import frc.robot.subsystems.turretloader.TurretLoaderIOSim;
+import frc.robot.subsystems.turretfeeder.TurretFeeder;
+import frc.robot.subsystems.turretfeeder.TurretFeederIOReal;
+import frc.robot.subsystems.turretfeeder.TurretFeederIOSim;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIO.PoseEstimation;
 import frc.robot.util.SubsystemRegistry;
@@ -63,10 +63,10 @@ public class RobotContainer {
     private final ShooterPitch shooterPitch;
 
     @SuppressWarnings("unused")
-    private final TurretLoader turretLoader;
+    private final TurretFeeder turretFeeder;
 
     @SuppressWarnings("unused")
-    private final Indexer indexer;
+    private final HopperLanes hopperLanes;
 
     @SuppressWarnings("unused")
     private final IntakePivot intakePivot;
@@ -89,8 +89,8 @@ public class RobotContainer {
                 turret = subsystemRegistry.register(new Turret(new TurretIOReal()));
                 flywheels = subsystemRegistry.register(new ShooterFlywheels(new ShooterFlywheelsIOReal()));
                 shooterPitch = subsystemRegistry.register(new ShooterPitch(new ShooterPitchIOReal()));
-                turretLoader = subsystemRegistry.register(new TurretLoader(new TurretLoaderIOReal()));
-                indexer = subsystemRegistry.register(new Indexer(new IndexerIOReal()));
+                turretFeeder = subsystemRegistry.register(new TurretFeeder(new TurretFeederIOReal()));
+                hopperLanes = subsystemRegistry.register(new HopperLanes(new HopperLanesIOReal()));
                 intakePivot = subsystemRegistry.register(new IntakePivot(new IntakePivotIOReal()));
                 intakeRollers = subsystemRegistry.register(new IntakeRollers(new IntakeRollersIOReal()));
                 climber = subsystemRegistry.register(new Climber(new ClimberIOReal()));
@@ -100,8 +100,8 @@ public class RobotContainer {
                 turret = subsystemRegistry.register(new Turret(new TurretIOSim()));
                 flywheels = subsystemRegistry.register(new ShooterFlywheels(new ShooterFlywheelsIOSim()));
                 shooterPitch = subsystemRegistry.register(new ShooterPitch(new ShooterPitchIOSim()));
-                turretLoader = subsystemRegistry.register(new TurretLoader(new TurretLoaderIOSim()));
-                indexer = subsystemRegistry.register(new Indexer(new IndexerIOSim()));
+                turretFeeder = subsystemRegistry.register(new TurretFeeder(new TurretFeederIOSim()));
+                hopperLanes = subsystemRegistry.register(new HopperLanes(new HopperLanesIOSim()));
                 intakePivot = subsystemRegistry.register(new IntakePivot(new IntakePivotIOSim()));
                 intakeRollers = subsystemRegistry.register(new IntakeRollers(new IntakeRollersIOSim()));
                 climber = subsystemRegistry.register(new Climber(new ClimberIOSim()));
@@ -113,7 +113,7 @@ public class RobotContainer {
 
         drive = subsystemRegistry.register(createDrive());
         shooter = subsystemRegistry.register(
-                new Shooter(turret, flywheels, shooterPitch, turretLoader, indexer, drive));
+                new Shooter(turret, flywheels, shooterPitch, turretFeeder, hopperLanes, drive));
         turret.setDefaultCommand(shooter.autoAimTurret());
         vision = subsystemRegistry.register(Vision.fromCameraConstants(
                 this::acceptVisionMeasurement,

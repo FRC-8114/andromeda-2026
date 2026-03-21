@@ -1,4 +1,4 @@
-package frc.robot.subsystems.turretloader;
+package frc.robot.subsystems.turretfeeder;
 
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Radians;
@@ -21,7 +21,7 @@ import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
 import frc.robot.RobotConstants;
 
-public class TurretLoaderIOReal implements TurretLoaderIO {
+public class TurretFeederIOReal implements TurretFeederIO {
     private static class Constants {
         private static final int turretLoaderMotorId = 42;
 
@@ -53,7 +53,7 @@ public class TurretLoaderIOReal implements TurretLoaderIO {
     private final TorqueCurrentFOC controlTorque = new TorqueCurrentFOC(0);
     private final DutyCycleOut controlDutyCycle = new DutyCycleOut(1);
 
-    public TurretLoaderIOReal() {
+    public TurretFeederIOReal() {
         laneMotor.getConfigurator().apply(Constants.motorConfig);
     }
 
@@ -77,7 +77,7 @@ public class TurretLoaderIOReal implements TurretLoaderIO {
         laneMotor.stopMotor();
     }
 
-    public void updateInputs(TurretLoaderInputs inputs) {
+    public void updateInputs(TurretFeederInputs inputs) {
         inputs.appliedVoltageVolts = laneMotor.getMotorVoltage().getValue().in(Volts);
         inputs.motorPositionRads = laneMotor.getPosition().getValue().in(Radians);
         inputs.velocityRPM = laneMotor.getVelocity().getValue().in(RPM);

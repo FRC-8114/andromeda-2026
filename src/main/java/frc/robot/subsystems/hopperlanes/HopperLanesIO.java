@@ -1,25 +1,23 @@
-package frc.robot.subsystems.turretloader;
+package frc.robot.subsystems.hopperlanes;
 
 import org.littletonrobotics.junction.AutoLog;
 
 import edu.wpi.first.units.measure.AngularVelocity;
-import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
 
-public interface TurretLoaderIO {
+public interface HopperLanesIO {
     @AutoLog
-    public static class TurretLoaderInputs {
-        public double motorPositionRads = 0;
+    public static class HopperLanesInputs {
         public double velocityRPM = 0;
+        public double motorPositionRads = 0;
         public double appliedVoltageVolts = 0;
     }
 
     void runVolts(Voltage volts);
-    void runTorqueCurrent(Current torque);
+
     void setVelocity(AngularVelocity velocity);
-    void runDutyCycle();
 
     void stopMotor();
 
-    void updateInputs(TurretLoaderInputs inputs);
+    void updateInputs(HopperLanesInputs inputs);
 }

@@ -1,6 +1,8 @@
-package frc.robot.subsystems.indexer;
+package frc.robot.subsystems.hopperlanes;
 
 import static edu.wpi.first.units.Units.RPM;
+
+import java.util.List;
 
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
@@ -10,27 +12,28 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.util.SysIDMechanism;
 
-public class Indexer extends SubsystemBase {
+public class HopperLanes extends SubsystemBase implements SysIDMechanism {
     private static final AngularVelocity indexerVelocityTolerance = RPM.of(100);
 
     private static final AngularVelocity indexerVelocity = RPM.of(900);
     private static final double feedTimeoutSecs = 2.0;
 
-    private final IndexerIO io;
-    private final IndexerInputsAutoLogged inputs = new IndexerInputsAutoLogged();
+    private final HopperLanesIO io;
+    private final HopperLanesInputsAutoLogged inputs = new HopperLanesInputsAutoLogged();
 
     private SysIdRoutine sysId;
 
     private final LoggedNetworkNumber tuneIndexerVelocity = new LoggedNetworkNumber("Tuning/IndexerVelocityRPM", indexerVelocity.in(RPM));
 
-    public Indexer(IndexerIO io) {
+    public HopperLanes(HopperLanesIO io) {
         this.io = io;
 
         sysId = new SysIdRoutine(
                 new SysIdRoutine.Config(
                         null, null, null,
-                        (state) -> Logger.recordOutput("Indexer/SysIdState", state.toString())),
+                        (state) -> Logger.recordOutput("HopperLanes/SysIdState", state.toString())),
                 new SysIdRoutine.Mechanism(
                         (voltage) -> io.runVolts(voltage), null, this));
     }
@@ -64,9 +67,14 @@ public class Indexer extends SubsystemBase {
     }
 
     @Override
+    public List<SysIDMechanism.NamedMechanism> sysIdMechanisms() {
+        return List.of(SysIDMechanism.named("Hopper Lanes", this::sysIdDynamic, this::sysIdQuasistatic));
+    }
+
+    @Override
     public void periodic() {
         io.updateInputs(inputs);
-        Logger.processInputs("Indexer", inputs);
-        Logger.recordOutput("Indexer/AtSpeed", atSpeed.getAsBoolean());
+        Logger.processInputs("HopperLanes", inputs);
+        Logger.recordOutput("HopperLanes/AtSpeed", atSpeed.getAsBoolean());
     }
 }

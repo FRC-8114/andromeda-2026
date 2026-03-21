@@ -1,4 +1,4 @@
-package frc.robot.subsystems.turretloader;
+package frc.robot.subsystems.turretfeeder;
 
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Volts;
@@ -12,7 +12,7 @@ import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 
-public class TurretLoaderIOSim implements TurretLoaderIO {
+public class TurretFeederIOSim implements TurretFeederIO {
     private static final DCMotor MOTOR_GEARBOX = DCMotor.getKrakenX60Foc(1);
     private static final double GEAR_RATIO = 1.0;
     private static final double MOI = 0.001;
@@ -25,7 +25,7 @@ public class TurretLoaderIOSim implements TurretLoaderIO {
     private boolean closedLoop = false;
     private double appliedVolts = 0.0;
 
-    public TurretLoaderIOSim() {
+    public TurretFeederIOSim() {
         motorSim = new DCMotorSim(
                 LinearSystemId.createDCMotorSystem(MOTOR_GEARBOX, MOI, GEAR_RATIO),
                 MOTOR_GEARBOX);
@@ -47,7 +47,7 @@ public class TurretLoaderIOSim implements TurretLoaderIO {
         appliedVolts = 0.0;
     }
 
-    public void updateInputs(TurretLoaderInputs inputs) {
+    public void updateInputs(TurretFeederInputs inputs) {
         if (closedLoop) {
             appliedVolts = motorController.calculate(motorSim.getAngularVelocityRadPerSec());
         } else {

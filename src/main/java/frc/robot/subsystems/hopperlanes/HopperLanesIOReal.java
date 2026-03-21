@@ -1,4 +1,4 @@
-package frc.robot.subsystems.indexer;
+package frc.robot.subsystems.hopperlanes;
 
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Radians;
@@ -16,7 +16,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Voltage;
 import frc.robot.RobotConstants;
 
-public class IndexerIOReal implements IndexerIO {
+public class HopperLanesIOReal implements HopperLanesIO {
     private static final int indexerMotorId = 41;
 
     static final Slot0Configs pidConfig = new Slot0Configs()
@@ -42,7 +42,7 @@ public class IndexerIOReal implements IndexerIO {
     private final VelocityVoltage control = new VelocityVoltage(0);
     private final VoltageOut controlVoltage = new VoltageOut(0);
 
-    public IndexerIOReal() {
+    public HopperLanesIOReal() {
         laneMotor.getConfigurator().apply(motorConfig);
     }
 
@@ -58,7 +58,7 @@ public class IndexerIOReal implements IndexerIO {
         laneMotor.stopMotor();
     }
 
-    public void updateInputs(IndexerInputs inputs) {
+    public void updateInputs(HopperLanesInputs inputs) {
         inputs.appliedVoltageVolts = laneMotor.getMotorVoltage().getValue().in(Volts);
         inputs.motorPositionRads = laneMotor.getPosition().getValue().in(Radians);
         inputs.velocityRPM = laneMotor.getVelocity().getValue().in(RPM);
