@@ -5,6 +5,9 @@ import choreo.auto.AutoRoutine;
 import choreo.auto.AutoTrajectory;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import frc.robot.subsystems.intakepivot.IntakePivot;
+import frc.robot.supersystems.shooter.Shooter;
+import frc.robot.util.SubsystemRegistry;
 
 public final class Trajectories {
     private static final double BASIC_SHOOT_START_DELAY_SECS = 2.0;
@@ -19,7 +22,8 @@ public final class Trajectories {
 
     public static void addAutos(AutoChooser chooser, Autos autos) {
         chooser.addRoutine("basicShoot", () -> basicShoot(autos));
-        chooser.addCmd("driveShoot", () -> unavailableAuto("driveShoot", "No driveShoot trajectory exists in deploy/choreo."));
+        chooser.addCmd("driveShoot",
+                () -> unavailableAuto("driveShoot", "No driveShoot trajectory exists in deploy/choreo."));
         chooser.addRoutine("TUNE_MOI", () -> tuneMoi(autos));
         chooser.addCmd("THE_LAMEST_AUTO_EVER", Trajectories::theLamestAutoEver);
         chooser.addRoutine("trenchSSOutpost", () -> trenchSsOutpost(autos));
@@ -30,12 +34,15 @@ public final class Trajectories {
         AutoRoutine routine = autos.routine("basicShoot");
         AutoTrajectory[] paths = autos.split(routine, ChoreoTraj.basicShoot);
 
+        IntakePivot intakePivot = autos.getRegistry().get(IntakePivot.class).get();
+        Shooter shooter = autos.getRegistry().get(Shooter.class).get();
+
         autos.start(
                 routine,
                 paths[0],
-                logStep("TODO port intakePivot.deploy()"),
-                Commands.waitSeconds(BASIC_SHOOT_START_DELAY_SECS));
-        autos.then(paths[0], paths[1], timedLogStep("TODO port shootSequence()", BASIC_SHOOT_SHOOT_TIME_SECS));
+                Commands.race(intakePivot.deploy(),
+                        Commands.waitSeconds(BASIC_SHOOT_START_DELAY_SECS)));
+        autos.then(paths[0], paths[1], Commands.race(Commands.waitSeconds(BASIC_SHOOT_SHOOT_TIME_SECS), shooter.shoot()));
         autos.then(paths[1], paths[2], logStep("TODO port climber.deploy()"));
         autos.finish(paths[2], logStep("TODO port climber.climb()"), autos.stopCommand());
 
@@ -92,7 +99,8 @@ public final class Trajectories {
         return Commands.sequence(
                 logStep("TODO port intakePivot.deploy()"),
                 Commands.waitSeconds(2.0),
-                timedLogStep("TODO port shooter/indexer sequence from THE_LAMEST_AUTO_EVER()", LAMEST_AUTO_TOTAL_TIME_SECS - 2.0));
+                timedLogStep("TODO port shooter/indexer sequence from THE_LAMEST_AUTO_EVER()",
+                        LAMEST_AUTO_TOTAL_TIME_SECS - 2.0));
     }
 
     private static Command unavailableAuto(String autoName, String reason) {

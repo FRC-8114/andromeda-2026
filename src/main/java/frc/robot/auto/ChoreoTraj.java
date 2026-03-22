@@ -1,4 +1,4 @@
-
+// spotless:off
 package frc.robot.auto;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -6,10 +6,10 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import java.util.Map;
 import java.util.OptionalInt;
 
-// If these imports cause errors because you're not using ChoreoLib,
-// turn off "Include ChoreoLib-specific Helpers" in Choreo's codegen settings.
 import choreo.auto.AutoRoutine;
 import choreo.auto.AutoTrajectory;
+// If the 2 imports above cause errors because you're not using ChoreoLib,
+// turn off "Include ChoreoLib-specific Helpers" in Choreo's codegen settings.
 
 /**
  * A class containing the name, start pose, end pose, and total time of every Choreo trajectory.
@@ -24,276 +24,300 @@ public record ChoreoTraj(
     Pose2d initialPoseBlue,
     Pose2d endPoseBlue
 ) {
+    public static final ChoreoTraj basicShoot = new ChoreoTraj(
+        "basicShoot",
+        OptionalInt.empty(),
+        3.22487,
+        new Pose2d(3.64773, 6.0729, Rotation2d.fromRadians(-3.14159)),
+        new Pose2d(1.08086, 4.54351, Rotation2d.fromRadians(0))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj basicShoot$0 = new ChoreoTraj(
+        "basicShoot",
+        OptionalInt.of(0),
+        1.21425,
+        new Pose2d(3.64773, 6.0729, Rotation2d.fromRadians(-3.14159)),
+        new Pose2d(2.35, 5.19582, Rotation2d.fromRadians(2.63908))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj basicShoot$1 = new ChoreoTraj(
+        "basicShoot",
+        OptionalInt.of(1),
+        1.26331,
+        new Pose2d(2.35, 5.19582, Rotation2d.fromRadians(2.63908)),
+        new Pose2d(1.07003, 5.3231, Rotation2d.fromRadians(0))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj basicShoot$2 = new ChoreoTraj(
+        "basicShoot",
+        OptionalInt.of(2),
+        0.7473100000000001,
+        new Pose2d(1.07003, 5.3231, Rotation2d.fromRadians(0)),
+        new Pose2d(1.08086, 4.54351, Rotation2d.fromRadians(0))
+    );
+    public static final ChoreoTraj CalibrateMOI = new ChoreoTraj(
+        "CalibrateMOI",
+        OptionalInt.empty(),
+        13.14392,
+        new Pose2d(1.8288, 1.8288, Rotation2d.fromRadians(0)),
+        new Pose2d(1.8288, 1.8288, Rotation2d.fromRadians(0))
+    );
+    public static final ChoreoTraj depot = new ChoreoTraj(
+        "depot",
+        OptionalInt.empty(),
+        6.65173,
+        new Pose2d(3.60373, 7.67273, Rotation2d.fromRadians(3.14159)),
+        new Pose2d(1, 4.66484, Rotation2d.fromRadians(0))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj depot$0 = new ChoreoTraj(
+        "depot",
+        OptionalInt.of(0),
+        5.2705,
+        new Pose2d(3.60373, 7.67273, Rotation2d.fromRadians(3.14159)),
+        new Pose2d(2.21777, 5.36642, Rotation2d.fromRadians(-0.49206))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj depot$1 = new ChoreoTraj(
+        "depot",
+        OptionalInt.of(1),
+        1.3812299999999995,
+        new Pose2d(2.21777, 5.36642, Rotation2d.fromRadians(-0.49206)),
+        new Pose2d(1, 4.66484, Rotation2d.fromRadians(0))
+    );
     public static final ChoreoTraj doubleTrenchSS = new ChoreoTraj(
-	    "doubleTrenchSS",
-	    OptionalInt.empty(),
-	    3.69079,
-	    new Pose2d(3.647, 0.386, Rotation2d.fromRadians(0)),
-	    new Pose2d(3.202, 0.548, Rotation2d.fromRadians(0))
-	);
-	public static final ChoreoTraj basicShoot = new ChoreoTraj(
-	    "basicShoot",
-	    OptionalInt.empty(),
-	    2.25816,
-	    new Pose2d(3.648, 6.073, Rotation2d.fromRadians(-3.142)),
-	    new Pose2d(1.081, 4.544, Rotation2d.fromRadians(0))
-	);
-	public static final ChoreoTraj basicShoot$0 = new ChoreoTraj(
-	    "basicShoot",
-	    OptionalInt.of(0),
-	    1.02854,
-	    new Pose2d(3.648, 6.073, Rotation2d.fromRadians(-3.142)),
-	    new Pose2d(2.131, 4.955, Rotation2d.fromRadians(-0.292))
-	);
-	public static final ChoreoTraj basicShoot$1 = new ChoreoTraj(
-	    "basicShoot",
-	    OptionalInt.of(1),
-	    0.63924,
-	    new Pose2d(2.131, 4.955, Rotation2d.fromRadians(-0.292)),
-	    new Pose2d(1.07, 5.323, Rotation2d.fromRadians(0))
-	);
-	public static final ChoreoTraj basicShoot$2 = new ChoreoTraj(
-	    "basicShoot",
-	    OptionalInt.of(2),
-	    0.5903800000000001,
-	    new Pose2d(1.07, 5.323, Rotation2d.fromRadians(0)),
-	    new Pose2d(1.081, 4.544, Rotation2d.fromRadians(0))
-	);
-	public static final ChoreoTraj CalibrateMOI = new ChoreoTraj(
-	    "CalibrateMOI",
-	    OptionalInt.empty(),
-	    13.1432,
-	    new Pose2d(1.829, 1.829, Rotation2d.fromRadians(0)),
-	    new Pose2d(1.829, 1.829, Rotation2d.fromRadians(0))
-	);
-	public static final ChoreoTraj trenchSS = new ChoreoTraj(
-	    "trenchSS",
-	    OptionalInt.empty(),
-	    7.4356,
-	    new Pose2d(3.647, 0.386, Rotation2d.fromRadians(0)),
-	    new Pose2d(1.081, 2.876, Rotation2d.fromRadians(3.142))
-	);
-	public static final ChoreoTraj trenchSS$0 = new ChoreoTraj(
-	    "trenchSS",
-	    OptionalInt.of(0),
-	    3.41866,
-	    new Pose2d(3.647, 0.386, Rotation2d.fromRadians(0)),
-	    new Pose2d(3.202, 0.548, Rotation2d.fromRadians(0))
-	);
-	public static final ChoreoTraj trenchSS$1 = new ChoreoTraj(
-	    "trenchSS",
-	    OptionalInt.of(1),
-	    0.8507199999999999,
-	    new Pose2d(3.202, 0.548, Rotation2d.fromRadians(0)),
-	    new Pose2d(0.397, 0.66, Rotation2d.fromRadians(0))
-	);
-	public static final ChoreoTraj trenchSS$2 = new ChoreoTraj(
-	    "trenchSS",
-	    OptionalInt.of(2),
-	    1.3281799999999997,
-	    new Pose2d(0.397, 0.66, Rotation2d.fromRadians(0)),
-	    new Pose2d(1.072, 2.049, Rotation2d.fromRadians(-3.142))
-	);
-	public static final ChoreoTraj trenchSS$3 = new ChoreoTraj(
-	    "trenchSS",
-	    OptionalInt.of(3),
-	    1.8380400000000003,
-	    new Pose2d(1.072, 2.049, Rotation2d.fromRadians(-3.142)),
-	    new Pose2d(1.081, 2.876, Rotation2d.fromRadians(3.142))
-	);
-	public static final ChoreoTraj NewPath = new ChoreoTraj(
-	    "NewPath",
-	    OptionalInt.empty(),
-	    0.83103,
-	    new Pose2d(1.201, 1.526, Rotation2d.fromRadians(0)),
-	    new Pose2d(2.451, 5.337, Rotation2d.fromRadians(0))
-	);
-	public static final ChoreoTraj NewPath$0 = new ChoreoTraj(
-	    "NewPath",
-	    OptionalInt.of(0),
-	    0.2707,
-	    new Pose2d(1.201, 1.526, Rotation2d.fromRadians(0)),
-	    new Pose2d(1.897, 2.651, Rotation2d.fromRadians(0))
-	);
-	public static final ChoreoTraj NewPath$1 = new ChoreoTraj(
-	    "NewPath",
-	    OptionalInt.of(1),
-	    0.56033,
-	    new Pose2d(1.897, 2.651, Rotation2d.fromRadians(0)),
-	    new Pose2d(2.451, 5.337, Rotation2d.fromRadians(0))
-	);
-	public static final ChoreoTraj trenchSSDepot = new ChoreoTraj(
-	    "trenchSSDepot",
-	    OptionalInt.empty(),
-	    6.74991,
-	    new Pose2d(3.625, 7.663, Rotation2d.fromRadians(0)),
-	    new Pose2d(1.092, 4.652, Rotation2d.fromRadians(-3.142))
-	);
-	public static final ChoreoTraj trenchSSDepot$0 = new ChoreoTraj(
-	    "trenchSSDepot",
-	    OptionalInt.of(0),
-	    3.65253,
-	    new Pose2d(3.625, 7.663, Rotation2d.fromRadians(0)),
-	    new Pose2d(2.543, 7.467, Rotation2d.fromRadians(0))
-	);
-	public static final ChoreoTraj trenchSSDepot$1 = new ChoreoTraj(
-	    "trenchSSDepot",
-	    OptionalInt.of(1),
-	    0.7204999999999999,
-	    new Pose2d(2.543, 7.467, Rotation2d.fromRadians(0)),
-	    new Pose2d(1.151, 6.008, Rotation2d.fromRadians(-3.142))
-	);
-	public static final ChoreoTraj trenchSSDepot$2 = new ChoreoTraj(
-	    "trenchSSDepot",
-	    OptionalInt.of(2),
-	    0.8877600000000001,
-	    new Pose2d(1.151, 6.008, Rotation2d.fromRadians(-3.142)),
-	    new Pose2d(1.151, 6.008, Rotation2d.fromRadians(-3.142))
-	);
-	public static final ChoreoTraj trenchSSDepot$3 = new ChoreoTraj(
-	    "trenchSSDepot",
-	    OptionalInt.of(3),
-	    0.5110799999999998,
-	    new Pose2d(1.151, 6.008, Rotation2d.fromRadians(-3.142)),
-	    new Pose2d(1.092, 5.085, Rotation2d.fromRadians(-3.142))
-	);
-	public static final ChoreoTraj trenchSSDepot$4 = new ChoreoTraj(
-	    "trenchSSDepot",
-	    OptionalInt.of(4),
-	    0.97804,
-	    new Pose2d(1.092, 5.085, Rotation2d.fromRadians(-3.142)),
-	    new Pose2d(1.092, 4.652, Rotation2d.fromRadians(-3.142))
-	);
-	public static final ChoreoTraj NewPath_copy1 = new ChoreoTraj(
-	    "NewPath_copy1",
-	    OptionalInt.empty(),
-	    0.51338,
-	    new Pose2d(1.897, 2.651, Rotation2d.fromRadians(0)),
-	    new Pose2d(3.476, 0.691, Rotation2d.fromRadians(0))
-	);
-	public static final ChoreoTraj depot = new ChoreoTraj(
-	    "depot",
-	    OptionalInt.empty(),
-	    6.65173,
-	    new Pose2d(3.604, 7.673, Rotation2d.fromRadians(3.142)),
-	    new Pose2d(1, 4.665, Rotation2d.fromRadians(0))
-	);
-	public static final ChoreoTraj depot$0 = new ChoreoTraj(
-	    "depot",
-	    OptionalInt.of(0),
-	    5.2705,
-	    new Pose2d(3.604, 7.673, Rotation2d.fromRadians(3.142)),
-	    new Pose2d(2.218, 5.366, Rotation2d.fromRadians(-0.492))
-	);
-	public static final ChoreoTraj depot$1 = new ChoreoTraj(
-	    "depot",
-	    OptionalInt.of(1),
-	    1.3812299999999995,
-	    new Pose2d(2.218, 5.366, Rotation2d.fromRadians(-0.492)),
-	    new Pose2d(1, 4.665, Rotation2d.fromRadians(0))
-	);
-	public static final ChoreoTraj trenchSSOutpost = new ChoreoTraj(
-	    "trenchSSOutpost",
-	    OptionalInt.empty(),
-	    7.82873,
-	    new Pose2d(3.617, 0.588, Rotation2d.fromRadians(0)),
-	    new Pose2d(1.081, 2.852, Rotation2d.fromRadians(-1.571))
-	);
-	public static final ChoreoTraj trenchSSOutpost$0 = new ChoreoTraj(
-	    "trenchSSOutpost",
-	    OptionalInt.of(0),
-	    3.39663,
-	    new Pose2d(3.617, 0.588, Rotation2d.fromRadians(0)),
-	    new Pose2d(4.462, 0.602, Rotation2d.fromRadians(0))
-	);
-	public static final ChoreoTraj trenchSSOutpost$1 = new ChoreoTraj(
-	    "trenchSSOutpost",
-	    OptionalInt.of(1),
-	    0.4831400000000001,
-	    new Pose2d(4.462, 0.602, Rotation2d.fromRadians(0)),
-	    new Pose2d(2.586, 0.588, Rotation2d.fromRadians(0))
-	);
-	public static final ChoreoTraj trenchSSOutpost$2 = new ChoreoTraj(
-	    "trenchSSOutpost",
-	    OptionalInt.of(2),
-	    0.8039000000000001,
-	    new Pose2d(2.586, 0.588, Rotation2d.fromRadians(0)),
-	    new Pose2d(0.778, 0.667, Rotation2d.fromRadians(-3.133))
-	);
-	public static final ChoreoTraj trenchSSOutpost$3 = new ChoreoTraj(
-	    "trenchSSOutpost",
-	    OptionalInt.of(3),
-	    0.21849000000000007,
-	    new Pose2d(0.778, 0.667, Rotation2d.fromRadians(-3.133)),
-	    new Pose2d(0.604, 0.667, Rotation2d.fromRadians(-3.133))
-	);
-	public static final ChoreoTraj trenchSSOutpost$4 = new ChoreoTraj(
-	    "trenchSSOutpost",
-	    OptionalInt.of(4),
-	    0.22219999999999995,
-	    new Pose2d(0.604, 0.667, Rotation2d.fromRadians(-3.133)),
-	    new Pose2d(0.799, 0.667, Rotation2d.fromRadians(-3.133))
-	);
-	public static final ChoreoTraj trenchSSOutpost$5 = new ChoreoTraj(
-	    "trenchSSOutpost",
-	    OptionalInt.of(5),
-	    0.3010199999999994,
-	    new Pose2d(0.799, 0.667, Rotation2d.fromRadians(-3.133)),
-	    new Pose2d(1.281, 0.903, Rotation2d.fromRadians(-2.355))
-	);
-	public static final ChoreoTraj trenchSSOutpost$6 = new ChoreoTraj(
-	    "trenchSSOutpost",
-	    OptionalInt.of(6),
-	    0.61104,
-	    new Pose2d(1.281, 0.903, Rotation2d.fromRadians(-2.355)),
-	    new Pose2d(1.072, 2.049, Rotation2d.fromRadians(-1.571))
-	);
-	public static final ChoreoTraj trenchSSOutpost$7 = new ChoreoTraj(
-	    "trenchSSOutpost",
-	    OptionalInt.of(7),
-	    1.7923100000000005,
-	    new Pose2d(1.072, 2.049, Rotation2d.fromRadians(-1.571)),
-	    new Pose2d(1.081, 2.852, Rotation2d.fromRadians(-1.571))
-	);
+        "doubleTrenchSS",
+        OptionalInt.empty(),
+        3.40578,
+        new Pose2d(3.64704, 0.38564, Rotation2d.fromRadians(0)),
+        new Pose2d(3.20239, 0.54776, Rotation2d.fromRadians(0))
+    );
+    public static final ChoreoTraj NewPath = new ChoreoTraj(
+        "NewPath",
+        OptionalInt.empty(),
+        0.79645,
+        new Pose2d(1.20064, 1.52587, Rotation2d.fromRadians(0)),
+        new Pose2d(2.45106, 5.33667, Rotation2d.fromRadians(0))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj NewPath$0 = new ChoreoTraj(
+        "NewPath",
+        OptionalInt.of(0),
+        0.25937,
+        new Pose2d(1.20064, 1.52587, Rotation2d.fromRadians(0)),
+        new Pose2d(1.89727, 2.65081, Rotation2d.fromRadians(0))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj NewPath$1 = new ChoreoTraj(
+        "NewPath",
+        OptionalInt.of(1),
+        0.53708,
+        new Pose2d(1.89727, 2.65081, Rotation2d.fromRadians(0)),
+        new Pose2d(2.45106, 5.33667, Rotation2d.fromRadians(0))
+    );
+    public static final ChoreoTraj NewPath_copy1 = new ChoreoTraj(
+        "NewPath_copy1",
+        OptionalInt.empty(),
+        0.49232,
+        new Pose2d(1.89727, 2.65081, Rotation2d.fromRadians(0)),
+        new Pose2d(3.476, 0.69119, Rotation2d.fromRadians(0))
+    );
+    public static final ChoreoTraj trenchSS = new ChoreoTraj(
+        "trenchSS",
+        OptionalInt.empty(),
+        8.21221,
+        new Pose2d(3.64704, 0.38564, Rotation2d.fromRadians(0)),
+        new Pose2d(1.08086, 2.87603, Rotation2d.fromRadians(3.14159))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj trenchSS$0 = new ChoreoTraj(
+        "trenchSS",
+        OptionalInt.of(0),
+        3.82256,
+        new Pose2d(3.64704, 0.38564, Rotation2d.fromRadians(0)),
+        new Pose2d(3.20239, 0.54776, Rotation2d.fromRadians(0))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj trenchSS$1 = new ChoreoTraj(
+        "trenchSS",
+        OptionalInt.of(1),
+        0.8732699999999998,
+        new Pose2d(3.20239, 0.54776, Rotation2d.fromRadians(0)),
+        new Pose2d(0.3967, 0.66033, Rotation2d.fromRadians(0))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj trenchSS$2 = new ChoreoTraj(
+        "trenchSS",
+        OptionalInt.of(2),
+        1.67136,
+        new Pose2d(0.3967, 0.66033, Rotation2d.fromRadians(0)),
+        new Pose2d(1.07207, 2.04883, Rotation2d.fromRadians(-3.14159))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj trenchSS$3 = new ChoreoTraj(
+        "trenchSS",
+        OptionalInt.of(3),
+        1.8450200000000008,
+        new Pose2d(1.07207, 2.04883, Rotation2d.fromRadians(-3.14159)),
+        new Pose2d(1.08086, 2.87603, Rotation2d.fromRadians(3.14159))
+    );
+    public static final ChoreoTraj trenchSSDepot = new ChoreoTraj(
+        "trenchSSDepot",
+        OptionalInt.empty(),
+        7.53643,
+        new Pose2d(3.62538, 7.66273, Rotation2d.fromRadians(0)),
+        new Pose2d(1.09168, 4.65178, Rotation2d.fromRadians(3.14159))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj trenchSSDepot$0 = new ChoreoTraj(
+        "trenchSSDepot",
+        OptionalInt.of(0),
+        4.13828,
+        new Pose2d(3.62538, 7.66273, Rotation2d.fromRadians(0)),
+        new Pose2d(2.54261, 7.46701, Rotation2d.fromRadians(0))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj trenchSSDepot$1 = new ChoreoTraj(
+        "trenchSSDepot",
+        OptionalInt.of(1),
+        0.9119599999999997,
+        new Pose2d(2.54261, 7.46701, Rotation2d.fromRadians(0)),
+        new Pose2d(1.1511, 6.00805, Rotation2d.fromRadians(-3.14159))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj trenchSSDepot$2 = new ChoreoTraj(
+        "trenchSSDepot",
+        OptionalInt.of(2),
+        0.9560000000000004,
+        new Pose2d(1.1511, 6.00805, Rotation2d.fromRadians(-3.14159)),
+        new Pose2d(1.1511, 6.00805, Rotation2d.fromRadians(3.14159))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj trenchSSDepot$3 = new ChoreoTraj(
+        "trenchSSDepot",
+        OptionalInt.of(3),
+        0.54535,
+        new Pose2d(1.1511, 6.00805, Rotation2d.fromRadians(3.14159)),
+        new Pose2d(1.09168, 5.08489, Rotation2d.fromRadians(3.14159))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj trenchSSDepot$4 = new ChoreoTraj(
+        "trenchSSDepot",
+        OptionalInt.of(4),
+        0.9848400000000002,
+        new Pose2d(1.09168, 5.08489, Rotation2d.fromRadians(3.14159)),
+        new Pose2d(1.09168, 4.65178, Rotation2d.fromRadians(3.14159))
+    );
+    public static final ChoreoTraj trenchSSOutpost = new ChoreoTraj(
+        "trenchSSOutpost",
+        OptionalInt.empty(),
+        8.32438,
+        new Pose2d(3.61699, 0.5881, Rotation2d.fromRadians(0)),
+        new Pose2d(1.08056, 2.85226, Rotation2d.fromRadians(-1.5708))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj trenchSSOutpost$0 = new ChoreoTraj(
+        "trenchSSOutpost",
+        OptionalInt.of(0),
+        3.60649,
+        new Pose2d(3.61699, 0.5881, Rotation2d.fromRadians(0)),
+        new Pose2d(4.46247, 0.60243, Rotation2d.fromRadians(0))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj trenchSSOutpost$1 = new ChoreoTraj(
+        "trenchSSOutpost",
+        OptionalInt.of(1),
+        0.5158100000000001,
+        new Pose2d(4.46247, 0.60243, Rotation2d.fromRadians(0)),
+        new Pose2d(2.58592, 0.5881, Rotation2d.fromRadians(0))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj trenchSSOutpost$2 = new ChoreoTraj(
+        "trenchSSOutpost",
+        OptionalInt.of(2),
+        1.0059199999999997,
+        new Pose2d(2.58592, 0.5881, Rotation2d.fromRadians(0)),
+        new Pose2d(0.77768, 0.66716, Rotation2d.fromRadians(-3.13329))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj trenchSSOutpost$3 = new ChoreoTraj(
+        "trenchSSOutpost",
+        OptionalInt.of(3),
+        0.21727000000000007,
+        new Pose2d(0.77768, 0.66716, Rotation2d.fromRadians(-3.13329)),
+        new Pose2d(0.60443, 0.66716, Rotation2d.fromRadians(-3.13329))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj trenchSSOutpost$4 = new ChoreoTraj(
+        "trenchSSOutpost",
+        OptionalInt.of(4),
+        0.22958999999999996,
+        new Pose2d(0.60443, 0.66716, Rotation2d.fromRadians(-3.13329)),
+        new Pose2d(0.79933, 0.66716, Rotation2d.fromRadians(-3.13329))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj trenchSSOutpost$5 = new ChoreoTraj(
+        "trenchSSOutpost",
+        OptionalInt.of(5),
+        0.3493599999999999,
+        new Pose2d(0.79933, 0.66716, Rotation2d.fromRadians(-3.13329)),
+        new Pose2d(1.28118, 0.90336, Rotation2d.fromRadians(-2.35508))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj trenchSSOutpost$6 = new ChoreoTraj(
+        "trenchSSOutpost",
+        OptionalInt.of(6),
+        0.6082400000000003,
+        new Pose2d(1.28118, 0.90336, Rotation2d.fromRadians(-2.35508)),
+        new Pose2d(1.07207, 2.04883, Rotation2d.fromRadians(-1.5708))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj trenchSSOutpost$7 = new ChoreoTraj(
+        "trenchSSOutpost",
+        OptionalInt.of(7),
+        1.7916999999999996,
+        new Pose2d(1.07207, 2.04883, Rotation2d.fromRadians(-1.5708)),
+        new Pose2d(1.08056, 2.85226, Rotation2d.fromRadians(-1.5708))
+    );
 
     /**
      * A map between trajectory names and their corresponding data.
      * This allows for trajectory data to be looked up with strings during runtime.
      */
     public static final Map<String, ChoreoTraj> ALL_TRAJECTORIES = Map.ofEntries(
-    	Map.entry("doubleTrenchSS", doubleTrenchSS),
-		Map.entry("basicShoot", basicShoot),
-		Map.entry("basicShoot$0", basicShoot$0),
-		Map.entry("basicShoot$1", basicShoot$1),
-		Map.entry("basicShoot$2", basicShoot$2),
-		Map.entry("CalibrateMOI", CalibrateMOI),
-		Map.entry("trenchSS", trenchSS),
-		Map.entry("trenchSS$0", trenchSS$0),
-		Map.entry("trenchSS$1", trenchSS$1),
-		Map.entry("trenchSS$2", trenchSS$2),
-		Map.entry("trenchSS$3", trenchSS$3),
-		Map.entry("NewPath", NewPath),
-		Map.entry("NewPath$0", NewPath$0),
-		Map.entry("NewPath$1", NewPath$1),
-		Map.entry("trenchSSDepot", trenchSSDepot),
-		Map.entry("trenchSSDepot$0", trenchSSDepot$0),
-		Map.entry("trenchSSDepot$1", trenchSSDepot$1),
-		Map.entry("trenchSSDepot$2", trenchSSDepot$2),
-		Map.entry("trenchSSDepot$3", trenchSSDepot$3),
-		Map.entry("trenchSSDepot$4", trenchSSDepot$4),
-		Map.entry("NewPath_copy1", NewPath_copy1),
-		Map.entry("depot", depot),
-		Map.entry("depot$0", depot$0),
-		Map.entry("depot$1", depot$1),
-		Map.entry("trenchSSOutpost", trenchSSOutpost),
-		Map.entry("trenchSSOutpost$0", trenchSSOutpost$0),
-		Map.entry("trenchSSOutpost$1", trenchSSOutpost$1),
-		Map.entry("trenchSSOutpost$2", trenchSSOutpost$2),
-		Map.entry("trenchSSOutpost$3", trenchSSOutpost$3),
-		Map.entry("trenchSSOutpost$4", trenchSSOutpost$4),
-		Map.entry("trenchSSOutpost$5", trenchSSOutpost$5),
-		Map.entry("trenchSSOutpost$6", trenchSSOutpost$6),
-		Map.entry("trenchSSOutpost$7", trenchSSOutpost$7)
+        Map.entry("basicShoot", basicShoot),
+        Map.entry("basicShoot$0", basicShoot$0),
+        Map.entry("basicShoot$1", basicShoot$1),
+        Map.entry("basicShoot$2", basicShoot$2),
+        Map.entry("CalibrateMOI", CalibrateMOI),
+        Map.entry("depot", depot),
+        Map.entry("depot$0", depot$0),
+        Map.entry("depot$1", depot$1),
+        Map.entry("doubleTrenchSS", doubleTrenchSS),
+        Map.entry("NewPath", NewPath),
+        Map.entry("NewPath$0", NewPath$0),
+        Map.entry("NewPath$1", NewPath$1),
+        Map.entry("NewPath_copy1", NewPath_copy1),
+        Map.entry("trenchSS", trenchSS),
+        Map.entry("trenchSS$0", trenchSS$0),
+        Map.entry("trenchSS$1", trenchSS$1),
+        Map.entry("trenchSS$2", trenchSS$2),
+        Map.entry("trenchSS$3", trenchSS$3),
+        Map.entry("trenchSSDepot", trenchSSDepot),
+        Map.entry("trenchSSDepot$0", trenchSSDepot$0),
+        Map.entry("trenchSSDepot$1", trenchSSDepot$1),
+        Map.entry("trenchSSDepot$2", trenchSSDepot$2),
+        Map.entry("trenchSSDepot$3", trenchSSDepot$3),
+        Map.entry("trenchSSDepot$4", trenchSSDepot$4),
+        Map.entry("trenchSSOutpost", trenchSSOutpost),
+        Map.entry("trenchSSOutpost$0", trenchSSOutpost$0),
+        Map.entry("trenchSSOutpost$1", trenchSSOutpost$1),
+        Map.entry("trenchSSOutpost$2", trenchSSOutpost$2),
+        Map.entry("trenchSSOutpost$3", trenchSSOutpost$3),
+        Map.entry("trenchSSOutpost$4", trenchSSOutpost$4),
+        Map.entry("trenchSSOutpost$5", trenchSSOutpost$5),
+        Map.entry("trenchSSOutpost$6", trenchSSOutpost$6),
+        Map.entry("trenchSSOutpost$7", trenchSSOutpost$7)
     );
 
     /**
@@ -320,3 +344,4 @@ public record ChoreoTraj(
         return routine.trajectory(this.name);
     }
 }
+// spotless:on

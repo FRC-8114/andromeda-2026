@@ -1,6 +1,9 @@
 package frc.robot.subsystems.shooterflywheels;
 
 import static edu.wpi.first.units.Units.RPM;
+import static edu.wpi.first.units.Units.Second;
+import static edu.wpi.first.units.Units.Seconds;
+import static edu.wpi.first.units.Units.Volts;
 
 import java.util.List;
 import java.util.function.Supplier;
@@ -34,19 +37,15 @@ public class ShooterFlywheels extends SubsystemBase implements SysIDMechanism {
 
         sysId = new SysIdRoutine(
                 new SysIdRoutine.Config(
-                        null, null, null,
+                        Volts.of(3).per(Second), Volts.of(50), Seconds.of(20),
                         (state) -> Logger.recordOutput("ShooterFlywheels/SysIdState", state.toString())),
                 new SysIdRoutine.Mechanism(
-                        (voltage) -> io.runVolts(voltage),
+                        (voltage) -> io.runCurrent(voltage.in(Volts)),
                         null, this));
     }
 
-    private boolean isWheelAtSpeed(double velocityRpm) {
-        return RPM.of(velocityRpm).isNear(targetVelocity, Constants.FLYWHEEL_TOLERANCE_RPM);
-    }
-
-    public double getAverageFlywheelRPMs() {
-        return (inputs.leftFlywheelRPMs + inputs.rightFlywheelRPMs) / 2.0;
+    private boolean isWheelAtSpeed(AngularVelocity velocity) {
+        return velocity.isNear(targetVelocity, Constants.FLYWHEEL_TOLERANCE_RPM);
     }
 
     @Override
@@ -58,7 +57,7 @@ public class ShooterFlywheels extends SubsystemBase implements SysIDMechanism {
     }
 
     public final Trigger atSpeed = new Trigger(
-            () -> isWheelAtSpeed(inputs.leftFlywheelRPMs) && isWheelAtSpeed(inputs.rightFlywheelRPMs));
+            () -> isWheelAtSpeed(inputs.leftFlywheelVelocity) && isWheelAtSpeed(inputs.rightFlywheelVelocity));
 
     public Command runFlywheelsTunableVelocity() {
         return runEnd(

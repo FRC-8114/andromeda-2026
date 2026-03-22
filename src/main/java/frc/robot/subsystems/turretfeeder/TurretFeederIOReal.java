@@ -1,5 +1,6 @@
 package frc.robot.subsystems.turretfeeder;
 
+import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.Volts;
@@ -26,11 +27,8 @@ public class TurretFeederIOReal implements TurretFeederIO {
         private static final int turretLoaderMotorId = 42;
 
         static final Slot0Configs pidConfig = new Slot0Configs()
-                .withKS(0.001)
-                .withKV(0.032)
-                .withKA(0.01)
-                .withKP(10.78)
-                .withKI(0.0)
+                .withKS(14.764)
+                .withKP(37.58)
                 .withKD(0.0);
 
         static final TalonFXConfiguration motorConfig = new TalonFXConfiguration()
@@ -78,8 +76,9 @@ public class TurretFeederIOReal implements TurretFeederIO {
     }
 
     public void updateInputs(TurretFeederInputs inputs) {
-        inputs.appliedVoltageVolts = laneMotor.getMotorVoltage().getValue().in(Volts);
-        inputs.motorPositionRads = laneMotor.getPosition().getValue().in(Radians);
-        inputs.velocityRPM = laneMotor.getVelocity().getValue().in(RPM);
+        inputs.appliedVoltage = laneMotor.getMotorVoltage().getValue();
+        inputs.feederPosition = laneMotor.getPosition().getValue();
+        inputs.feederVelocity = laneMotor.getVelocity().getValue();
+        inputs.appliedTorqueCurrent = laneMotor.getTorqueCurrent().getValue();
     }
 }

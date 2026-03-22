@@ -38,7 +38,7 @@ public class TurretShotSolver implements Supplier<ShotSolution> {
                 TURRET_Z_OFFSET);
 
         public static final double FLYWHEEL_RADIUS_METERS = 0.050;
-        public static final double SPIN_TRANSFER_EFFICIENCY = 0.75;
+        public static final double SPIN_TRANSFER_EFFICIENCY = 0.78;
     }
 
     private Supplier<Pose3d> targetSupplier;
@@ -47,7 +47,7 @@ public class TurretShotSolver implements Supplier<ShotSolution> {
 
     private void putMeasurement(Distance dist, double pitchDegrees, double rpm) {
         double pitchRad = Math.toRadians(pitchDegrees);
-        distanceToPitchAndRPM.put(dist.in(Meter) + 0.1,
+        distanceToPitchAndRPM.put(dist.in(Meter),
                 new Matrix<N2, N1>(new SimpleMatrix(new double[] { pitchRad, rpm })));
     }
 

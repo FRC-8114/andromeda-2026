@@ -11,6 +11,7 @@ import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
+import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.ParentDevice;
@@ -60,6 +61,7 @@ public class ShooterFlywheelsIOReal implements ShooterFlywheelsIO {
     private final StatusSignal<Angle> rightPosition = rightFlywheel.getPosition();
 
     private final VelocityVoltage velocityControl = new VelocityVoltage(0).withSlot(0);
+    private final TorqueCurrentFOC torqueControl = new TorqueCurrentFOC(0);
     private final VoltageOut voltageControl = new VoltageOut(0);
 
     public ShooterFlywheelsIOReal() {
@@ -105,14 +107,19 @@ public class ShooterFlywheelsIOReal implements ShooterFlywheelsIO {
                 rightVoltage,
                 rightPosition);
 
-        inputs.leftFlywheelRPMs = leftVelocity.getValue().in(RPM);
-        inputs.leftCurrentAmps = leftCurrent.getValueAsDouble();
-        inputs.leftAppliedVoltage = leftVoltage.getValue().in(Volts);
-        inputs.leftPositionRads = leftPosition.getValue().in(Radians);
+        inputs.leftFlywheelVelocity = leftVelocity.getValue();
+        inputs.leftCurrent = leftCurrent.getValue();
+        inputs.leftAppliedVoltage = leftVoltage.getValue();
+        inputs.leftPosition = leftPosition.getValue();
 
-        inputs.rightFlywheelRPMs = rightVelocity.getValue().in(RPM);
-        inputs.rightCurrentAmps = rightCurrent.getValueAsDouble();
-        inputs.rightAppliedVoltage = rightVoltage.getValue().in(Volts);
-        inputs.rightPositionRads = rightPosition.getValue().in(Radians);
+        inputs.rightFlywheelVelocity = rightVelocity.getValue();
+        inputs.rightCurrent = rightCurrent.getValue();
+        inputs.rightAppliedVoltage = rightVoltage.getValue();
+        inputs.rightPosition = rightPosition.getValue();
+    }
+
+    @Override
+    public void runCurrent(double current) {
+        leftFlywheel.setControl(torqueControl.withOutput(current));
     }
 }

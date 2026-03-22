@@ -1,6 +1,8 @@
 package frc.robot.subsystems.hopperlanes;
 
 import static edu.wpi.first.units.Units.RPM;
+import static edu.wpi.first.units.Units.Second;
+import static edu.wpi.first.units.Units.Volts;
 
 import java.util.List;
 
@@ -32,17 +34,16 @@ public class HopperLanes extends SubsystemBase implements SysIDMechanism {
 
         sysId = new SysIdRoutine(
                 new SysIdRoutine.Config(
-                        null, null, null,
+                        Volts.of(3).per(Second), Volts.of(50), null,
                         (state) -> Logger.recordOutput("HopperLanes/SysIdState", state.toString())),
                 new SysIdRoutine.Mechanism(
-                        (voltage) -> io.runVolts(voltage), null, this));
+                        (voltage) -> io.runCurrent(voltage.in(Volts)), null, this));
     }
 
     public Command feed() {
         return runEnd(
                 () -> io.setVelocity(indexerVelocity),
-                io::stopMotor)
-                .withTimeout(feedTimeoutSecs);
+                io::stopMotor);
     }
 
     public final Trigger atSpeed = new Trigger(

@@ -1,6 +1,8 @@
 package frc.robot.subsystems.shooterflywheels;
 
+import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.RPM;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 
 import edu.wpi.first.math.MathUtil;
@@ -70,12 +72,18 @@ public class ShooterFlywheelsIOSim implements ShooterFlywheelsIO {
         leftSim.update(0.02);
         rightSim.update(0.02);
 
-        inputs.leftFlywheelRPMs = leftSim.getAngularVelocityRadPerSec() / (2.0 * Math.PI) * 60.0;
-        inputs.leftAppliedVoltage = leftVolts;
-        inputs.leftCurrentAmps = Math.abs(leftSim.getCurrentDrawAmps());
+        inputs.leftFlywheelVelocity = RadiansPerSecond.of(leftSim.getAngularVelocityRadPerSec());
+        inputs.leftAppliedVoltage = Volts.of(leftVolts);
+        inputs.leftCurrent = Amps.of(Math.abs(leftSim.getCurrentDrawAmps()));
 
-        inputs.rightFlywheelRPMs = rightSim.getAngularVelocityRadPerSec() / (2.0 * Math.PI) * 60.0;
-        inputs.rightAppliedVoltage = rightVolts;
-        inputs.rightCurrentAmps = Math.abs(rightSim.getCurrentDrawAmps());
+        inputs.rightFlywheelVelocity = RadiansPerSecond.of(rightSim.getAngularVelocityRadPerSec());
+        inputs.rightAppliedVoltage = Volts.of(rightVolts);
+        inputs.rightCurrent = Amps.of(Math.abs(rightSim.getCurrentDrawAmps()));
+    }
+
+    @Override
+    public void runCurrent(double current) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'runCurrent'");
     }
 }

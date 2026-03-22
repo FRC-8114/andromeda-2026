@@ -10,10 +10,13 @@ public interface HopperLanesIO {
     public static class HopperLanesInputs {
         public double velocityRPM = 0;
         public double motorPositionRads = 0;
+        public double appliedTorqueCurrent = 0;
         public double appliedVoltageVolts = 0;
     }
 
     void runVolts(Voltage volts);
+    void runCurrent(double current);
+
 
     void setVelocity(AngularVelocity velocity);
 

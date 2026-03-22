@@ -60,4 +60,10 @@ public class HopperLanesIOSim implements HopperLanesIO {
         inputs.motorPositionRads = motorSim.getAngularPositionRad();
         inputs.appliedVoltageVolts = appliedVolts;
     }
+
+    @Override
+    public void runCurrent(double current) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'runCurrent'");
+    }
 }

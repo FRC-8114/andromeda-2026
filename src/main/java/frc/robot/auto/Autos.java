@@ -66,6 +66,10 @@ public class Autos {
         return chooser;
     }
 
+    public SubsystemRegistry getRegistry() {
+        return subsystemRegistry;
+    }
+
     public List<SysIDMechanism.NamedMechanism> sysIdMechanisms() {
         List<SysIDMechanism.NamedMechanism> mechanisms = subsystemRegistry.all(SysIDMechanism.class).stream()
                 .flatMap(provider -> provider.sysIdMechanisms().stream())

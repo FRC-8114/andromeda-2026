@@ -2,6 +2,8 @@ package frc.robot.subsystems.turretfeeder;
 
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.RPM;
+import static edu.wpi.first.units.Units.Second;
+import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 
 import java.util.List;
@@ -29,58 +31,55 @@ public class TurretFeeder extends SubsystemBase implements SysIDMechanism {
 
     private SysIdRoutine sysId;
 
-    private final LoggedNetworkNumber tuneTurretLoaderVelocity = new LoggedNetworkNumber("Tuning/TurretLoaderVelocityRPM", turretLoaderVelocity.in(RPM));
+    private final LoggedNetworkNumber tuneTurretLoaderVelocity = new LoggedNetworkNumber(
+            "Tuning/TurretLoaderVelocityRPM", turretLoaderVelocity.in(RPM));
 
     public TurretFeeder(TurretFeederIO io) {
         this.io = io;
 
         sysId = new SysIdRoutine(
                 new SysIdRoutine.Config(
-                        null, null, null,
+                        Volts.of(3).per(Second), Volts.of(50), Seconds.of(20),
                         (state) -> Logger.recordOutput("TurretFeeder/SysIdState", state.toString())),
                 new SysIdRoutine.Mechanism(
-                        (voltage) -> io.runVolts(voltage), null, this));
+                        (voltage) -> io.runTorqueCurrent(Amps.of(voltage.in(Volts))), null, this));
     }
 
-    public final Trigger atSpeed = new Trigger(() -> RPM.of(inputs.velocityRPM).isNear(turretLoaderVelocity, velocityTolerance));
+    public final Trigger atSpeed = new Trigger(
+            () -> inputs.feederVelocity.isNear(turretLoaderVelocity, velocityTolerance));
 
     public Command feed() {
         return runEnd(
-            () -> io.setVelocity(turretLoaderVelocity),
-            () -> io.stopMotor()
-        );
+                () -> io.setVelocity(turretLoaderVelocity),
+                () -> io.stopMotor());
     }
 
     public Command feedVoltage() {
         return runEnd(
-            () -> io.runVolts(turretLoaderVoltage),
-            () -> io.stopMotor()
-        );
+                () -> io.runVolts(turretLoaderVoltage),
+                () -> io.stopMotor());
     }
 
     public Command feedTorqueCurrent() {
         return runEnd(
-            () -> io.runTorqueCurrent(turretLoaderTorqueCurrent),
-            () -> io.stopMotor()
-        );
+                () -> io.runTorqueCurrent(turretLoaderTorqueCurrent),
+                () -> io.stopMotor());
     }
 
     public Command feedDutyCycle() {
         return runEnd(
-            () -> io.runDutyCycle(),
-            () -> io.stopMotor()
-        );
+                () -> io.runDutyCycle(),
+                () -> io.stopMotor());
     }
 
     public Command feedTunable() {
         return runEnd(
-            () -> io.setVelocity(RPM.of(tuneTurretLoaderVelocity.get())),
-            () -> io.stopMotor()
-        );
+                () -> io.setVelocity(RPM.of(tuneTurretLoaderVelocity.get())),
+                () -> io.stopMotor());
     }
 
     public AngularVelocity getVelocity() {
-        return RPM.of(inputs.velocityRPM);
+        return inputs.feederVelocity;
     }
 
     public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {

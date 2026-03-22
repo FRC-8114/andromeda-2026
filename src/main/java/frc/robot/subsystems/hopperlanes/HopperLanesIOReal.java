@@ -1,5 +1,6 @@
 package frc.robot.subsystems.hopperlanes;
 
+import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.Volts;
@@ -8,6 +9,7 @@ import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -41,6 +43,7 @@ public class HopperLanesIOReal implements HopperLanesIO {
 
     private final VelocityVoltage control = new VelocityVoltage(0);
     private final VoltageOut controlVoltage = new VoltageOut(0);
+    private final TorqueCurrentFOC currentControl = new TorqueCurrentFOC(0);
 
     public HopperLanesIOReal() {
         laneMotor.getConfigurator().apply(motorConfig);
@@ -59,8 +62,14 @@ public class HopperLanesIOReal implements HopperLanesIO {
     }
 
     public void updateInputs(HopperLanesInputs inputs) {
+        inputs.appliedTorqueCurrent = laneMotor.getTorqueCurrent().getValue().in(Amps);
         inputs.appliedVoltageVolts = laneMotor.getMotorVoltage().getValue().in(Volts);
         inputs.motorPositionRads = laneMotor.getPosition().getValue().in(Radians);
         inputs.velocityRPM = laneMotor.getVelocity().getValue().in(RPM);
+    }
+
+    @Override
+    public void runCurrent(double current) {
+        laneMotor.setControl(currentControl.withOutput(current));
     }
 }

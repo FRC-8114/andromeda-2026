@@ -1,6 +1,8 @@
 package frc.robot.subsystems.turretfeeder;
 
 import static edu.wpi.first.units.Units.RPM;
+import static edu.wpi.first.units.Units.Radians;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 
 import edu.wpi.first.math.MathUtil;
@@ -57,9 +59,9 @@ public class TurretFeederIOSim implements TurretFeederIO {
         motorSim.setInputVoltage(MathUtil.clamp(appliedVolts, -12.0, 12.0));
         motorSim.update(0.02);
 
-        inputs.motorPositionRads = motorSim.getAngularPositionRad();
-        inputs.velocityRPM = motorSim.getAngularVelocityRadPerSec() / (2.0 * Math.PI) * 60.0;
-        inputs.appliedVoltageVolts = appliedVolts;
+        inputs.feederPosition = Radians.of(motorSim.getAngularPositionRad());
+        inputs.feederVelocity = RadiansPerSecond.of(motorSim.getAngularVelocityRadPerSec());
+        inputs.appliedVoltage = Volts.of(appliedVolts);
     }
 
     @Override

@@ -16,8 +16,8 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
 public class IntakePivot extends SubsystemBase {
-    public static final Angle stowAngle = Radians.of(1.98);
-    public static final Angle deployAngle = Rotations.of(0.05);
+    public static final Angle stowAngle = Radians.of(2.1);
+    public static final Angle deployAngle = Rotations.of(0.0);
 
     private static final Angle angleTolerance = Degrees.of(5);
     private static final Angle kickReleaseAngle = Degrees.of(18);
@@ -32,7 +32,8 @@ public class IntakePivot extends SubsystemBase {
         this.io = io;
 
         sysId = new SysIdRoutine(
-                new SysIdRoutine.Config(
+         
+        new SysIdRoutine.Config(
                         null, null, null,
                         (state) -> Logger.recordOutput("IntakePivot/SysIdState", state.toString())),
                 new SysIdRoutine.Mechanism(
