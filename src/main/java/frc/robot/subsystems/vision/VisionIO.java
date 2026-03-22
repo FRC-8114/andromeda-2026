@@ -24,6 +24,24 @@ public interface VisionIO {
         public Pose3d[] observedPoses = new Pose3d[] {};
         public Pose3d[] acceptedPoses = new Pose3d[] {};
         public Pose3d[] rejectedPoses = new Pose3d[] {};
+        public String cameraId = "";
+        public double extrinsicTx = 0.0;
+        public double extrinsicTy = 0.0;
+        public double extrinsicTz = 0.0;
+        public double extrinsicQx = 0.0;
+        public double extrinsicQy = 0.0;
+        public double extrinsicQz = 0.0;
+        public double extrinsicQw = 1.0;
+        public String[] fiducialSampleIds = new String[] {};
+        public String[] fiducialCameraIds = new String[] {};
+        public int[] fiducialTagIds = new int[] {};
+        public double[] fiducialTx = new double[] {};
+        public double[] fiducialTy = new double[] {};
+        public double[] fiducialTz = new double[] {};
+        public double[] fiducialQx = new double[] {};
+        public double[] fiducialQy = new double[] {};
+        public double[] fiducialQz = new double[] {};
+        public double[] fiducialQw = new double[] {};
     }
 
     public static record PoseEstimation(

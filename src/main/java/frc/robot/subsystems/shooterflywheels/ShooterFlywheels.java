@@ -52,8 +52,6 @@ public class ShooterFlywheels extends SubsystemBase implements SysIDMechanism {
     public void periodic() {
         io.updateInputs(inputs);
         Logger.processInputs("ShooterFlywheels", inputs);
-        Logger.recordOutput("ShooterFlywheels/TargetRPM", targetVelocity.in(RPM));
-        Logger.recordOutput("ShooterFlywheels/AtSpeed", atSpeed.getAsBoolean());
     }
 
     public final Trigger atSpeed = new Trigger(

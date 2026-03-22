@@ -76,6 +76,5 @@ public class HopperLanes extends SubsystemBase implements SysIDMechanism {
     public void periodic() {
         io.updateInputs(inputs);
         Logger.processInputs("HopperLanes", inputs);
-        Logger.recordOutput("HopperLanes/AtSpeed", atSpeed.getAsBoolean());
     }
 }

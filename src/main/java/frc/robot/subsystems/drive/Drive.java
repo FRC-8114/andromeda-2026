@@ -195,12 +195,6 @@ public class Drive extends SubsystemBase implements SysIDMechanism {
             }
         }
 
-        // Log empty setpoint states when disabled
-        if (DriverStation.isDisabled()) {
-            Logger.recordOutput("SwerveStates/Setpoints", new SwerveModuleState[] {});
-            Logger.recordOutput("SwerveStates/SetpointsOptimized", new SwerveModuleState[] {});
-        }
-
         // Update odometry
         double[] sampleTimestamps = modules[0].getOdometryTimestamps(); // All signals are sampled together
         int sampleCount = sampleTimestamps.length;
@@ -246,17 +240,10 @@ public class Drive extends SubsystemBase implements SysIDMechanism {
         SwerveModuleState[] setpointStates = kinematics.toSwerveModuleStates(discreteSpeeds);
         SwerveDriveKinematics.desaturateWheelSpeeds(setpointStates, TunerConstants.kSpeedAt12Volts);
 
-        // Log unoptimized setpoints and setpoint speeds
-        Logger.recordOutput("SwerveStates/Setpoints", setpointStates);
-        Logger.recordOutput("SwerveChassisSpeeds/Setpoints", discreteSpeeds);
-
         // Send setpoints to modules
         for (int i = 0; i < 4; i++) {
             modules[i].runSetpoint(setpointStates[i]);
         }
-
-        // Log optimized setpoints (runSetpoint mutates each state)
-        Logger.recordOutput("SwerveStates/SetpointsOptimized", setpointStates);
     }
 
     /** Runs the drive in a straight line with the specified drive output. */
@@ -458,7 +445,6 @@ public class Drive extends SubsystemBase implements SysIDMechanism {
      * Returns the module states (turn angles and drive velocities) for all of the
      * modules.
      */
-    @AutoLogOutput(key = "SwerveStates/Measured")
     private SwerveModuleState[] getModuleStates() {
         SwerveModuleState[] states = new SwerveModuleState[4];
         for (int i = 0; i < 4; i++) {
@@ -480,7 +466,6 @@ public class Drive extends SubsystemBase implements SysIDMechanism {
     }
 
     /** Returns the measured chassis speeds of the robot. */
-    @AutoLogOutput(key = "SwerveChassisSpeeds/Measured")
     public ChassisSpeeds getChassisSpeeds() {
         return kinematics.toChassisSpeeds(getModuleStates());
     }
@@ -583,8 +568,6 @@ public class Drive extends SubsystemBase implements SysIDMechanism {
                 sample.omega + headingController.calculate(pose.getRotation().getRadians(), sample.heading),
                 pose.getRotation());
 
-        Logger.recordOutput("Drive/TrajectorySetpointPose", sample.getPose());
-        Logger.recordOutput("Drive/TrajectorySetpointSpeedsFieldRelative", sample.getChassisSpeeds());
         runVelocity(speeds);
     }
 

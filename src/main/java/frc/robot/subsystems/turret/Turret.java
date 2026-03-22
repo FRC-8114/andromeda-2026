@@ -114,10 +114,6 @@ public class Turret extends SubsystemBase implements SysIDMechanism {
         return normalizeAngle(inputs.currentTurretPosition);
     }
 
-    public double getTurretPositionRads() {
-        return getTurretPosition().in(Radians);
-    }
-
     private Angle getResolvedTargetAngle(Angle target) {
         return resolveTargetAngle(getTurretPosition(), target);
     }
@@ -126,11 +122,6 @@ public class Turret extends SubsystemBase implements SysIDMechanism {
         Angle normalizedTarget = normalizeAngle(target);
         Angle resolvedTarget = getResolvedTargetAngle(normalizedTarget);
         double error = Math.abs(calculateTravelErrorRadians(getTurretPosition(), resolvedTarget));
-
-        Logger.recordOutput("Turret/RequestedTargetRad", normalizedTarget.in(Radians));
-        Logger.recordOutput("Turret/ResolvedTargetRad", resolvedTarget.in(Radians));
-        Logger.recordOutput("Turret/RequestedTargetInDeadzone", !isWithinTravelRange(normalizedTarget));
-        Logger.recordOutput("Turret/TargetErrorRad", error);
         
         if (error > Constants.CONTROL_TOLERANCE.in(Radians)) {
             pivotMotor.setTarget(resolvedTarget);
@@ -143,7 +134,6 @@ public class Turret extends SubsystemBase implements SysIDMechanism {
     public void periodic() {
         pivotMotor.updateInputs(inputs);
         Logger.processInputs("Turret", inputs);
-        Logger.recordOutput("Turret/NormalizedPositionRad", getTurretPositionRads());
     }
 
     public boolean isAtAngle(Angle target) {

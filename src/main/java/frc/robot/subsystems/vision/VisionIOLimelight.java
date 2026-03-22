@@ -7,6 +7,7 @@ import static frc.robot.subsystems.vision.VisionConstants.maxAmbiguity;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.ArrayList;
 
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -29,7 +30,8 @@ public class VisionIOLimelight implements VisionIO {
             double avgTagDist,
             double ambiguity,
             boolean isMegaTag2,
-            boolean fiducialsValid) {}
+            boolean fiducialsValid,
+            RawFiducialParseResult rawFiducials) {}
 
     private final String limelightName;
     private final LimelightCameraConfiguration config;
@@ -117,7 +119,8 @@ public class VisionIOLimelight implements VisionIO {
                 getEntry(poseArray, 9),
                 ambiguity,
                 isMegaTag2,
-                rawFiducials.valid()));
+                rawFiducials.valid(),
+                rawFiducials));
     }
 
     private DoubleArrayEntry getObservationEntry(LimelightPoseMode mode) {
@@ -128,6 +131,18 @@ public class VisionIOLimelight implements VisionIO {
     }
 
     private record RawFiducialParseResult(RawFiducial[] fiducials, boolean valid) {}
+
+    private record FiducialLogData(
+            String sampleId,
+            String cameraId,
+            int tagId,
+            double tx,
+            double ty,
+            double tz,
+            double qx,
+            double qy,
+            double qz,
+            double qw) {}
 
     private RawFiducialParseResult parseRawFiducials(double[] poseArray, int tagCount) {
         int valuesPerFiducial = 7;
@@ -149,6 +164,92 @@ public class VisionIOLimelight implements VisionIO {
                     poseArray[baseIndex + 6]);
         }
         return new RawFiducialParseResult(rawFiducials, true);
+    }
+
+    private void clearFiducialInputs(VisionIOInputs inputs) {
+        inputs.fiducialSampleIds = new String[] {};
+        inputs.fiducialCameraIds = new String[] {};
+        inputs.fiducialTagIds = new int[] {};
+        inputs.fiducialTx = new double[] {};
+        inputs.fiducialTy = new double[] {};
+        inputs.fiducialTz = new double[] {};
+        inputs.fiducialQx = new double[] {};
+        inputs.fiducialQy = new double[] {};
+        inputs.fiducialQz = new double[] {};
+        inputs.fiducialQw = new double[] {};
+    }
+
+    private void setCameraExtrinsicInputs(VisionIOInputs inputs) {
+        var robotToCamera = config.robotToCamera();
+        var quaternion = robotToCamera.getRotation().getQuaternion();
+        inputs.cameraId = config.name();
+        inputs.extrinsicTx = robotToCamera.getX();
+        inputs.extrinsicTy = robotToCamera.getY();
+        inputs.extrinsicTz = robotToCamera.getZ();
+        inputs.extrinsicQx = quaternion.getX();
+        inputs.extrinsicQy = quaternion.getY();
+        inputs.extrinsicQz = quaternion.getZ();
+        inputs.extrinsicQw = quaternion.getW();
+    }
+
+    private String getSampleId(double timestampSeconds) {
+        return Long.toString(Math.round(timestampSeconds * 1_000_000.0));
+    }
+
+    private List<FiducialLogData> getFiducialLogData(double timestampSeconds) {
+        LimelightHelpers.LimelightResults results = LimelightHelpers.getLatestResults(limelightName);
+        if (results == null || results.targets_Fiducials == null || results.targets_Fiducials.length == 0) {
+            return List.of();
+        }
+
+        String sampleId = getSampleId(timestampSeconds);
+        List<FiducialLogData> fiducialLogData = new ArrayList<>();
+
+        for (LimelightHelpers.LimelightTarget_Fiducial fiducial : results.targets_Fiducials) {
+            Pose3d cameraToTag = fiducial.getTargetPose_CameraSpace();
+            var quaternion = cameraToTag.getRotation().getQuaternion();
+            fiducialLogData.add(new FiducialLogData(
+                    sampleId,
+                    config.name(),
+                    (int) fiducial.fiducialID,
+                    cameraToTag.getX(),
+                    cameraToTag.getY(),
+                    cameraToTag.getZ(),
+                    quaternion.getX(),
+                    quaternion.getY(),
+                    quaternion.getZ(),
+                    quaternion.getW()));
+        }
+
+        return fiducialLogData;
+    }
+
+    private void setFiducialInputs(VisionIOInputs inputs, List<FiducialLogData> fiducialLogData) {
+        int count = fiducialLogData.size();
+        inputs.fiducialSampleIds = new String[count];
+        inputs.fiducialCameraIds = new String[count];
+        inputs.fiducialTagIds = new int[count];
+        inputs.fiducialTx = new double[count];
+        inputs.fiducialTy = new double[count];
+        inputs.fiducialTz = new double[count];
+        inputs.fiducialQx = new double[count];
+        inputs.fiducialQy = new double[count];
+        inputs.fiducialQz = new double[count];
+        inputs.fiducialQw = new double[count];
+
+        for (int i = 0; i < count; i++) {
+            FiducialLogData fiducial = fiducialLogData.get(i);
+            inputs.fiducialSampleIds[i] = fiducial.sampleId();
+            inputs.fiducialCameraIds[i] = fiducial.cameraId();
+            inputs.fiducialTagIds[i] = fiducial.tagId();
+            inputs.fiducialTx[i] = fiducial.tx();
+            inputs.fiducialTy[i] = fiducial.ty();
+            inputs.fiducialTz[i] = fiducial.tz();
+            inputs.fiducialQx[i] = fiducial.qx();
+            inputs.fiducialQy[i] = fiducial.qy();
+            inputs.fiducialQz[i] = fiducial.qz();
+            inputs.fiducialQw[i] = fiducial.qw();
+        }
     }
 
     private double getEntry(double[] values, int index) {
@@ -228,6 +329,8 @@ public class VisionIOLimelight implements VisionIO {
         inputs.observedPoses = new Pose3d[] {};
         inputs.acceptedPoses = new Pose3d[] {};
         inputs.rejectedPoses = new Pose3d[] {};
+        setCameraExtrinsicInputs(inputs);
+        clearFiducialInputs(inputs);
 
         Optional<LimelightObservation> observation = getObservation(VisionConstants.LIMELIGHT_ESTIMATION_MODE);
         if (observation.isEmpty()) {
@@ -237,6 +340,8 @@ public class VisionIOLimelight implements VisionIO {
         LimelightObservation estimated = observation.get();
         inputs.latestObservationTimestampSeconds = Seconds.of(estimated.timestampSeconds());
         inputs.observedPoses = new Pose3d[] { estimated.pose() };
+
+        setFiducialInputs(inputs, getFiducialLogData(estimated.timestampSeconds()));
 
         if (!inputs.connected
                 || !isFresh(estimated, nowSeconds)
