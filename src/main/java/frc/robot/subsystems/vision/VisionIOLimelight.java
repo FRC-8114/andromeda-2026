@@ -196,13 +196,21 @@ public class VisionIOLimelight implements VisionIO {
         return Long.toString(Math.round(timestampSeconds * 1_000_000.0));
     }
 
-    private List<FiducialLogData> getFiducialLogData(double timestampSeconds) {
-        LimelightHelpers.LimelightResults results = LimelightHelpers.getLatestResults(limelightName);
+    private String getSampleId(LimelightHelpers.LimelightResults results, double fallbackTimestampSeconds) {
+        if (results != null && results.timestamp_us > 0) {
+            return Long.toString(results.timestamp_us);
+        }
+        return getSampleId(fallbackTimestampSeconds);
+    }
+
+    private List<FiducialLogData> getFiducialLogData(
+            LimelightHelpers.LimelightResults results,
+            double fallbackTimestampSeconds) {
         if (results == null || results.targets_Fiducials == null || results.targets_Fiducials.length == 0) {
             return List.of();
         }
 
-        String sampleId = getSampleId(timestampSeconds);
+        String sampleId = getSampleId(results, fallbackTimestampSeconds);
         List<FiducialLogData> fiducialLogData = new ArrayList<>();
 
         for (LimelightHelpers.LimelightTarget_Fiducial fiducial : results.targets_Fiducials) {
@@ -332,6 +340,9 @@ public class VisionIOLimelight implements VisionIO {
         setCameraExtrinsicInputs(inputs);
         clearFiducialInputs(inputs);
 
+        LimelightHelpers.LimelightResults latestResults = LimelightHelpers.getLatestResults(limelightName);
+        setFiducialInputs(inputs, getFiducialLogData(latestResults, nowSeconds));
+
         Optional<LimelightObservation> observation = getObservation(VisionConstants.LIMELIGHT_ESTIMATION_MODE);
         if (observation.isEmpty()) {
             return List.of();
@@ -340,8 +351,6 @@ public class VisionIOLimelight implements VisionIO {
         LimelightObservation estimated = observation.get();
         inputs.latestObservationTimestampSeconds = Seconds.of(estimated.timestampSeconds());
         inputs.observedPoses = new Pose3d[] { estimated.pose() };
-
-        setFiducialInputs(inputs, getFiducialLogData(estimated.timestampSeconds()));
 
         if (!inputs.connected
                 || !isFresh(estimated, nowSeconds)
