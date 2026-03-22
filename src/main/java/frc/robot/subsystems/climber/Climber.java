@@ -88,7 +88,5 @@ public class Climber extends SubsystemBase {
     public void periodic() {
         io.updateInputs(inputs);
         Logger.processInputs("Climber", inputs);
-
-        Logger.recordOutput("Climber/ClimbState", state);
     }
 }

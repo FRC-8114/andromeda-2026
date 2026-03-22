@@ -2,8 +2,6 @@ package frc.robot.supersystems.shooter;
 
 import java.util.function.Supplier;
 
-import org.littletonrobotics.junction.Logger;
-
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -114,17 +112,4 @@ public class Shooter extends SubsystemBase {
                                 runIndexerLanes()));
     }
 
-    @Override
-    public void periodic() {
-        ShotSolution shotSolution = getShotSolution();
-        Logger.recordOutput("ShooterSupersystem/TargetRPM", shotSolution.rpm().baseUnitMagnitude());
-        Logger.recordOutput("ShooterSupersystem/TargetPitchRad", shotSolution.pitch().baseUnitMagnitude());
-        Logger.recordOutput("ShooterSupersystem/TargetTurretYawRad", shotSolution.turretYaw().baseUnitMagnitude());
-        Logger.recordOutput("ShooterSupersystem/FlywheelsReady", flywheels.atSpeed.getAsBoolean());
-        Logger.recordOutput("ShooterSupersystem/TurretFeederReady", turretFeeder.atSpeed.getAsBoolean());
-        Logger.recordOutput("ShooterSupersystem/HopperLanesReady", hopperLanes.atSpeed.getAsBoolean());
-        Logger.recordOutput("ShooterSupersystem/PitchReady", shooterPitch.isAtAngle(shotSolution.pitch()));
-        Logger.recordOutput("ShooterSupersystem/TurretReady", turret.isAtAngle(shotSolution.turretYaw()));
-        Logger.recordOutput("ShooterSupersystem/ReadyToShoot", isReadyToShoot());
-    }
 }

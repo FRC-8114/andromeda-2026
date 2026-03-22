@@ -27,7 +27,6 @@ public class ShooterPitch extends SubsystemBase {
     private final ShooterPitchIO pitchMotor;
     private final ShooterPitchInputsAutoLogged inputs = new ShooterPitchInputsAutoLogged();
     private final SysIdRoutine sysId;
-    private Angle targetAngle = Constants.MIN_ANGLE;
 
     // private final LoggedNetworkNumber angle = new LoggedNetworkNumber("Tuning/ShooterPitch", Constants.MIN_ANGLE.in(Degrees));
 
@@ -54,9 +53,6 @@ public class ShooterPitch extends SubsystemBase {
     public void periodic() {
         pitchMotor.updateInputs(inputs);
         Logger.processInputs("ShooterPitch", inputs);
-        Logger.recordOutput("ShooterPitch/CurrentAngleRad", getPitchPosition().in(Radians));
-        Logger.recordOutput("ShooterPitch/TargetAngleRad", targetAngle.in(Radians));
-        Logger.recordOutput("ShooterPitch/AtAngle", isAtAngle(targetAngle));
     }
 
     public boolean isAtAngle(Angle target) {
@@ -66,7 +62,6 @@ public class ShooterPitch extends SubsystemBase {
 
     public Command setAngle(Angle pitchAngle) {
         return run(() -> {
-            targetAngle = pitchAngle;
             pitchMotor.setTarget(pitchAngle);
         });
     }
@@ -74,7 +69,6 @@ public class ShooterPitch extends SubsystemBase {
     public Command followAngle(Supplier<Angle> pitchAngle) {
         return run(() -> {
             Angle target = pitchAngle.get();
-            targetAngle = target;
             pitchMotor.setTarget(target);
         });
     }

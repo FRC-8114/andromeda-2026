@@ -81,7 +81,5 @@ public class IntakePivot extends SubsystemBase {
     public void periodic() {
         io.updateInputs(inputs);
         Logger.processInputs("IntakePivot", inputs);
-        Logger.recordOutput("IntakePivot/IsDeployed", isDeployed.getAsBoolean());
-        Logger.recordOutput("IntakePivot/IsStowed", isStowed.getAsBoolean());
     }
 }

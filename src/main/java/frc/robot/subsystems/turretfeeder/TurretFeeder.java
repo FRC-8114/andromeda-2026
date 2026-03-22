@@ -99,6 +99,5 @@ public class TurretFeeder extends SubsystemBase implements SysIDMechanism {
     public void periodic() {
         io.updateInputs(inputs);
         Logger.processInputs("TurretFeeder", inputs);
-        Logger.recordOutput("TurretFeeder/AtSpeed", atSpeed.getAsBoolean());
     }
 }

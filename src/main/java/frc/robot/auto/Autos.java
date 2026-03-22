@@ -6,7 +6,6 @@ import choreo.auto.AutoRoutine;
 import choreo.auto.AutoTrajectory;
 import choreo.trajectory.SwerveSample;
 import choreo.trajectory.Trajectory;
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -19,8 +18,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
-import org.littletonrobotics.junction.Logger;
-
 public class Autos {
     public record Branch(BooleanSupplier condition, List<ChoreoTraj> trajectories) {
         public Branch {
@@ -264,7 +261,5 @@ public class Autos {
     }
 
     private static void logTrajectory(Trajectory<SwerveSample> trajectory, Boolean active) {
-        Logger.recordOutput("Auto/Trajectory", active ? trajectory.getPoses() : new Pose2d[] {});
-        Logger.recordOutput("Auto/TrajectoryName", active ? trajectory.name() : "");
     }
 }

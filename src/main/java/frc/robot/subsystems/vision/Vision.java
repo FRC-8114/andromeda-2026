@@ -117,8 +117,6 @@ public class Vision extends SubsystemBase {
             seedPoseFromVision();
         }
 
-        Logger.recordOutput("Vision/AllPoses", allPoses.toArray(new Pose3d[0]));
-        Logger.recordOutput("Vision/AcceptedCount", allPoses.size());
     }
 
 }
