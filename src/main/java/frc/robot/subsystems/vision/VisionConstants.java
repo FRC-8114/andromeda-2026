@@ -16,7 +16,7 @@ public class VisionConstants {
         MEGATAG2
     }
 
-    public static final LimelightPoseMode LIMELIGHT_ESTIMATION_MODE = LimelightPoseMode.MEGATAG1;
+    public static final LimelightPoseMode LIMELIGHT_ESTIMATION_MODE = LimelightPoseMode.MEGATAG2;
     public static final int LIMELIGHT_IMU_MODE = 4; // Internal IMU + external assist
     public static final double limelightHeartbeatTimeoutSecs = 0.5;
     public static final double maxObservationAgeSecs = 0.5;
@@ -59,7 +59,7 @@ public class VisionConstants {
     
     private static final Transform3d ROBOT_TO_CAMERA_BACKLEFT = new Transform3d(
             new Translation3d(-0.33655, -0.3, 0.197),
-            new Rotation3d(Degrees.of(0), Degrees.of(28), Degrees.of(135)));
+            new Rotation3d(Degrees.of(0), Degrees.of(34), Degrees.of(135)));
 
     private static final Transform3d ROBOT_TO_CAMERA_BACKRIGHT = new Transform3d(
             new Translation3d(-0.2794, 0.3175, 0.2794),
