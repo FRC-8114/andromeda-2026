@@ -35,7 +35,7 @@ public class IntakePivotIOReal implements IntakePivotIO {
 
     private static final double gearRatio = 11.8125;
 
-    private final CANcoder pivotEncoder = new CANcoder(encoderID);
+    private final CANcoder pivotEncoder = new CANcoder(encoderID, RobotConstants.canBus);
 
     private static final CANcoderConfiguration encoderConfig = new CANcoderConfiguration()
         .withMagnetSensor(new MagnetSensorConfigs()
