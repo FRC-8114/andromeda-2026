@@ -1,58 +1,65 @@
 package frc.robot.subsystems.intakepivot;
 
+import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.KilogramSquareMeters;
+import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.Volts;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.system.plant.DCMotor;
-import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.units.measure.MomentOfInertia;
+import edu.wpi.first.units.measure.MutVoltage;
 import edu.wpi.first.units.measure.Voltage;
-import edu.wpi.first.wpilibj.simulation.DCMotorSim;
+import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 
 public class IntakePivotIOSim implements IntakePivotIO {
-    private static final DCMotor DEPLOY_GEARBOX = DCMotor.getKrakenX60Foc(1);
-    private static final double DEPLOY_GEAR_RATIO = 25.0;
-    private static final double DEPLOY_MOI = 0.01;
+    private static final double gearRatio = 11.8125;
+    private static final MomentOfInertia pivotMoi = KilogramSquareMeters.of(0.02);
+    private static final Distance armLength = Inches.of(11.5);
 
-    private static final double DEPLOY_KP = 5.0;
+    private final SingleJointedArmSim pivotSimModel = new SingleJointedArmSim(
+        DCMotor.getKrakenX60Foc(1),
+        gearRatio,
+        pivotMoi.in(KilogramSquareMeters),
+        armLength.in(Meters),
+        IntakePivot.deployAngle.in(Radians),
+        IntakePivot.stowAngle.in(Radians),
+        true,
+        IntakePivot.stowAngle.in(Radians)
+    );
+    private final PIDController pivotSimController = new PIDController(6.0, 0.0, 0.2);
 
-    private final DCMotorSim deploySim;
-
-    private final PIDController deployController = new PIDController(DEPLOY_KP, 0, 0);
-    
-    private boolean deployClosedLoop = false;
-    private double deployAppliedVolts = 0.0;
-
-    public IntakePivotIOSim() {
-        deploySim = new DCMotorSim(
-            LinearSystemId.createDCMotorSystem(DEPLOY_GEARBOX, DEPLOY_MOI, DEPLOY_GEAR_RATIO),
-            DEPLOY_GEARBOX);   
-    }
+    private boolean isClosedLoop = false;
+    private MutVoltage pivotAppliedVoltage = Volts.mutable(0);
 
     public void setTarget(Angle angle) {
-        deployClosedLoop = true;
-        deployController.setSetpoint(angle.in(Radians));
+        isClosedLoop = true;
+        pivotSimController.setSetpoint(angle.in(Radians));
     }
 
     public void runVolts(Voltage volts) {
-        deployClosedLoop = false;
-        deployAppliedVolts = volts.in(Volts);
+        isClosedLoop = false;
+        pivotAppliedVoltage.mut_replace(volts);
     }
 
-        public void updateInputs(IntakePivotInputs inputs) {
-        if (deployClosedLoop) {
-            deployAppliedVolts = deployController.calculate(deploySim.getAngularPositionRad());
+    public void updateInputs(IntakePivotInputs inputs) {
+        if (isClosedLoop) {
+            pivotAppliedVoltage.mut_replace(pivotSimController.calculate(pivotSimModel.getAngleRads()), Volts);
         } else {
-            deployController.reset();
+            pivotSimController.reset();
         }
 
-        deploySim.setInputVoltage(MathUtil.clamp(deployAppliedVolts, -12.0, 12.0));
-        deploySim.update(0.02);
+        pivotAppliedVoltage.mut_replace(MathUtil.clamp(pivotAppliedVoltage.in(Volts), -12.0, 12.0), Volts);
+        pivotSimModel.setInputVoltage(pivotAppliedVoltage.in(Volts));
+        pivotSimModel.update(0.02);
 
-        inputs.positionRads = deploySim.getAngularPositionRad();
-        inputs.velocityRPM = deploySim.getAngularVelocityRPM();
-        inputs.appliedVoltageVolts = deployAppliedVolts;
+        inputs.positionRads = pivotSimModel.getAngleRads();
+        inputs.velocityRPM = pivotSimModel.getVelocityRadPerSec() * 30 / Math.PI;
+        inputs.appliedVoltageVolts = pivotAppliedVoltage.in(Volts);
     }
+
 }
