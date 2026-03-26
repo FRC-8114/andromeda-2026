@@ -1,6 +1,7 @@
 // spotless:off
 package frc.robot.auto;
-
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.*;
 
@@ -13,7 +14,9 @@ public final class ChoreoVars {
 
 
     public static final class Poses {
-
+        public static final Pose2d preSweep = new Pose2d(6.5921946, 0.6888165, Rotation2d.fromRadians(0.5779019));
+        public static final Pose2d preSweep2 = new Pose2d(6.5921946, 0.6888165, Rotation2d.fromRadians(0));
+        public static final Pose2d shootPose = new Pose2d(2.5859168, 0.6888162, Rotation2d.fromRadians(0));
     }
 }
 // spotless:on
