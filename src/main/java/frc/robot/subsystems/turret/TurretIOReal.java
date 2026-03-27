@@ -44,8 +44,8 @@ public class TurretIOReal implements TurretIO {
         private static final int ENCODER_19T_ID = 33;
         private static final int ENCODER_21T_ID = 34;
 
-        private static final double ENCODER_19T_OFFSET = -0.684326171875;
-        private static final double ENCODER_21T_OFFSET = -0.70166015625;
+        private static final double ENCODER_19T_OFFSET = -0.092041015625;
+        private static final double ENCODER_21T_OFFSET = -0.253662109375;
 
         private static final double MOTOR_TO_TURRET_RATIO = 10.0;
     }
@@ -85,9 +85,10 @@ public class TurretIOReal implements TurretIO {
                 .withMagnetSensor(ENCODER_21T_MAGNET_CONFIG);
 
         private static final Slot0Configs PIVOT_PID_CONFIG = new Slot0Configs()
-                .withKS(35)
-                .withKP(120)
-                .withKD(0)
+                .withKS(10)
+                .withKP(20)
+                .withKI
+                .withKD(1)
                 .withStaticFeedforwardSign(StaticFeedforwardSignValue.UseClosedLoopSign);
 
         private static final MotionMagicConfigs PIVOT_MOTION_MAGIC_CONFIG = new MotionMagicConfigs()

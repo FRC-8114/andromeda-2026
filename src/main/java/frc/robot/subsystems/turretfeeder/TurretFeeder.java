@@ -21,7 +21,7 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.util.SysIDMechanism;
 
 public class TurretFeeder extends SubsystemBase implements SysIDMechanism {
-    private static final AngularVelocity velocityTolerance = RPM.of(100);
+    private static final AngularVelocity velocityTolerance = RPM.of(30);
     private static final AngularVelocity turretLoaderVelocity = RPM.of(1300);
     private static final Current turretLoaderTorqueCurrent = Amps.of(90);
     private static final Voltage turretLoaderVoltage = Volts.of(7);

@@ -62,4 +62,10 @@ public class IntakePivotIOSim implements IntakePivotIO {
         inputs.appliedVoltageVolts = pivotAppliedVoltage.in(Volts);
     }
 
+    @Override
+    public void holdDown(Angle angle) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'holdDown'");
+    }
+
 }

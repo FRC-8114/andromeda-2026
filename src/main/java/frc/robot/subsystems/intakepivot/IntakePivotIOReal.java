@@ -1,5 +1,6 @@
 package frc.robot.subsystems.intakepivot;
 
+import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.Volts;
@@ -31,7 +32,7 @@ import frc.robot.RobotConstants;
 
 public class IntakePivotIOReal implements IntakePivotIO {
     private static final int motorID = 51;
-    private static final int encoderID = 52;
+    private static final int encoderID = 53;
 
     private static final double gearRatio = 11.8125;
 
@@ -39,15 +40,15 @@ public class IntakePivotIOReal implements IntakePivotIO {
 
     private static final CANcoderConfiguration encoderConfig = new CANcoderConfiguration()
         .withMagnetSensor(new MagnetSensorConfigs()
-            .withSensorDirection(SensorDirectionValue.Clockwise_Positive) // TODO: make sure this is correct
-            .withMagnetOffset(0)); // TODO: get magnet offset of cancoder 
+            .withSensorDirection(SensorDirectionValue.CounterClockwise_Positive)
+            .withMagnetOffset(-0.69677734375)); 
 
     private static final Slot0Configs pidConfig = new Slot0Configs()
             .withGravityType(GravityTypeValue.Arm_Cosine)
-            .withKS(7)
-            .withKG(25)
-            .withKP(1200)
-            .withKD(0.7);
+            .withKS(10)
+            .withKG(5)
+            .withKP(600)
+            .withKD(40);
 
     private static final MotionMagicConfigs mmConfig = new MotionMagicConfigs()
             .withMotionMagicCruiseVelocity(10)
@@ -68,8 +69,6 @@ public class IntakePivotIOReal implements IntakePivotIO {
                 .withSensorToMechanismRatio(1.0))
             .withCurrentLimits(new CurrentLimitsConfigs()
                 .withStatorCurrentLimit(60)
-                .withStatorCurrentLimitEnable(true)
-                .withSupplyCurrentLimitEnable(true)
                 .withSupplyCurrentLimit(40))
             .withMotorOutput(new MotorOutputConfigs()
                     .withNeutralMode(NeutralModeValue.Brake)
@@ -83,12 +82,20 @@ public class IntakePivotIOReal implements IntakePivotIO {
     public IntakePivotIOReal() {
         pivotMotor.getConfigurator().apply(motorConfig);
         pivotEncoder.getConfigurator().apply(encoderConfig);
+
+        pivotEncoder.setPosition(pivotEncoder.getAbsolutePosition().getValue());
     }
 
     public void setTarget(Angle angle) {
         pivotMotor.setControl(control.withPosition(angle));
     }
 
+    public void holdDown(Angle angle) {
+        pivotMotor.setControl(control
+            .withPosition(angle)
+            .withFeedForward(Amps.of(25)));
+    }
+ 
     public void runVolts(Voltage volts) {
         pivotMotor.setControl(controlVoltage.withOutput(volts));
     }

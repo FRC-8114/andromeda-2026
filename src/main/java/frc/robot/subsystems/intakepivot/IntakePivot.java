@@ -16,10 +16,10 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
 public class IntakePivot extends SubsystemBase {
-    public static final Angle stowAngle = Radians.of(2.1);
+    public static final Angle stowAngle = Rotations.of(0.37);
     public static final Angle deployAngle = Rotations.of(0.0);
+    private static final Angle angleTolerance = Degrees.of(0.5);
 
-    private static final Angle angleTolerance = Degrees.of(5);
     private static final Angle kickReleaseAngle = Degrees.of(18);
     private static final double kickVoltage = -2.5;
     private static final double holdDeployVoltage = 0.2;
@@ -52,7 +52,9 @@ public class IntakePivot extends SubsystemBase {
     }
 
     public Command deploy() {
-        return run(() -> io.setTarget(deployAngle));
+        return run(() -> io.setTarget(deployAngle))
+            .until(isDeployed)
+            .andThen(run(() -> io.holdDown(deployAngle)));
     }
 
     public Command deployWithKick() {

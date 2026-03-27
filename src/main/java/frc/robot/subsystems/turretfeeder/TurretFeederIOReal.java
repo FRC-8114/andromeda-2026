@@ -12,6 +12,7 @@ import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.TorqueCurrentFOC;
+import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -27,13 +28,14 @@ public class TurretFeederIOReal implements TurretFeederIO {
         private static final int turretLoaderMotorId = 42;
 
         static final Slot0Configs pidConfig = new Slot0Configs()
-                .withKS(14.764)
-                .withKP(37.58)
-                .withKD(0.0);
+                .withKS(20)
+                .withKV(0.5)
+                .withKP(30)
+                .withKD(0);
 
         static final TalonFXConfiguration motorConfig = new TalonFXConfiguration()
                 .withCurrentLimits(new CurrentLimitsConfigs()
-                    .withStatorCurrentLimit(70)
+                    .withStatorCurrentLimit(120)
                     .withStatorCurrentLimitEnable(true)
                     .withSupplyCurrentLimit(70)
                     .withSupplyCurrentLimitEnable(true))
@@ -46,7 +48,7 @@ public class TurretFeederIOReal implements TurretFeederIO {
 
     private final TalonFX laneMotor = new TalonFX(Constants.turretLoaderMotorId, RobotConstants.canBus);
 
-    private final VelocityVoltage control = new VelocityVoltage(0);
+    private final VelocityTorqueCurrentFOC control = new VelocityTorqueCurrentFOC(0);
     private final VoltageOut controlVoltage = new VoltageOut(0);
     private final TorqueCurrentFOC controlTorque = new TorqueCurrentFOC(0);
     private final DutyCycleOut controlDutyCycle = new DutyCycleOut(1);

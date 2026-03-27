@@ -31,7 +31,8 @@ public class VisionIOLimelight implements VisionIO {
             double ambiguity,
             boolean isMegaTag2,
             boolean fiducialsValid,
-            RawFiducialParseResult rawFiducials) {}
+            RawFiducialParseResult rawFiducials) {
+    }
 
     private final String limelightName;
     private final LimelightCameraConfiguration config;
@@ -57,12 +58,17 @@ public class VisionIOLimelight implements VisionIO {
         LimelightHelpers.setCameraPose_RobotSpace(
                 limelightName,
                 cameraTranslation.getX(),
-                cameraTranslation.getY(),
+                -cameraTranslation.getY(), // limelight is right where wpilib is left i guess?
                 cameraTranslation.getZ(),
                 Units.radiansToDegrees(cameraRotation.getX()),
                 Units.radiansToDegrees(cameraRotation.getY()),
                 Units.radiansToDegrees(cameraRotation.getZ()));
         LimelightHelpers.SetIMUMode(limelightName, VisionConstants.LIMELIGHT_IMU_MODE);
+
+        if (VisionConstants.USE_TAG_WHITELIST) {
+
+            LimelightHelpers.SetFiducialIDFiltersOverride(limelightName, VisionConstants.TAG_WHITELIST);
+        }
     }
 
     @Override
@@ -130,7 +136,8 @@ public class VisionIOLimelight implements VisionIO {
         };
     }
 
-    private record RawFiducialParseResult(RawFiducial[] fiducials, boolean valid) {}
+    private record RawFiducialParseResult(RawFiducial[] fiducials, boolean valid) {
+    }
 
     private record FiducialLogData(
             String sampleId,
@@ -142,7 +149,8 @@ public class VisionIOLimelight implements VisionIO {
             double qx,
             double qy,
             double qz,
-            double qw) {}
+            double qw) {
+    }
 
     private RawFiducialParseResult parseRawFiducials(double[] poseArray, int tagCount) {
         int valuesPerFiducial = 7;

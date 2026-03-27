@@ -64,12 +64,15 @@ public class VisionConstants {
     // right from the perspective of the robot
     private static final Transform3d ROBOT_TO_CAMERA_BACKRIGHT = new Transform3d(
             new Translation3d(Inches.of(-10.75), Inches.of(-11.25), Inches.of(11.25)),
-            new Rotation3d(Degrees.of(180), Degrees.of(37), Degrees.of(225)));
+            new Rotation3d(Degrees.of(0), Degrees.of(37), Degrees.of(225)));
 
     public static final CameraConfiguration[] cameras = {
             new LimelightCameraConfiguration("limelight-br", 1.0, ROBOT_TO_CAMERA_BACKRIGHT),
             new LimelightCameraConfiguration("limelight-bl", 1.0, ROBOT_TO_CAMERA_BACKLEFT)
     };
+
+    public static boolean USE_TAG_WHITELIST = true;
+    public static final int[] TAG_WHITELIST = {23, 29};
 
     // Basic filtering thresholds
     public static double maxAmbiguity = 0.3;

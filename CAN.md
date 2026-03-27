@@ -34,5 +34,6 @@ INDEXER: 4
 INTAKE: 5
     Flip Motor: 1 (51)
     Rollers: 2 (52)
+    Flip Encoder: 53
 CLIMB: 6
     Climb Motor: 0 (60)

@@ -166,6 +166,8 @@ public class RobotContainer {
         driverController.rightTrigger().whileTrue(shooter.shoot());
         driverController.b().onTrue(intakePivot.deploy());
         driverController.leftTrigger().whileTrue(intakeRollers.intake());
+
+        driverController.povUp().whileTrue(turretFeeder.feed());
     }
 
     public void enabledInit() {
