@@ -89,6 +89,9 @@ public class IntakePivotIOReal implements IntakePivotIO {
     public void setTarget(Angle angle) {
         pivotMotor.setControl(control.withPosition(angle));
     }
+    public void holdTargetDown(Angle angle) {
+        pivotMotor.setControl(control.withPosition(angle).withFeedForward(Amps.of(20)));
+    }
 
     public void holdDown(Angle angle) {
         pivotMotor.setControl(control

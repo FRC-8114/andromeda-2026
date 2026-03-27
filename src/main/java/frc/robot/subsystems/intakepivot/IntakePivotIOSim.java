@@ -40,6 +40,9 @@ public class IntakePivotIOSim implements IntakePivotIO {
         isClosedLoop = true;
         pivotSimController.setSetpoint(angle.in(Radians));
     }
+    public void holdTargetDown(Angle angle) {
+        setTarget(angle);
+    }
 
     public void runVolts(Voltage volts) {
         isClosedLoop = false;
@@ -61,11 +64,4 @@ public class IntakePivotIOSim implements IntakePivotIO {
         inputs.velocityRPM = pivotSimModel.getVelocityRadPerSec() * 30 / Math.PI;
         inputs.appliedVoltageVolts = pivotAppliedVoltage.in(Volts);
     }
-
-    @Override
-    public void holdDown(Angle angle) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'holdDown'");
-    }
-
 }

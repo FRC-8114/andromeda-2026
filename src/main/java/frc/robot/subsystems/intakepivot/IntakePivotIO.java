@@ -14,8 +14,8 @@ public interface IntakePivotIO {
     }
 
     void setTarget(Angle angle);
-    void holdDown(Angle angle);
-
+    void holdTargetDown(Angle angle);
+    
     void runVolts(Voltage volts);
 
     void updateInputs(IntakePivotInputs inputs);
