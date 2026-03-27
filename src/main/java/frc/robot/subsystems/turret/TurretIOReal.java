@@ -1,5 +1,6 @@
 package frc.robot.subsystems.turret;
 
+import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
@@ -13,6 +14,7 @@ import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.ClosedLoopGeneralConfigs;
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.MagnetSensorConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
@@ -20,6 +22,7 @@ import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.SoftwareLimitSwitchConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.MotionMagicTorqueCurrentFOC;
 import com.ctre.phoenix6.controls.PositionTorqueCurrentFOC;
 import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VoltageOut;
@@ -32,6 +35,8 @@ import com.ctre.phoenix6.signals.StaticFeedforwardSignValue;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.MedianFilter;
+import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
+import edu.wpi.first.math.interpolation.InterpolatingTreeMap;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
@@ -84,15 +89,19 @@ public class TurretIOReal implements TurretIO {
         private static final CANcoderConfiguration ENCODER_21T_CONFIG = new CANcoderConfiguration()
                 .withMagnetSensor(ENCODER_21T_MAGNET_CONFIG);
 
-        private static final Slot0Configs PIVOT_PID_CONFIG = new Slot0Configs()
-                .withKS(30)
-                .withKP(20)
-                .withKD(1.5)
+        private static final Slot0Configs PIVOT_PID_CONSTANTS = new Slot0Configs()
+                .withKS(22)
+                .withKP(50)
+                .withKI(3)
+                .withKD(5)
                 .withStaticFeedforwardSign(StaticFeedforwardSignValue.UseClosedLoopSign);
 
         private static final MotionMagicConfigs PIVOT_MOTION_MAGIC_CONFIG = new MotionMagicConfigs()
-                .withMotionMagicAcceleration(0.5)
                 .withMotionMagicCruiseVelocity(1);
+
+        private static final CurrentLimitsConfigs PIVOT_MOTOR_CURRENT_LIMITS_CONFIGS = new CurrentLimitsConfigs()
+                .withSupplyCurrentLimit(Amps.of(80))
+                .withSupplyCurrentLimitEnable(true);
 
         private static final SoftwareLimitSwitchConfigs PIVOT_SOFTWARE_LIMITS = new SoftwareLimitSwitchConfigs()
                 .withForwardSoftLimitThreshold(Turret.Constants.MAX_ANGLE)
@@ -104,11 +113,12 @@ public class TurretIOReal implements TurretIO {
                 .withNeutralMode(NeutralModeValue.Brake);
 
         private static final TalonFXConfiguration PIVOT_MOTOR_CONFIG = new TalonFXConfiguration()
-                .withSlot0(PIVOT_PID_CONFIG)
+                .withSlot0(PIVOT_PID_CONSTANTS)
                 .withClosedLoopGeneral(new ClosedLoopGeneralConfigs().withContinuousWrap(false))
                 .withMotionMagic(PIVOT_MOTION_MAGIC_CONFIG)
                 .withMotorOutput(PIVOT_MOTOR_OUTPUT_CONFIG)
                 .withSoftwareLimitSwitch(PIVOT_SOFTWARE_LIMITS)
+                .withCurrentLimits(PIVOT_MOTOR_CURRENT_LIMITS_CONFIGS)
                 .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(CANConfiguration.MOTOR_TO_TURRET_RATIO));
 
         private static final double SIGNAL_UPDATE_HZ = 50.0;
@@ -134,9 +144,12 @@ public class TurretIOReal implements TurretIO {
     private int reseedCounter = 0;
 
     public TurretIOReal() {
-        applyConfiguration("Turret/Encoder19TConfigStatus", encoder19T.getConfigurator().apply(Control.ENCODER_19T_CONFIG));
-        applyConfiguration("Turret/Encoder21TConfigStatus", encoder21T.getConfigurator().apply(Control.ENCODER_21T_CONFIG));
-        applyConfiguration("Turret/PivotMotorConfigStatus", pivotMotor.getConfigurator().apply(Control.PIVOT_MOTOR_CONFIG));
+        applyConfiguration("Turret/Encoder19TConfigStatus",
+                encoder19T.getConfigurator().apply(Control.ENCODER_19T_CONFIG));
+        applyConfiguration("Turret/Encoder21TConfigStatus",
+                encoder21T.getConfigurator().apply(Control.ENCODER_21T_CONFIG));
+        applyConfiguration("Turret/PivotMotorConfigStatus",
+                pivotMotor.getConfigurator().apply(Control.PIVOT_MOTOR_CONFIG));
 
         BaseStatusSignal.setUpdateFrequencyForAll(
                 Control.SIGNAL_UPDATE_HZ,
@@ -213,7 +226,8 @@ public class TurretIOReal implements TurretIO {
                 && Math.abs(positionError.in(Radians)) >= Reseed.POSITION_ERROR_THRESHOLD.in(Radians);
     }
 
-    private void updateReseedState(TurretIOInputs inputs, Optional<Angle> crtAngle, Angle position, AngularVelocity velocity) {
+    private void updateReseedState(TurretIOInputs inputs, Optional<Angle> crtAngle, Angle position,
+            AngularVelocity velocity) {
         reseedCounter = shouldReseed(crtAngle, position, velocity) ? reseedCounter + 1 : 0;
 
         if (reseedCounter >= Reseed.REQUIRED_SAMPLES && crtAngle.isPresent()) {

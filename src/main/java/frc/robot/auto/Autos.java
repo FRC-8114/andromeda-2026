@@ -58,7 +58,7 @@ public class Autos {
 
     public AutoChooser createChooser() {
         AutoChooser chooser = new AutoChooser();
-        Trajectories.addAutos(chooser, this);
+        Trajectories.addAutos(chooser, this, subsystemRegistry);
         addSysIdCommands(chooser);
         return chooser;
     }
