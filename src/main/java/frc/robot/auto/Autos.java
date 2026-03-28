@@ -58,7 +58,7 @@ public class Autos {
 
     public AutoChooser createChooser() {
         AutoChooser chooser = new AutoChooser();
-        Trajectories.addAutos(chooser, this);
+        Trajectories.addAutos(chooser, this, subsystemRegistry);
         addSysIdCommands(chooser);
         return chooser;
     }
@@ -104,14 +104,14 @@ public class Autos {
         routine.active().onTrue(
                 Commands.sequence(
                         trajectory.resetOdometry(),
-                        sequence(beforeTrajectory),
+                        parallel(beforeTrajectory),
                         trajectory.cmd()));
     }
 
     public void then(AutoTrajectory currentTrajectory, AutoTrajectory nextTrajectory, Command... betweenTrajectories) {
         currentTrajectory.done().onTrue(
                 Commands.sequence(
-                        sequence(betweenTrajectories),
+                        parallel(betweenTrajectories),
                         nextTrajectory.cmd()));
     }
 
@@ -193,6 +193,13 @@ public class Autos {
             case 0 -> Commands.none();
             case 1 -> commands[0];
             default -> Commands.sequence(commands);
+        };
+    }
+    private static Command parallel(Command... commands) {
+        return switch (commands.length) {
+            case 0 -> Commands.none();
+            case 1 -> commands[0];
+            default -> Commands.parallel(commands);
         };
     }
 

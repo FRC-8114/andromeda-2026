@@ -1,5 +1,7 @@
 package frc.robot.auto;
 
+import static edu.wpi.first.units.Units.Seconds;
+
 import choreo.auto.AutoChooser;
 import choreo.auto.AutoRoutine;
 import choreo.auto.AutoTrajectory;
@@ -11,28 +13,43 @@ import frc.robot.supersystems.shooter.Shooter;
 import frc.robot.util.SubsystemRegistry;
 
 public final class Trajectories {
-    private static final double BASIC_SHOOT_START_DELAY_SECS = 2.0;
-    private static final double BASIC_SHOOT_SHOOT_TIME_SECS = 6.0;
-    private static final double OUTPOST_SHOOT_TIME_SECS = 5.0;
-    private static final double OUTPOST_BALL_DROP_WAIT_SECS = 4.0;
-    private static final double DEPOT_SHOOT_TIME_SECS = 5.0;
-    private static final double LAMEST_AUTO_TOTAL_TIME_SECS = 7.0;
-
     private Trajectories() {}
 
-    public static void addAutos(AutoChooser chooser, Autos autos) {
+    public static void addAutos(AutoChooser chooser, Autos autos, SubsystemRegistry subsystems) {
         chooser.addRoutine("TUNE_MOI", () -> tuneMoi(autos));
-        chooser.addRoutine("Trench2xOutpost", () -> trench2xOutpost(autos));
+        chooser.addCmd("Trench2xOutpost", () -> trench2xOutpost(
+            autos,
+            subsystems.get(IntakePivot.class).get(),
+            subsystems.get(IntakeRollers.class).get(),
+            subsystems.get(Shooter.class).get()
+        ));
     }
 
-    private static AutoRoutine trench2xOutpost(Autos autos) {
+    private static Command trench2xOutpost(Autos autos, IntakePivot intakePivot, IntakeRollers intakeRollers, Shooter shooter) {
         AutoRoutine routine = autos.routine("Trench2xOutpost");
-        AutoTrajectory paths = autos.trajectory(routine, ChoreoTraj.Trench2xOutpost);
+        AutoTrajectory[] paths = autos.split(routine, ChoreoTraj.Trench2xOutpost);
 
-        autos.start(routine, paths);
-        autos.finish(paths, autos.stopCommand());
-
-        return routine;
+        return Commands.sequence(
+            paths[0].resetOdometry(),
+            intakePivot.deploy(), // deploy intake
+            paths[0].cmd(), // drive from start to pre-sweep
+            Commands.deadline( // first sweep + rollers active
+                paths[1].cmd(),
+                intakeRollers.intake()
+            ),
+            paths[2].cmd(), // drive to shoot
+            shooter.shoot() // shoot
+                .withTimeout(Seconds.of(4)),
+            paths[3].cmd(), // drive to pre-sweep
+            Commands.deadline( // second sweep + rollers active
+                paths[4].cmd(),
+                intakeRollers.intake()
+            ),
+            paths[5].cmd(), // drive to shoot
+            shooter.shoot()
+                .withTimeout(Seconds.of(4)),
+            autos.stopCommand()
+        );
     }
 
     private static AutoRoutine tuneMoi(Autos autos) {
@@ -43,17 +60,5 @@ public final class Trajectories {
         autos.finish(path, autos.stopCommand());
 
         return routine;
-    }
-
-    private static Command unavailableAuto(String autoName, String reason) {
-        return Commands.print("Auto '" + autoName + "' is unavailable: " + reason);
-    }
-
-    private static Command logStep(String message) {
-        return Commands.print("[Auto] " + message);
-    }
-
-    private static Command timedLogStep(String message, double seconds) {
-        return Commands.sequence(logStep(message), Commands.waitSeconds(seconds));
     }
 }
