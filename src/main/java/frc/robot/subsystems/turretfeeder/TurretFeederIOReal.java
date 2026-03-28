@@ -1,9 +1,7 @@
 package frc.robot.subsystems.turretfeeder;
 
-import static edu.wpi.first.units.Units.Amps;
+import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.RPM;
-import static edu.wpi.first.units.Units.Radians;
-import static edu.wpi.first.units.Units.Volts;
 
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
@@ -13,7 +11,7 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
-import com.ctre.phoenix6.controls.VelocityVoltage;
+
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
@@ -78,9 +76,9 @@ public class TurretFeederIOReal implements TurretFeederIO {
     }
 
     public void updateInputs(TurretFeederInputs inputs) {
-        inputs.appliedVoltage = laneMotor.getMotorVoltage().getValue();
-        inputs.feederPosition = laneMotor.getPosition().getValue();
-        inputs.feederVelocity = laneMotor.getVelocity().getValue();
-        inputs.appliedTorqueCurrent = laneMotor.getTorqueCurrent().getValue();
+        inputs.beltPositionDeg = laneMotor.getPosition().getValue().in(Degrees);
+        inputs.beltVelocityRPM = laneMotor.getVelocity().getValue().in(RPM);
+        inputs.appliedVoltage = laneMotor.getMotorVoltage().getValueAsDouble();
+        inputs.appliedTorqueCurrent = laneMotor.getTorqueCurrent().getValueAsDouble();
     }
 }

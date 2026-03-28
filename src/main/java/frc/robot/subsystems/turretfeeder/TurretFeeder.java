@@ -46,40 +46,45 @@ public class TurretFeeder extends SubsystemBase implements SysIDMechanism {
     }
 
     public final Trigger atSpeed = new Trigger(
-            () -> inputs.feederVelocity.isNear(turretLoaderVelocity, velocityTolerance));
+        () -> RPM.of(inputs.beltVelocityRPM).isNear(turretLoaderVelocity, velocityTolerance));
 
     public Command feed() {
         return runEnd(
-                () -> io.setVelocity(turretLoaderVelocity),
-                () -> io.stopMotor());
+            () -> io.setVelocity(turretLoaderVelocity),
+            () -> io.stopMotor()
+        );
     }
 
     public Command feedVoltage() {
         return runEnd(
-                () -> io.runVolts(turretLoaderVoltage),
-                () -> io.stopMotor());
+            () -> io.runVolts(turretLoaderVoltage),
+            () -> io.stopMotor()
+        );
     }
 
     public Command feedTorqueCurrent() {
         return runEnd(
-                () -> io.runTorqueCurrent(turretLoaderTorqueCurrent),
-                () -> io.stopMotor());
+            () -> io.runTorqueCurrent(turretLoaderTorqueCurrent),
+            () -> io.stopMotor()
+        );
     }
 
     public Command feedDutyCycle() {
         return runEnd(
-                () -> io.runDutyCycle(),
-                () -> io.stopMotor());
+            () -> io.runDutyCycle(),
+            () -> io.stopMotor()
+        );
     }
 
     public Command feedTunable() {
         return runEnd(
-                () -> io.setVelocity(RPM.of(tuneTurretLoaderVelocity.get())),
-                () -> io.stopMotor());
+            () -> io.setVelocity(RPM.of(tuneTurretLoaderVelocity.get())),
+            () -> io.stopMotor()
+        );
     }
 
     public AngularVelocity getVelocity() {
-        return inputs.feederVelocity;
+        return RPM.of(inputs.beltVelocityRPM);
     }
 
     public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {

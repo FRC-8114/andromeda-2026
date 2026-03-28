@@ -1,14 +1,13 @@
 package frc.robot.subsystems.turretfeeder;
 
 import static edu.wpi.first.units.Units.RPM;
-import static edu.wpi.first.units.Units.Radians;
-import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
@@ -37,6 +36,15 @@ public class TurretFeederIOSim implements TurretFeederIO {
         closedLoop = false;
         appliedVolts = volts.in(Volts);
     }
+    public void runTorqueCurrent(Current torque) {
+        closedLoop = false;
+        appliedVolts = MathUtil.clamp(torque.baseUnitMagnitude() * 0.1, -12.0, 12.0);
+    }
+
+    public void runDutyCycle() {
+        closedLoop = false;
+        appliedVolts = 12.0;
+    }
 
     public void setVelocity(AngularVelocity velocity) {
         closedLoop = true;
@@ -59,20 +67,8 @@ public class TurretFeederIOSim implements TurretFeederIO {
         motorSim.setInputVoltage(MathUtil.clamp(appliedVolts, -12.0, 12.0));
         motorSim.update(0.02);
 
-        inputs.feederPosition = Radians.of(motorSim.getAngularPositionRad());
-        inputs.feederVelocity = RadiansPerSecond.of(motorSim.getAngularVelocityRadPerSec());
-        inputs.appliedVoltage = Volts.of(appliedVolts);
-    }
-
-    @Override
-    public void runTorqueCurrent(Current torque) {
-        closedLoop = false;
-        appliedVolts = MathUtil.clamp(torque.baseUnitMagnitude() * 0.1, -12.0, 12.0);
-    }
-
-    @Override
-    public void runDutyCycle() {
-        closedLoop = false;
-        appliedVolts = 12.0;
+        inputs.beltPositionDeg = Units.radiansToDegrees(motorSim.getAngularPositionRad());
+        inputs.beltVelocityRPM = Units.radiansPerSecondToRotationsPerMinute(motorSim.getAngularVelocityRadPerSec());
+        inputs.appliedVoltage = appliedVolts;
     }
 }
