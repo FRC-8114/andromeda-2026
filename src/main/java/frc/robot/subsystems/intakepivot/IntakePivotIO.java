@@ -8,9 +8,10 @@ import edu.wpi.first.units.measure.Voltage;
 public interface IntakePivotIO {
     @AutoLog
     public static class IntakePivotInputs {
-        public double positionRads = 0;
+        public double positionDeg = 0;
         public double velocityRPM = 0;
         public double appliedVoltageVolts = 0;
+        public double appliedTorqueCurrent = 0;
     }
 
     void setTarget(Angle angle);

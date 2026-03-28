@@ -2,7 +2,6 @@ package frc.robot.subsystems.intakepivot;
 
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Radians;
-import static edu.wpi.first.units.Units.Rotations;
 
 import org.littletonrobotics.junction.Logger;
 
@@ -12,8 +11,6 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 public class IntakePivot extends SubsystemBase {
-    public static final Angle stowAngle = Rotations.of(0.37);
-    public static final Angle deployAngle = Rotations.of(0.0);
     private static final Angle angleTolerance = Degrees.of(0.5);
 
     // private static final Angle kickReleaseAngle = Degrees.of(18);
@@ -28,35 +25,35 @@ public class IntakePivot extends SubsystemBase {
 
         setDefaultCommand(run(() -> {
             if (isDeployed.getAsBoolean()) {
-                io.holdTargetDown(deployAngle);
+                io.holdTargetDown(IntakePivotConstants.deployAngle);
             }
         }));
     }
 
-    public Trigger isDeployed = new Trigger(() -> Radians.of(inputs.positionRads).isNear(deployAngle, angleTolerance));
-    public Trigger isStowed = new Trigger(() -> Radians.of(inputs.positionRads).isNear(stowAngle, angleTolerance));
+    public Trigger isDeployed = new Trigger(() -> Degrees.of(inputs.positionDeg).isNear(IntakePivotConstants.deployAngle, angleTolerance));
+    public Trigger isStowed = new Trigger(() -> Radians.of(inputs.positionDeg).isNear(IntakePivotConstants.stowAngle, angleTolerance));
 
     // public Command periodicPulse() {
-    //     return Commands.repeatingSequence(
-    //             run(() -> io.runVolts(Volts.of(0.1))).withTimeout(0.25),
-    //             deploy().withTimeout(1.0),
-    //             Commands.waitTime(Seconds.of(1.0)))
-    //             .finallyDo(() -> io.setTarget(deployAngle));
+    // return Commands.repeatingSequence(
+    // run(() -> io.runVolts(Volts.of(0.1))).withTimeout(0.25),
+    // deploy().withTimeout(1.0),
+    // Commands.waitTime(Seconds.of(1.0)))
+    // .finallyDo(() -> io.setTarget(deployAngle));
     // }
     // public Command deployWithKick() {
-    //     return Commands.sequence(
-    //             run(() -> io.runVolts(Volts.of(kickVoltage))).until(() -> Radians.of(inputs.positionRads).lte(kickReleaseAngle)),
-    //             run(() -> io.runVolts(Volts.of(holdDeployVoltage))).withTimeout(0.2),
-    //             deploy());
+    // return Commands.sequence(
+    // run(() -> io.runVolts(Volts.of(kickVoltage))).until(() ->
+    // Radians.of(inputs.positionRads).lte(kickReleaseAngle)),
+    // run(() -> io.runVolts(Volts.of(holdDeployVoltage))).withTimeout(0.2),
+    // deploy());
     // }
 
     public Command deploy() {
-        return run(() -> io.setTarget(deployAngle));
+        return run(() -> io.setTarget(IntakePivotConstants.deployAngle)).until(isDeployed);
     }
 
     public Command stow() {
-        return run(() -> io.setTarget(stowAngle))
-                .until(isStowed);
+        return run(() -> io.setTarget(IntakePivotConstants.stowAngle)).until(isStowed);
     }
 
     @Override
