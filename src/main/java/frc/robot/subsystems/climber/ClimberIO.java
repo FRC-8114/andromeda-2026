@@ -7,7 +7,7 @@ import edu.wpi.first.units.measure.Voltage;
 public interface ClimberIO {
     @AutoLog
     public static class ClimberIOInputs {
-        public double rotations = 0.0;
+        public double positionRot = 0.0;
         public double velocityRPM = 0.0;
         public double currentAmps = 0.0;
         public double appliedVoltageVolts = 0.0;

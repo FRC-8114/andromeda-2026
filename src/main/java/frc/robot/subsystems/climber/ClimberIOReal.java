@@ -36,9 +36,9 @@ public class ClimberIOReal implements ClimberIO {
                 .withFeedback(feedbackConfig)
                 .withSoftwareLimitSwitch(new SoftwareLimitSwitchConfigs()
                         .withForwardSoftLimitEnable(true)
-                        .withForwardSoftLimitThreshold(Rotations.of(Climber.Constants.DEPLOY_ROTATIONS))
+                        .withForwardSoftLimitThreshold(Rotations.of(ClimberConstants.deployRotations))
                         .withReverseSoftLimitEnable(true)
-                        .withReverseSoftLimitThreshold(Rotations.of(Climber.Constants.STOW_ROTATIONS)))
+                        .withReverseSoftLimitThreshold(Rotations.of(ClimberConstants.stowRotations)))
                 .withCurrentLimits(new CurrentLimitsConfigs()
                         .withStatorCurrentLimit(80)
                         .withStatorCurrentLimitEnable(true)
@@ -66,7 +66,7 @@ public class ClimberIOReal implements ClimberIO {
     }
 
     public void updateInputs(ClimberIOInputs inputs) {
-        inputs.rotations = climbMotor.getPosition().getValue().in(Rotations);
+        inputs.positionRot = climbMotor.getPosition().getValue().in(Rotations);
         inputs.velocityRPM = climbMotor.getVelocity().getValue().in(RPM);
         inputs.appliedVoltageVolts = climbMotor.getMotorVoltage().getValue().in(Volts);
         inputs.currentAmps = climbMotor.getSupplyCurrent().getValue().in(Amps);
