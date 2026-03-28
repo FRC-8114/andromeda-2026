@@ -41,11 +41,6 @@ public class TurretFeederIOSim implements TurretFeederIO {
         appliedVolts = MathUtil.clamp(torque.baseUnitMagnitude() * 0.1, -12.0, 12.0);
     }
 
-    public void runDutyCycle() {
-        closedLoop = false;
-        appliedVolts = 12.0;
-    }
-
     public void setVelocity(AngularVelocity velocity) {
         closedLoop = true;
         double setpointRadPerSec = velocity.in(RPM) / 60.0 * 2.0 * Math.PI;

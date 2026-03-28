@@ -18,7 +18,6 @@ public interface TurretFeederIO {
     void runVolts(Voltage volts);
     void runTorqueCurrent(Current torque);
     void setVelocity(AngularVelocity velocity);
-    void runDutyCycle();
 
     void stopMotor();
 
