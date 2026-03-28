@@ -26,8 +26,8 @@ public final class Trajectories {
     }
 
     private static AutoRoutine trench2xOutpost(Autos autos) {
-        AutoRoutine routine = autos.routine("Trench2xOutpostSHORT");
-        AutoTrajectory paths = autos.trajectory(routine, ChoreoTraj.Trench2xOutpostSHORT);
+        AutoRoutine routine = autos.routine("Trench2xOutpost");
+        AutoTrajectory paths = autos.trajectory(routine, ChoreoTraj.Trench2xOutpost);
 
         autos.start(routine, paths);
         autos.finish(paths, autos.stopCommand());

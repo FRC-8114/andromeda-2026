@@ -24,6 +24,20 @@ public record ChoreoTraj(
     Pose2d initialPoseBlue,
     Pose2d endPoseBlue
 ) {
+    public static final ChoreoTraj CalibrateMOI = new ChoreoTraj(
+        "CalibrateMOI",
+        OptionalInt.empty(),
+        13.14392,
+        new Pose2d(1.8288, 1.8288, Rotation2d.fromRadians(0)),
+        new Pose2d(1.8288, 1.8288, Rotation2d.fromRadians(0))
+    );
+    public static final ChoreoTraj NewPath = new ChoreoTraj(
+        "NewPath",
+        OptionalInt.empty(),
+        2.41237,
+        new Pose2d(3.55938, 4.04324, Rotation2d.fromRadians(3.14159)),
+        new Pose2d(1.08795, 4.67495, Rotation2d.fromRadians(1.5708))
+    );
     public static final ChoreoTraj Trench2xDepot = new ChoreoTraj(
         "Trench2xDepot",
         OptionalInt.empty(),
@@ -47,24 +61,10 @@ public record ChoreoTraj(
         new Pose2d(2.29357, 7.38038, Rotation2d.fromRadians(0)),
         new Pose2d(2.30439, 7.41287, Rotation2d.fromRadians(0))
     );
-    public static final ChoreoTraj NewPath = new ChoreoTraj(
-        "NewPath",
-        OptionalInt.empty(),
-        2.41237,
-        new Pose2d(3.55938, 4.04324, Rotation2d.fromRadians(3.14159)),
-        new Pose2d(1.08795, 4.67495, Rotation2d.fromRadians(1.5708))
-    );
-    public static final ChoreoTraj CalibrateMOI = new ChoreoTraj(
-        "CalibrateMOI",
-        OptionalInt.empty(),
-        13.14392,
-        new Pose2d(1.8288, 1.8288, Rotation2d.fromRadians(0)),
-        new Pose2d(1.8288, 1.8288, Rotation2d.fromRadians(0))
-    );
     public static final ChoreoTraj Trench2xOutpost = new ChoreoTraj(
         "Trench2xOutpost",
         OptionalInt.empty(),
-        7.78692,
+        8.15068,
         new Pose2d(3.59987, 0.68882, Rotation2d.fromRadians(0)),
         new Pose2d(2.58592, 0.68882, Rotation2d.fromRadians(0))
     );
@@ -72,7 +72,7 @@ public record ChoreoTraj(
     public static final ChoreoTraj Trench2xOutpost$0 = new ChoreoTraj(
         "Trench2xOutpost",
         OptionalInt.of(0),
-        3.66395,
+        3.66844,
         new Pose2d(3.59987, 0.68882, Rotation2d.fromRadians(0)),
         new Pose2d(2.58592, 0.68882, Rotation2d.fromRadians(0))
     );
@@ -80,14 +80,14 @@ public record ChoreoTraj(
     public static final ChoreoTraj Trench2xOutpost$1 = new ChoreoTraj(
         "Trench2xOutpost",
         OptionalInt.of(1),
-        4.1229700000000005,
+        4.482239999999999,
         new Pose2d(2.58592, 0.68882, Rotation2d.fromRadians(0)),
         new Pose2d(2.58592, 0.68882, Rotation2d.fromRadians(0))
     );
     public static final ChoreoTraj Trench2xOutpostSHORT = new ChoreoTraj(
         "Trench2xOutpostSHORT",
         OptionalInt.empty(),
-        7.71456,
+        19.54476,
         new Pose2d(3.59987, 0.68882, Rotation2d.fromRadians(0)),
         new Pose2d(2.58592, 0.68882, Rotation2d.fromRadians(0))
     );
@@ -95,7 +95,7 @@ public record ChoreoTraj(
     public static final ChoreoTraj Trench2xOutpostSHORT$0 = new ChoreoTraj(
         "Trench2xOutpostSHORT",
         OptionalInt.of(0),
-        3.62874,
+        8.82011,
         new Pose2d(3.59987, 0.68882, Rotation2d.fromRadians(0)),
         new Pose2d(2.58592, 0.68882, Rotation2d.fromRadians(0))
     );
@@ -103,7 +103,7 @@ public record ChoreoTraj(
     public static final ChoreoTraj Trench2xOutpostSHORT$1 = new ChoreoTraj(
         "Trench2xOutpostSHORT",
         OptionalInt.of(1),
-        4.08582,
+        10.72465,
         new Pose2d(2.58592, 0.68882, Rotation2d.fromRadians(0)),
         new Pose2d(2.58592, 0.68882, Rotation2d.fromRadians(0))
     );
@@ -113,11 +113,11 @@ public record ChoreoTraj(
      * This allows for trajectory data to be looked up with strings during runtime.
      */
     public static final Map<String, ChoreoTraj> ALL_TRAJECTORIES = Map.ofEntries(
+        Map.entry("CalibrateMOI", CalibrateMOI),
+        Map.entry("NewPath", NewPath),
         Map.entry("Trench2xDepot", Trench2xDepot),
         Map.entry("Trench2xDepot$0", Trench2xDepot$0),
         Map.entry("Trench2xDepot$1", Trench2xDepot$1),
-        Map.entry("NewPath", NewPath),
-        Map.entry("CalibrateMOI", CalibrateMOI),
         Map.entry("Trench2xOutpost", Trench2xOutpost),
         Map.entry("Trench2xOutpost$0", Trench2xOutpost$0),
         Map.entry("Trench2xOutpost$1", Trench2xOutpost$1),
