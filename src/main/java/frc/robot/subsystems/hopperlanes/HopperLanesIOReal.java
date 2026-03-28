@@ -22,10 +22,10 @@ public class HopperLanesIOReal implements HopperLanesIO {
     private static final int indexerMotorId = 41;
 
     static final Slot0Configs pidConfig = new Slot0Configs()
-        .withKS(0.56491)
-        .withKV(0.097911)
-        .withKA(0.0092569)
-        .withKP(0.58604)
+        .withKS(0.31077)
+        .withKV(0.01988)
+        .withKA(0.00049466)
+        .withKP(1)
         .withKI(0.0)
         .withKD(0.0);
 

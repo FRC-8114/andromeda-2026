@@ -121,6 +121,7 @@ public class RobotContainer {
                 drive::getFieldGyroRotation3d,
                 drive::getRawGyroVelocityRadPerSec,
                 drive::getPose));
+        // vision = null;
 
         autoChooser = new Autos(subsystemRegistry).createChooser();
 
@@ -167,7 +168,7 @@ public class RobotContainer {
         driverController.b().onTrue(intakePivot.deploy());
         driverController.leftTrigger().whileTrue(intakeRollers.intake());
 
-        driverController.povUp().whileTrue(turretFeeder.feed());
+        driverController.povUp().whileTrue(hopperLanes.feed());
     }
 
     public void enabledInit() {
@@ -177,7 +178,7 @@ public class RobotContainer {
     public void disabledInit() {
         vision.setIMUMode(0 /* EXTERNAL_ONLY */);
     }
-    
+
     public Command getAutonomousCommand() {
         return autoChooser.selectedCommand();
     }
