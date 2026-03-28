@@ -31,11 +31,9 @@ public class HopperLanesIOReal implements HopperLanesIO {
 
     static final TalonFXConfiguration motorConfig = new TalonFXConfiguration()
         .withFeedback(new FeedbackConfigs()
-            .withSensorToMechanismRatio(14.4))
+            .withSensorToMechanismRatio(12))
         .withCurrentLimits(new CurrentLimitsConfigs()
             .withStatorCurrentLimit(80)
-            .withStatorCurrentLimitEnable(true)
-            .withSupplyCurrentLimitEnable(true)
             .withSupplyCurrentLimit(60))
         .withSlot0(pidConfig);
 

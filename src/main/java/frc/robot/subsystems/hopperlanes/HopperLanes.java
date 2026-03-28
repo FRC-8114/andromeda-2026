@@ -19,8 +19,7 @@ import frc.robot.util.SysIDMechanism;
 public class HopperLanes extends SubsystemBase implements SysIDMechanism {
     private static final AngularVelocity indexerVelocityTolerance = RPM.of(100);
 
-    private static final AngularVelocity indexerVelocity = RPM.of(900);
-    private static final double feedTimeoutSecs = 2.0;
+    private static final AngularVelocity indexerVelocity = RPM.of(210);
 
     private final HopperLanesIO io;
     private final HopperLanesInputsAutoLogged inputs = new HopperLanesInputsAutoLogged();
