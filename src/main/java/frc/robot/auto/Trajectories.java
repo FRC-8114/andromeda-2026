@@ -20,14 +20,14 @@ public final class Trajectories {
 
     private Trajectories() {}
 
-    public static void addAutos(AutoChooser chooser, Autos autos, SubsystemRegistry subsystems) {
+    public static void addAutos(AutoChooser chooser, Autos autos) {
         chooser.addRoutine("TUNE_MOI", () -> tuneMoi(autos));
-        chooser.addRoutine("Trench2xOutpost", () -> trench2xOutpost(autos, subsystems.get(IntakeRollers.class).get(), subsystems.get(IntakePivot.class).get()));
+        chooser.addRoutine("Trench2xOutpost", () -> trench2xOutpost(autos));
     }
 
-    private static AutoRoutine trench2xOutpost(Autos autos, IntakeRollers intakeRollers, IntakePivot intakePivot) {
-        AutoRoutine routine = autos.routine("Trench2xOutpost");
-        AutoTrajectory paths = autos.trajectory(routine, ChoreoTraj.Trench2xOutpost);
+    private static AutoRoutine trench2xOutpost(Autos autos) {
+        AutoRoutine routine = autos.routine("Trench2xOutpostSHORT");
+        AutoTrajectory paths = autos.trajectory(routine, ChoreoTraj.Trench2xOutpostSHORT);
 
         autos.start(routine, paths);
         autos.finish(paths, autos.stopCommand());
