@@ -172,6 +172,10 @@ public class RobotContainer {
 
         // driverController.povUp().whileTrue(hopperLanes.feed());
         driverController.povUp().whileTrue(flywheels.runFlywheels(RPM.of(1800)));
+
+        driverController.povDown().whileTrue(
+                Commands.parallel(flywheels.runFlywheelsTunableVelocity(), turret.aimTunable(), shooterPitch.tuneAngle()).alongWith(Commands.waitSeconds(1)
+                        .andThen(turretFeeder.feed().until(turretFeeder.atSpeed).andThen(hopperLanes.feed().alongWith(turretFeeder.feed())))));
     }
 
     public void enabledInit() {

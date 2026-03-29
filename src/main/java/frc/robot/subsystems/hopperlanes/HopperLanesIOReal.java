@@ -22,10 +22,11 @@ public class HopperLanesIOReal implements HopperLanesIO {
     private static final int indexerMotorId = 41;
 
     static final Slot0Configs pidConfig = new Slot0Configs()
-        .withKS(0.25436)
-        .withKV(0.012945)
-        .withKA(0.0035911)
-        .withKP(0.15104);
+        .withKS(0.31077)
+        .withKV(0.01988)
+        .withKP(1)
+        .withKI(0.0)
+        .withKD(0.0);
 
     static final TalonFXConfiguration motorConfig = new TalonFXConfiguration()
         .withFeedback(new FeedbackConfigs()

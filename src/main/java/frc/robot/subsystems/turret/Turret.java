@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.units.measure.Angle;
@@ -44,6 +45,12 @@ public class Turret extends SubsystemBase implements SysIDMechanism {
                 new SysIdRoutine.Mechanism(
                         (voltage) -> pivotMotor.setVoltage(voltage.in(Volts)), null, this));
 
+    }
+
+    private static final LoggedNetworkNumber tuneAngle = new LoggedNetworkNumber("Tuning/TuneShooterAngle", 180);
+
+    public Command aimTunable() {
+        return followAngle(() -> Degrees.of(tuneAngle.get()));
     }
 
     public static Angle normalizeAngle(Angle angle) {
