@@ -1,16 +1,14 @@
 package frc.robot.subsystems.shooterflywheels;
 
-import static edu.wpi.first.units.Units.RPM;
-import static edu.wpi.first.units.Units.Radians;
-import static edu.wpi.first.units.Units.Volts;
-
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
+import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
+import com.ctre.phoenix6.controls.StrictFollower;
 import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
@@ -31,21 +29,29 @@ public class ShooterFlywheelsIOReal implements ShooterFlywheelsIO {
         static final int RIGHT_FLYWHEEL_MOTOR_ID = 36;
         static final double SIGNAL_UPDATE_HZ = 50.0;
 
+        static final double gearRatio = 0.83;
+
         static final Slot0Configs FLYWHEEL_SLOT_0 = new Slot0Configs()
-                .withKS(0.3)
-                .withKV(0.138203)
-                .withKP(0.35);
+                .withKS(0.2998046875)
+                .withKV(0.03)
+                .withKP(0.2)
+                .withKD(0.02);
 
         static final CurrentLimitsConfigs CURRENT_LIMITS = new CurrentLimitsConfigs()
-                .withSupplyCurrentLimit(80)
-                .withSupplyCurrentLimitEnable(true)
-                .withStatorCurrentLimit(60)
-                .withStatorCurrentLimitEnable(true);
+                .withStatorCurrentLimit(70)
+                .withSupplyCurrentLimit(70);
 
-        static final TalonFXConfiguration FLYWHEEL_MOTOR_CONFIG = new TalonFXConfiguration()
+        static final TalonFXConfiguration FLYWHEEL_LEFT_MOTOR_CONFIG = new TalonFXConfiguration()
                 .withSlot0(FLYWHEEL_SLOT_0)
-                .withMotorOutput(new MotorOutputConfigs().withInverted(InvertedValue.Clockwise_Positive))
+                .withFeedback(new FeedbackConfigs()
+                        .withSensorToMechanismRatio(gearRatio))
+                .withMotorOutput(new MotorOutputConfigs()
+                        .withInverted(InvertedValue.Clockwise_Positive))
                 .withCurrentLimits(CURRENT_LIMITS);
+
+        static final TalonFXConfiguration FLYWHEEL_RIGHT_MOTOR_CONFIG = FLYWHEEL_LEFT_MOTOR_CONFIG.clone()
+                .withMotorOutput(new MotorOutputConfigs()
+                        .withInverted(InvertedValue.CounterClockwise_Positive));
     }
 
     private final TalonFX leftFlywheel = new TalonFX(Constants.LEFT_FLYWHEEL_MOTOR_ID, RobotConstants.canBus);
@@ -63,10 +69,11 @@ public class ShooterFlywheelsIOReal implements ShooterFlywheelsIO {
     private final VelocityVoltage velocityControl = new VelocityVoltage(0).withSlot(0);
     private final TorqueCurrentFOC torqueControl = new TorqueCurrentFOC(0);
     private final VoltageOut voltageControl = new VoltageOut(0);
+    private final StrictFollower follower = new StrictFollower(Constants.RIGHT_FLYWHEEL_MOTOR_ID);
 
     public ShooterFlywheelsIOReal() {
-        leftFlywheel.getConfigurator().apply(Constants.FLYWHEEL_MOTOR_CONFIG);
-        rightFlywheel.getConfigurator().apply(Constants.FLYWHEEL_MOTOR_CONFIG);
+        leftFlywheel.getConfigurator().apply(Constants.FLYWHEEL_LEFT_MOTOR_CONFIG);
+        rightFlywheel.getConfigurator().apply(Constants.FLYWHEEL_RIGHT_MOTOR_CONFIG);
 
         BaseStatusSignal.setUpdateFrequencyForAll(
                 Constants.SIGNAL_UPDATE_HZ,
@@ -80,15 +87,16 @@ public class ShooterFlywheelsIOReal implements ShooterFlywheelsIO {
                 rightPosition);
         ParentDevice.optimizeBusUtilizationForAll(leftFlywheel, rightFlywheel);
 
-        rightFlywheel.setControl(new Follower(Constants.LEFT_FLYWHEEL_MOTOR_ID, MotorAlignmentValue.Opposed));
+        leftFlywheel.setControl(follower);
+
     }
 
     public void setFlywheelVelocity(AngularVelocity velocity) {
-        leftFlywheel.setControl(velocityControl.withVelocity(velocity));
+        rightFlywheel.setControl(velocityControl.withVelocity(velocity));
     }
 
     public void runVolts(Voltage volts) {
-        leftFlywheel.setControl(voltageControl.withOutput(volts));
+        rightFlywheel.setControl(voltageControl.withOutput(volts));
     }
 
     public void stopFlywheels() {

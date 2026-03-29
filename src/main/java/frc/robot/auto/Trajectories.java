@@ -17,7 +17,7 @@ public final class Trajectories {
 
     public static void addAutos(AutoChooser chooser, Autos autos, SubsystemRegistry subsystems) {
         chooser.addRoutine("TUNE_MOI", () -> tuneMoi(autos));
-        chooser.addCmd("Trench2xOutpost", () -> trench2xOutpost(
+        chooser.addRoutine("Trench2xOutpost", () -> trench2xOutpost(
             autos,
             subsystems.get(IntakePivot.class).get(),
             subsystems.get(IntakeRollers.class).get(),
@@ -25,31 +25,41 @@ public final class Trajectories {
         ));
     }
 
-    private static Command trench2xOutpost(Autos autos, IntakePivot intakePivot, IntakeRollers intakeRollers, Shooter shooter) {
+    private static AutoRoutine trench2xOutpost(Autos autos, IntakePivot intakePivot, IntakeRollers intakeRollers, Shooter shooter) {
         AutoRoutine routine = autos.routine("Trench2xOutpost");
         AutoTrajectory[] paths = autos.split(routine, ChoreoTraj.Trench2xOutpost);
 
-        return Commands.sequence(
+        routine.active().onTrue(Commands.sequence(
             paths[0].resetOdometry(),
-            intakePivot.deploy(), // deploy intake
-            paths[0].cmd(), // drive from start to pre-sweep
-            Commands.deadline( // first sweep + rollers active
-                paths[1].cmd(),
-                intakeRollers.intake()
+            Commands.deadline( // do first sweep + rollers active
+                paths[0].cmd(),
+                Commands.parallel(
+                    intakeRollers.intake(),
+                    intakePivot.deploy()
+                )
             ),
-            paths[2].cmd(), // drive to shoot
-            shooter.shoot() // shoot
-                .withTimeout(Seconds.of(4)),
-            paths[3].cmd(), // drive to pre-sweep
+            paths[1].cmd(), // drive to shoot
+            autos.stopCommand(), // NO MORE DRIFTING PLS
+            Commands.deadline( // shoot
+                Commands.waitTime(Seconds.of(4)),
+                shooter.shoot()
+            ),
+            paths[2].cmd(), // drive to pre-sweep
             Commands.deadline( // second sweep + rollers active
-                paths[4].cmd(),
-                intakeRollers.intake()
+                paths[3].cmd(),
+                Commands.parallel(
+                    intakeRollers.intake(),
+                    intakePivot.deploy()
+                )
             ),
-            paths[5].cmd(), // drive to shoot
+            paths[4].cmd(), // drive to shoot
+            autos.stopCommand(),
             shooter.shoot()
                 .withTimeout(Seconds.of(4)),
             autos.stopCommand()
-        );
+        ));
+
+        return routine;
     }
 
     private static AutoRoutine tuneMoi(Autos autos) {

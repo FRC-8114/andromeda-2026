@@ -1,5 +1,7 @@
 package frc.robot.supersystems.shooter;
 
+import static edu.wpi.first.units.Units.Degrees;
+
 import java.util.function.Supplier;
 
 import edu.wpi.first.math.geometry.Pose3d;
@@ -17,7 +19,7 @@ import frc.robot.subsystems.turretfeeder.TurretFeeder;
 import frc.robot.util.AllianceFlipUtil;
 
 public class Shooter extends SubsystemBase {
-    private static final double READY_TIMEOUT_SECONDS = 2.0;
+    private static final double READY_TIMEOUT_SECONDS = 5.0;
 
     private final Turret turret;
     private final ShooterFlywheels flywheels;
@@ -102,14 +104,22 @@ public class Shooter extends SubsystemBase {
 
     public Command shoot() {
         return Commands.sequence(
-                Commands.deadline(
-                        Commands.waitUntil(this::isReadyToShoot).withTimeout(READY_TIMEOUT_SECONDS),
-                        prepareToShoot()),
-                        Commands.parallel(
-                                aimAtGoal(),
-                                spinUp(),
-                                spinUpTurretLanes(),
-                                runIndexerLanes()));
+            Commands.deadline(
+                Commands.waitUntil(this::isReadyToShoot).withTimeout(READY_TIMEOUT_SECONDS),
+                prepareToShoot()
+            ),
+            Commands.parallel(
+                aimAtGoal(),
+                spinUp(),
+                spinUpTurretLanes(),
+                runIndexerLanes()
+            )
+        );
     }
 
+    public Command cleanUpShoot() {
+        return Commands.parallel(
+
+        );
+    }
 }

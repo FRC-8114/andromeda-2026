@@ -23,7 +23,9 @@ import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.SoftwareLimitSwitchConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.MotionMagicTorqueCurrentFOC;
+import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.PositionTorqueCurrentFOC;
+import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.CANcoder;
@@ -90,10 +92,9 @@ public class TurretIOReal implements TurretIO {
                 .withMagnetSensor(ENCODER_21T_MAGNET_CONFIG);
 
         private static final Slot0Configs PIVOT_PID_CONSTANTS = new Slot0Configs()
-                .withKS(22)
-                .withKP(50)
-                .withKI(3)
-                .withKD(5)
+                .withKS(2.5)
+                .withKP(12)
+                .withKD(1)
                 .withStaticFeedforwardSign(StaticFeedforwardSignValue.UseClosedLoopSign);
 
         private static final MotionMagicConfigs PIVOT_MOTION_MAGIC_CONFIG = new MotionMagicConfigs()
@@ -135,7 +136,7 @@ public class TurretIOReal implements TurretIO {
     private final StatusSignal<Angle> encoder19TAbsolutePosition = encoder19T.getAbsolutePosition();
     private final StatusSignal<Angle> encoder21TAbsolutePosition = encoder21T.getAbsolutePosition();
 
-    private final PositionTorqueCurrentFOC positionControl = new PositionTorqueCurrentFOC(0);
+    private final PositionVoltage positionControl = new PositionVoltage(Math.PI).withEnableFOC(true);
     private final VoltageOut voltageControl = new VoltageOut(0);
     private final TorqueCurrentFOC currentControl = new TorqueCurrentFOC(0);
     private final MedianFilter crtMedianFilter = new MedianFilter(Reseed.CRT_MEDIAN_TAPS);

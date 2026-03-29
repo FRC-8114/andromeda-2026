@@ -71,7 +71,7 @@ public class VisionConstants {
             new LimelightCameraConfiguration("limelight-bl", 1.0, ROBOT_TO_CAMERA_BACKLEFT)
     };
 
-    public static boolean USE_TAG_WHITELIST = true;
+    public static boolean USE_TAG_WHITELIST = false;
     public static final int[] TAG_WHITELIST = {23, 29};
 
     // Basic filtering thresholds

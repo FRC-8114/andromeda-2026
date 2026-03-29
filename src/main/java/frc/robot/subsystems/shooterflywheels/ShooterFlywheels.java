@@ -40,7 +40,7 @@ public class ShooterFlywheels extends SubsystemBase implements SysIDMechanism {
                         Volts.of(3).per(Second), Volts.of(50), Seconds.of(20),
                         (state) -> Logger.recordOutput("ShooterFlywheels/SysIdState", state.toString())),
                 new SysIdRoutine.Mechanism(
-                        (voltage) -> io.runCurrent(voltage.in(Volts)),
+                        (voltage) -> io.runVolts(voltage),
                         null, this));
     }
 

@@ -4,12 +4,14 @@
 
 package frc.robot;
 
+import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Seconds;
 
 import choreo.auto.AutoChooser;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.auto.Autos;
 import frc.robot.generated.TunerConstants;
@@ -166,9 +168,10 @@ public class RobotContainer {
 
         driverController.rightTrigger().whileTrue(shooter.shoot());
         driverController.b().onTrue(intakePivot.deploy());
-        driverController.leftTrigger().whileTrue(intakeRollers.intake());
+        driverController.leftTrigger().whileTrue(Commands.parallel(intakeRollers.intake(), intakePivot.deploy()));
 
-        driverController.povUp().whileTrue(hopperLanes.feed());
+        // driverController.povUp().whileTrue(hopperLanes.feed());
+        driverController.povUp().whileTrue(flywheels.runFlywheels(RPM.of(1800)));
     }
 
     public void enabledInit() {
