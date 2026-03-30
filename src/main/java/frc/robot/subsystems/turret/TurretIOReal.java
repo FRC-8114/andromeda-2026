@@ -92,7 +92,7 @@ public class TurretIOReal implements TurretIO {
                 .withMagnetSensor(ENCODER_21T_MAGNET_CONFIG);
 
         private static final Slot0Configs PIVOT_PID_CONSTANTS = new Slot0Configs()
-                .withKS(2.5)
+                .withKS(9.6)
                 .withKP(12)
                 .withKD(1)
                 .withStaticFeedforwardSign(StaticFeedforwardSignValue.UseClosedLoopSign);
