@@ -31,10 +31,10 @@ public record ChoreoTraj(
         new Pose2d(1.8288, 1.8288, Rotation2d.fromRadians(0)),
         new Pose2d(1.8288, 1.8288, Rotation2d.fromRadians(0))
     );
-    public static final ChoreoTraj NewPath = new ChoreoTraj(
-        "NewPath",
+    public static final ChoreoTraj ShootDepot = new ChoreoTraj(
+        "ShootDepot",
         OptionalInt.empty(),
-        2.41237,
+        7.61426,
         new Pose2d(3.55938, 4.04324, Rotation2d.fromRadians(3.14159)),
         new Pose2d(1.08795, 4.67495, Rotation2d.fromRadians(1.5708))
     );
@@ -64,49 +64,49 @@ public record ChoreoTraj(
     public static final ChoreoTraj Trench2xOutpost = new ChoreoTraj(
         "Trench2xOutpost",
         OptionalInt.empty(),
-        24.87097,
-        new Pose2d(3.6192, 0.62799, Rotation2d.fromRadians(0)),
-        new Pose2d(2.58592, 0.52639, Rotation2d.fromRadians(0))
+        21.57782,
+        new Pose2d(4.25199, 0.62799, Rotation2d.fromRadians(0)),
+        new Pose2d(3.04312, 0.52639, Rotation2d.fromRadians(0))
     );
     /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
     public static final ChoreoTraj Trench2xOutpost$0 = new ChoreoTraj(
         "Trench2xOutpost",
         OptionalInt.of(0),
-        8.00781,
-        new Pose2d(3.6192, 0.62799, Rotation2d.fromRadians(0)),
-        new Pose2d(6.59219, 0.52639, Rotation2d.fromRadians(0))
+        9.23762,
+        new Pose2d(4.25199, 0.62799, Rotation2d.fromRadians(0)),
+        new Pose2d(6.59219, 0.57719, Rotation2d.fromRadians(0))
     );
     /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
     public static final ChoreoTraj Trench2xOutpost$1 = new ChoreoTraj(
         "Trench2xOutpost",
         OptionalInt.of(1),
-        2.3187500000000014,
-        new Pose2d(6.59219, 0.52639, Rotation2d.fromRadians(0)),
-        new Pose2d(2.5819, 0.52639, Rotation2d.fromRadians(0))
+        2.07418,
+        new Pose2d(6.59219, 0.57719, Rotation2d.fromRadians(0)),
+        new Pose2d(3.0391, 0.52639, Rotation2d.fromRadians(0))
     );
     /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
     public static final ChoreoTraj Trench2xOutpost$2 = new ChoreoTraj(
         "Trench2xOutpost",
         OptionalInt.of(2),
-        2.322799999999999,
-        new Pose2d(2.5819, 0.52639, Rotation2d.fromRadians(0)),
-        new Pose2d(6.59219, 0.52639, Rotation2d.fromRadians(0))
+        1.6262299999999996,
+        new Pose2d(3.0391, 0.52639, Rotation2d.fromRadians(0)),
+        new Pose2d(6.59219, 0.57719, Rotation2d.fromRadians(0))
     );
     /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
     public static final ChoreoTraj Trench2xOutpost$3 = new ChoreoTraj(
         "Trench2xOutpost",
         OptionalInt.of(3),
-        9.543999999999999,
-        new Pose2d(6.59219, 0.52639, Rotation2d.fromRadians(0)),
+        6.559330000000001,
+        new Pose2d(6.59219, 0.57719, Rotation2d.fromRadians(0)),
         new Pose2d(6.27074, 0.98957, Rotation2d.fromRadians(-1.5708))
     );
     /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
     public static final ChoreoTraj Trench2xOutpost$4 = new ChoreoTraj(
         "Trench2xOutpost",
         OptionalInt.of(4),
-        2.6776100000000014,
+        2.0804599999999986,
         new Pose2d(6.27074, 0.98957, Rotation2d.fromRadians(-1.5708)),
-        new Pose2d(2.58592, 0.52639, Rotation2d.fromRadians(0))
+        new Pose2d(3.04312, 0.52639, Rotation2d.fromRadians(0))
     );
 
     /**
@@ -115,7 +115,7 @@ public record ChoreoTraj(
      */
     public static final Map<String, ChoreoTraj> ALL_TRAJECTORIES = Map.ofEntries(
         Map.entry("CalibrateMOI", CalibrateMOI),
-        Map.entry("NewPath", NewPath),
+        Map.entry("ShootDepot", ShootDepot),
         Map.entry("Trench2xDepot", Trench2xDepot),
         Map.entry("Trench2xDepot$0", Trench2xDepot$0),
         Map.entry("Trench2xDepot$1", Trench2xDepot$1),

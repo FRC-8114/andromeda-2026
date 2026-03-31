@@ -1,5 +1,8 @@
 package frc.robot.auto;
 
+import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.RPM;
+import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.Seconds;
 
 import choreo.auto.AutoChooser;
@@ -25,6 +28,14 @@ public final class Trajectories {
         ));
     }
 
+    private static Command fullShootSequence(Shooter shooter) {
+        return shooter.shootAt(
+            Radians.of(1.107),
+            Degrees.of(29),
+            RPM.of(2350)
+        );
+    }
+
     private static AutoRoutine trench2xOutpost(Autos autos, IntakePivot intakePivot, IntakeRollers intakeRollers, Shooter shooter) {
         AutoRoutine routine = autos.routine("Trench2xOutpost");
         AutoTrajectory[] paths = autos.split(routine, ChoreoTraj.Trench2xOutpost);
@@ -40,10 +51,8 @@ public final class Trajectories {
             ),
             paths[1].cmd(), // drive to shoot
             autos.stopCommand(), // NO MORE DRIFTING PLS
-            Commands.deadline( // shoot
-                Commands.waitTime(Seconds.of(4)),
-                shooter.shoot()
-            ),
+            fullShootSequence(shooter)
+                .withTimeout(Seconds.of(12)),
             paths[2].cmd(), // drive to pre-sweep
             Commands.deadline( // second sweep + rollers active
                 paths[3].cmd(),
@@ -54,7 +63,7 @@ public final class Trajectories {
             ),
             paths[4].cmd(), // drive to shoot
             autos.stopCommand(),
-            shooter.shoot()
+            fullShootSequence(shooter)
                 .withTimeout(Seconds.of(4)),
             autos.stopCommand()
         ));
