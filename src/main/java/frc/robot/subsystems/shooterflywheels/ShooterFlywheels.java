@@ -11,6 +11,7 @@ import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -25,8 +26,6 @@ public class ShooterFlywheels extends SubsystemBase implements SysIDMechanism {
 
     private final ShooterFlywheelsIO io;
     private final ShooterInputsAutoLogged inputs = new ShooterInputsAutoLogged();
-
-    private AngularVelocity targetVelocity = RPM.of(0.0);
     
     private static final LoggedNetworkNumber tuneVelocity = new LoggedNetworkNumber("Tuning/TuneShooterVelocityRPM", 2000);
     
@@ -44,60 +43,36 @@ public class ShooterFlywheels extends SubsystemBase implements SysIDMechanism {
                         null, this));
     }
 
-    private boolean isWheelAtSpeed(AngularVelocity velocity) {
-        return velocity.isNear(targetVelocity, Constants.FLYWHEEL_TOLERANCE_RPM);
+    public final Trigger atSpeed(AngularVelocity goalVelocity) {
+        return new Trigger(() -> inputs.leftFlywheelVelocity.isNear(goalVelocity, Constants.FLYWHEEL_TOLERANCE_RPM));
     }
-
-    @Override
-    public void periodic() {
-        io.updateInputs(inputs);
-        Logger.recordOutput("ShooterFlywheelTargetRPM", targetVelocity.in(RPM));
-        Logger.processInputs("ShooterFlywheels", inputs);
-    }
-
-    public final Trigger atSpeed = new Trigger(
-            () -> isWheelAtSpeed(inputs.leftFlywheelVelocity) && isWheelAtSpeed(inputs.rightFlywheelVelocity));
 
     public Command runFlywheelsTunableVelocity() {
+        var targetVelocity = RPM.of(tuneVelocity.get());
         return runEnd(
-            () -> {
-                targetVelocity = RPM.of(tuneVelocity.get());
-                io.setFlywheelVelocity(targetVelocity);
-            },
-            () -> {
-                targetVelocity = RPM.of(0.0);
-                io.stopFlywheels();
-            });
+            () -> io.setFlywheelVelocity(targetVelocity),
+            () -> io.stopFlywheels()
+        );
     }
 
     public Command runFlywheels(AngularVelocity target) {
+        Logger.recordOutput("ShooterFlywheelTargetRPM", target);
         return runEnd(
-                () -> {
-                    targetVelocity = target;
-                    io.setFlywheelVelocity(target);
-                },
-                () -> {
-                    targetVelocity = RPM.of(0.0);
-                    io.stopFlywheels();
-                });
+                () -> io.setFlywheelVelocity(target),
+                () -> io.stopFlywheels());
     }
     public Command runFlywheels(Supplier<AngularVelocity> target) {
         return runEnd(
-                () -> {
-                    targetVelocity = target.get();
-                    io.setFlywheelVelocity(targetVelocity);
-                },
-                () -> {
-                    targetVelocity = RPM.of(0.0);
-                    io.stopFlywheels();
-                });
+            () -> {
+                Logger.recordOutput("ShooterFlywheelTargetRPM", target.get());
+                io.setFlywheelVelocity(target.get());
+            },
+            () -> io.stopFlywheels()
+        );
     }
 
     public Command stopFlywheels() {
-        return runOnce(() -> {
-            targetVelocity = RPM.of(0.0);
-            io.stopFlywheels();
-        });
+        return runOnce(() -> io.stopFlywheels());
     }
 
     public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
@@ -111,5 +86,11 @@ public class ShooterFlywheels extends SubsystemBase implements SysIDMechanism {
     @Override
     public List<SysIDMechanism.NamedMechanism> sysIdMechanisms() {
         return List.of(SysIDMechanism.named("Shooter Flywheels", this::sysIdDynamic, this::sysIdQuasistatic));
+    }
+
+    @Override
+    public void periodic() {
+        io.updateInputs(inputs);
+        Logger.processInputs("ShooterFlywheels", inputs);
     }
 }

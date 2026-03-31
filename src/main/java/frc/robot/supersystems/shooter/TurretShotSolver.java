@@ -64,23 +64,36 @@ public class TurretShotSolver implements Supplier<ShotSolution> {
         @Override
         public KinematicsInfo get() {
             Pose2d robotPose = drive.getPose();
-            ChassisSpeeds fieldSpeeds = ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(), robotPose.getRotation());
+            ChassisSpeeds fieldSpeeds = ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(),
+                    robotPose.getRotation());
 
             return new KinematicsInfo(new Pose3d(robotPose), fieldSpeeds);
         }
     }
 
     public TurretShotSolver(Supplier<Pose3d> targetSupplier, Supplier<KinematicsInfo> kinematicsSupplier) {
-        putMeasurement(Feet.of(7), 20, 1300);
-        putMeasurement(Feet.of(8), 24.0, 1450);
-        putMeasurement(Feet.of(9), 28.0, 1485);
-        putMeasurement(Feet.of(10), 28.0, 1555);
-        putMeasurement(Feet.of(11), 28.0, 1630);
-        putMeasurement(Feet.of(13), 28.0, 1820);
-        putMeasurement(Feet.of(16), 28.0, 2060);
+        // putMeasurement(Feet.of(7), 20, 1300);
+        // putMeasurement(Feet.of(8), 24.0, 1450);
+        // putMeasurement(Feet.of(9), 28.0, 1485);
+        // putMeasurement(Feet.of(10), 28.0, 1555);
+        // putMeasurement(Feet.of(11), 28.0, 1630);
+        // putMeasurement(Feet.of(13), 28.0, 1820);
+        // putMeasurement(Feet.of(16), 28.0, 2060);
 
-        putMeasurement(Feet.of(25), 33, 2225);
-        putMeasurement(Feet.of(40), 33, 2800);
+        // putMeasurement(Feet.of(25), 33, 2225);
+        // putMeasurement(Feet.of(40), 33, 2800);
+
+        putMeasurement(Feet.of(4), 8, 1500);
+        putMeasurement(Feet.of(5), 15, 1500);
+        putMeasurement(Feet.of(6), 19, 1500);
+        putMeasurement(Feet.of(7), 23, 1500);
+        putMeasurement(Feet.of(8), 26, 1600);
+        putMeasurement(Feet.of(9), 22.5, 2200);
+        putMeasurement(Feet.of(10), 23.5, 2200);
+        putMeasurement(Feet.of(11), 25, 2300);
+        putMeasurement(Feet.of(12), 33, 2400);
+        putMeasurement(Feet.of(13), 34, 2500);
+        putMeasurement(Feet.of(14), 35, 2500);
 
         this.targetSupplier = targetSupplier;
         this.kinematicsSupplier = kinematicsSupplier;
@@ -109,7 +122,8 @@ public class TurretShotSolver implements Supplier<ShotSolution> {
 
         Pose3d turretPosition = kinematicsInfo.position
                 .transformBy(new Transform3d(Constants.TURRET_OFFSET, Rotation3d.kZero));
-        Translation3d fieldRelativeTurretOffset = Constants.TURRET_OFFSET.rotateBy(kinematicsInfo.position.getRotation());
+        Translation3d fieldRelativeTurretOffset = Constants.TURRET_OFFSET
+                .rotateBy(kinematicsInfo.position.getRotation());
         Translation3d turretVelocity = new Translation3d(
                 kinematicsInfo.speeds.vxMetersPerSecond
                         - (fieldRelativeTurretOffset.getY() * kinematicsInfo.speeds.omegaRadiansPerSecond),

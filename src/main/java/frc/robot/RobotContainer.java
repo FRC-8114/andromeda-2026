@@ -4,7 +4,9 @@
 
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.RPM;
+import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.Seconds;
 
 import choreo.auto.AutoChooser;
@@ -176,6 +178,14 @@ public class RobotContainer {
         driverController.povDown().whileTrue(
                 Commands.parallel(flywheels.runFlywheelsTunableVelocity(), turret.aimTunable(), shooterPitch.tuneAngle()).alongWith(Commands.waitSeconds(1)
                         .andThen(turretFeeder.feed().until(turretFeeder.atSpeed).andThen(hopperLanes.feed().alongWith(turretFeeder.feed())))));
+        
+        driverController.povRight().whileTrue(intakePivot.pump());
+
+        driverController.povLeft().whileTrue(shooter.shootAt(
+            Radians.of(1.107),
+            Degrees.of(25),
+            RPM.of(2200)
+        ));
     }
 
     public void enabledInit() {
