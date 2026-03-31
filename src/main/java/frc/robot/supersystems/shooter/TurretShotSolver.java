@@ -134,13 +134,13 @@ public class TurretShotSolver implements Supplier<ShotSolution> {
         Translation2d turretTranslation = turretPosition.getTranslation().toTranslation2d();
         Translation2d compensatedTarget = target.getTranslation().toTranslation2d();
 
-        for (int i = 0; i < 3; i++) {
-            Translation2d relativeTarget = compensatedTarget.minus(turretTranslation);
-            double timeOfFlight = estimateTimeOfFlight(relativeTarget.getNorm());
-            compensatedTarget = target.getTranslation()
-                    .minus(turretVelocity.times(timeOfFlight))
-                    .toTranslation2d();
-        }
+        // for (int i = 0; i < 3; i++) {
+        //     Translation2d relativeTarget = compensatedTarget.minus(turretTranslation);
+        //     double timeOfFlight = estimateTimeOfFlight(relativeTarget.getNorm());
+        //     compensatedTarget = target.getTranslation()
+        //             .minus(turretVelocity.times(timeOfFlight))
+        //             .toTranslation2d();
+        // }
 
         Translation2d shotVector = compensatedTarget.minus(turretTranslation);
         Pair<Double, Double> rpmAndPitch = getRPMAndPitch(shotVector.getNorm());

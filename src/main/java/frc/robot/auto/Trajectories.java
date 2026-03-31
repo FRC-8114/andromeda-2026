@@ -26,15 +26,21 @@ public final class Trajectories {
             subsystems.get(IntakeRollers.class).get(),
             subsystems.get(Shooter.class).get()
         ));
+        chooser.addRoutine("ShootDepot", () -> shootDepot(
+            autos,
+            subsystems.get(Shooter.class).get(),
+            subsystems.get(IntakePivot.class).get(),
+            subsystems.get(IntakeRollers.class).get()
+        ));
     }
 
-    private static Command fullShootSequence(Shooter shooter) {
-        return shooter.shootAt(
-            Radians.of(1.107),
-            Degrees.of(29),
-            RPM.of(2350)
-        );
-    }
+    // private static Command fullShootSequence(Shooter shooter) {
+    //     return shooter.shootAt(
+    //         Radians.of(1.107),
+    //         Degrees.of(29),
+    //         RPM.of(2000)
+    //     );
+    // }
 
     private static AutoRoutine trench2xOutpost(Autos autos, IntakePivot intakePivot, IntakeRollers intakeRollers, Shooter shooter) {
         AutoRoutine routine = autos.routine("Trench2xOutpost");
@@ -51,7 +57,10 @@ public final class Trajectories {
             ),
             paths[1].cmd(), // drive to shoot
             autos.stopCommand(), // NO MORE DRIFTING PLS
-            fullShootSequence(shooter)
+            Commands.parallel(
+                intakePivot.pump(),
+                shooter.shoot()
+            )
                 .withTimeout(Seconds.of(12)),
             paths[2].cmd(), // drive to pre-sweep
             Commands.deadline( // second sweep + rollers active
@@ -63,9 +72,33 @@ public final class Trajectories {
             ),
             paths[4].cmd(), // drive to shoot
             autos.stopCommand(),
-            fullShootSequence(shooter)
+            Commands.parallel(
+                intakePivot.pump(),
+                shooter.shoot()
+            )
                 .withTimeout(Seconds.of(4)),
             autos.stopCommand()
+        ));
+
+        return routine;
+    }
+
+    private static AutoRoutine shootDepot(Autos autos, Shooter shooter, IntakePivot intakePivot, IntakeRollers intakeRollers) {
+        AutoRoutine routine = autos.routine("ShootDepot");
+        var paths = autos.split(routine, ChoreoTraj.ShootDepot);
+
+        routine.active().onTrue(Commands.sequence(
+            paths[0].resetOdometry(),
+            Commands.deadline(
+                paths[0].cmd(),
+                intakePivot.deploy()
+            ),
+            paths[1].cmd(),
+            Commands.parallel(
+                intakeRollers.intake(),
+                shooter.shoot()
+            )
+                .withTimeout(12)
         ));
 
         return routine;

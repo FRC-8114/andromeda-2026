@@ -31,9 +31,9 @@ public class ShooterFlywheelsIOReal implements ShooterFlywheelsIO {
 
         static final Slot0Configs FLYWHEEL_SLOT_0 = new Slot0Configs()
                 .withKS(0.5)
-                .withKV(0.1)
-                .withKP(0.4)
-                .withKD(0.05);
+                .withKV(0.09)
+                .withKA(0.01)
+                .withKP(0.065);
 
         static final CurrentLimitsConfigs CURRENT_LIMITS = new CurrentLimitsConfigs()
                 .withStatorCurrentLimit(70)
@@ -91,21 +91,26 @@ public class ShooterFlywheelsIOReal implements ShooterFlywheelsIO {
                 rightVoltage,
                 rightPosition);
         ParentDevice.optimizeBusUtilizationForAll(leftFlywheel, rightFlywheel);
-
-        leftFlywheel.setControl(follower);
     }
 
     public void setFlywheelVelocity(AngularVelocity velocity) {
         rightFlywheel.setControl(velocityControl.withVelocity(velocity));
+        leftFlywheel.setControl(follower);
     }
 
     public void runVolts(Voltage volts) {
         rightFlywheel.setControl(voltageControl.withOutput(volts));
+        leftFlywheel.setControl(follower);
+    }
+
+    public void runCurrent(double current) {
+        rightFlywheel.setControl(torqueControl.withOutput(current));
+        leftFlywheel.setControl(follower);
     }
 
     public void stopFlywheels() {
-        leftFlywheel.stopMotor();
         rightFlywheel.stopMotor();
+        leftFlywheel.setControl(follower);
     }
 
     public void updateInputs(ShooterInputs inputs) {
@@ -128,10 +133,5 @@ public class ShooterFlywheelsIOReal implements ShooterFlywheelsIO {
         inputs.rightCurrent = rightCurrent.getValue();
         inputs.rightAppliedVoltage = rightVoltage.getValue();
         inputs.rightPosition = rightPosition.getValue();
-    }
-
-    @Override
-    public void runCurrent(double current) {
-        leftFlywheel.setControl(torqueControl.withOutput(current));
     }
 }

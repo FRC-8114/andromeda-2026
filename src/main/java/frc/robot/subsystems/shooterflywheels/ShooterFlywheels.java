@@ -56,9 +56,11 @@ public class ShooterFlywheels extends SubsystemBase implements SysIDMechanism {
     }
 
     public Command runFlywheels(AngularVelocity target) {
-        Logger.recordOutput("ShooterFlywheelTargetRPM", target);
         return runEnd(
-                () -> io.setFlywheelVelocity(target),
+                () -> {
+                    Logger.recordOutput("ShooterFlywheelTargetRPM", target);
+                    io.setFlywheelVelocity(target);
+                },
                 () -> io.stopFlywheels());
     }
     public Command runFlywheels(Supplier<AngularVelocity> target) {

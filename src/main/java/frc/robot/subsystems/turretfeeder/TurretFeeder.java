@@ -20,7 +20,7 @@ import frc.robot.util.SysIDMechanism;
 
 public class TurretFeeder extends SubsystemBase implements SysIDMechanism {
     private static final AngularVelocity velocityTolerance = RPM.of(150);
-    private static final AngularVelocity turretLoaderVelocity = RPM.of(2000);
+    private static final AngularVelocity turretLoaderVelocity = RPM.of(2100);
 
     private final TurretFeederIO io;
     private final TurretFeederInputsAutoLogged inputs = new TurretFeederInputsAutoLogged();

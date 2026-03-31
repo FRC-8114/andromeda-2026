@@ -118,8 +118,7 @@ public class Shooter extends SubsystemBase {
             turretFeeder.feed(),
             Commands.waitUntil(isReadyToShootAt(yaw, pitch, velocity))
                 .withTimeout(READY_TIMEOUT_SECONDS)
-                .andThen(hopperLanes.feed()
-            )
+                .andThen(hopperLanes.feed())
         );
     }
 
