@@ -1,18 +1,12 @@
 package frc.robot.supersystems.shooter;
 
-import static edu.wpi.first.units.Units.Feet;
 import static edu.wpi.first.units.Units.Inches;
-import static edu.wpi.first.units.Units.Meter;
+import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Radians;
 
 import java.util.function.Supplier;
 
-import org.ejml.simple.SimpleMatrix;
-
-import edu.wpi.first.math.InterpolatingMatrixTreeMap;
-import edu.wpi.first.math.Matrix;
-import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -21,38 +15,53 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.numbers.N1;
-import edu.wpi.first.math.numbers.N2;
 import edu.wpi.first.units.measure.Distance;
 import frc.robot.subsystems.drive.Drive;
 
 public class TurretShotSolver implements Supplier<ShotSolution> {
     private static class Constants {
-        private static final Distance TURRET_X_OFFSET = Inches.of(-6.5); // negative X is back
-        private static final Distance TURRET_Y_OFFSET = Inches.of(6.875); // positive Y is left
-        private static final Distance TURRET_Z_OFFSET = Inches.of(20.5); // positive Z is up
+        private static final Distance TURRET_X_OFFSET = Inches.of(-6.5);   // negative X is back
+        private static final Distance TURRET_Y_OFFSET = Inches.of(6.875);  // positive Y is left
+        private static final Distance TURRET_Z_OFFSET = Inches.of(20.5);   // positive Z is up
 
-        private static final Distance passingShotClearance = Inches.of(18.0);
+        private static final Translation3d TURRET_OFFSET =
+                new Translation3d(TURRET_X_OFFSET, TURRET_Y_OFFSET, TURRET_Z_OFFSET);
 
-        private static final Translation3d TURRET_OFFSET = new Translation3d(TURRET_X_OFFSET, TURRET_Y_OFFSET,
-                TURRET_Z_OFFSET);
+        // Ballistic solve in SI units.
+        private static final double G_METERS_PER_SEC2 = 9.806635;
 
-        public static final double FLYWHEEL_RADIUS_METERS = 0.050;
-        public static final double SPIN_TRANSFER_EFFICIENCY = 0.78;
+        /*
+         * Fitted from your earlier experimental data:
+         *
+         *   v(ft/s) = 0.00414 * RPM + 10.97
+         *
+         * Converted to m/s:
+         *
+         *   v(m/s) = 0.001261872 * RPM + 3.343656
+         */
+        private static final double SPEED_PER_RPM_MPS = 0.00414 * 0.3048;
+        private static final double SPEED_OFFSET_MPS = 10.97 * 0.3048;
+
+        /*
+         * Practical limits.
+         * The fit came from ~1500-2500 RPM data, so below 1500 the model is much less trustworthy.
+         */
+        private static final double MIN_RPM = 1500.0;
+        private static final double MAX_RPM = 5000.0;
+
+        private static final double MIN_PITCH_DEG = 8.0;
+        private static final double MAX_PITCH_DEG = 35.0;
+        private static final double PITCH_SEARCH_STEP_DEG = 0.25;
+
+        private static final int LEAD_ITERATIONS = 3;
     }
 
-    private Supplier<Pose3d> targetSupplier;
-    private Supplier<KinematicsInfo> kinematicsSupplier;
-    private final InterpolatingMatrixTreeMap<Double, N2, N1> distanceToPitchAndRPM = new InterpolatingMatrixTreeMap<Double, N2, N1>();
+    private final Supplier<Pose3d> targetSupplier;
+    private final Supplier<KinematicsInfo> kinematicsSupplier;
 
-    private void putMeasurement(Distance dist, double pitchDegrees, double rpm) {
-        double pitchRad = Math.toRadians(pitchDegrees);
-        distanceToPitchAndRPM.put(dist.in(Meter),
-                new Matrix<N2, N1>(new SimpleMatrix(new double[] { pitchRad, rpm })));
-    }
+    public static record KinematicsInfo(Pose3d position, ChassisSpeeds speeds) {}
 
-    public static record KinematicsInfo(Pose3d position, ChassisSpeeds speeds) {
-    };
+    private static record ShotParameters(double rpm, double pitchRadians, double launchSpeedMps) {}
 
     public static class DriveKinematicsSupplier implements Supplier<KinematicsInfo> {
         private final Drive drive;
@@ -64,55 +73,119 @@ public class TurretShotSolver implements Supplier<ShotSolution> {
         @Override
         public KinematicsInfo get() {
             Pose2d robotPose = drive.getPose();
-            ChassisSpeeds fieldSpeeds = ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(),
+            ChassisSpeeds fieldSpeeds = ChassisSpeeds.fromRobotRelativeSpeeds(
+                    drive.getChassisSpeeds(),
                     robotPose.getRotation());
 
             return new KinematicsInfo(new Pose3d(robotPose), fieldSpeeds);
         }
     }
 
-    public TurretShotSolver(Supplier<Pose3d> targetSupplier, Supplier<KinematicsInfo> kinematicsSupplier) {
-        // putMeasurement(Feet.of(7), 20, 1300);
-        // putMeasurement(Feet.of(8), 24.0, 1450);
-        // putMeasurement(Feet.of(9), 28.0, 1485);
-        // putMeasurement(Feet.of(10), 28.0, 1555);
-        // putMeasurement(Feet.of(11), 28.0, 1630);
-        // putMeasurement(Feet.of(13), 28.0, 1820);
-        // putMeasurement(Feet.of(16), 28.0, 2060);
-
-        // putMeasurement(Feet.of(25), 33, 2225);
-        // putMeasurement(Feet.of(40), 33, 2800);
-
-        putMeasurement(Feet.of(4), 8, 1500);
-        putMeasurement(Feet.of(5), 15, 1500);
-        putMeasurement(Feet.of(6), 19, 1500);
-        putMeasurement(Feet.of(7), 23, 1500);
-        putMeasurement(Feet.of(8), 26, 1600);
-        putMeasurement(Feet.of(9), 22.5, 2200);
-        putMeasurement(Feet.of(10), 23.5, 2200);
-        putMeasurement(Feet.of(11), 25, 2300);
-        putMeasurement(Feet.of(12), 33, 2400);
-        putMeasurement(Feet.of(13), 34, 2500);
-        putMeasurement(Feet.of(14), 35, 2500);
-
+    public TurretShotSolver(
+            Supplier<Pose3d> targetSupplier,
+            Supplier<KinematicsInfo> kinematicsSupplier) {
         this.targetSupplier = targetSupplier;
         this.kinematicsSupplier = kinematicsSupplier;
     }
 
-    private Pair<Double, Double> getRPMAndPitch(double distance) {
-        var mat = distanceToPitchAndRPM.get(distance).getData();
+    /**
+     * deltaH = d * tan(theta) - g d^2 / (2 v^2 cos^2(theta))
+     * v = sqrt(g d^2 / (2 cos^2(theta) * (d tan(theta) - deltaH)))
+     */
+    public static double requiredSpeedMetersPerSecond(
+            double horizontalDistanceMeters,
+            double angleDeg,
+            Distance targetHeight) {
+        double deltaH = targetHeight.in(Meters) - Constants.TURRET_Z_OFFSET.in(Meters);
+        double theta = Math.toRadians(angleDeg);
 
-        return Pair.of(mat[1], mat[0]);
+        double cos = Math.cos(theta);
+        double tan = Math.tan(theta);
+
+        double denom = 2.0 * cos * cos * (horizontalDistanceMeters * tan - deltaH);
+        if (denom <= 0.0) {
+            return Double.POSITIVE_INFINITY;
+        }
+
+        return Math.sqrt(
+                Constants.G_METERS_PER_SEC2
+                        * horizontalDistanceMeters
+                        * horizontalDistanceMeters
+                        / denom);
     }
 
-    private double estimateTimeOfFlight(double horizontalDist) {
-        var rpmAndPitch = getRPMAndPitch(horizontalDist);
-        double rpm = rpmAndPitch.getFirst();
-        double pitchRad = rpmAndPitch.getSecond();
-        double exitVelocity = (rpm * 2.0 * Math.PI * Constants.FLYWHEEL_RADIUS_METERS / 60.0)
-                * Constants.SPIN_TRANSFER_EFFICIENCY;
+    public static double speedToRpm(double speedMetersPerSecond) {
+        return (speedMetersPerSecond - Constants.SPEED_OFFSET_MPS) / Constants.SPEED_PER_RPM_MPS;
+    }
 
-        return horizontalDist / (exitVelocity * Math.cos(pitchRad));
+    public static double rpmToSpeed(double rpm) {
+        return Constants.SPEED_PER_RPM_MPS * rpm + Constants.SPEED_OFFSET_MPS;
+    }
+
+    private static double clamp(double value, double min, double max) {
+        return Math.max(min, Math.min(max, value));
+    }
+
+    private ShotParameters solveShot(
+            double horizontalDistanceMeters,
+            Distance targetHeight) {
+        double bestRpm = Double.POSITIVE_INFINITY;
+        double bestPitchDeg = Constants.MAX_PITCH_DEG;
+        double bestLaunchSpeed = Double.POSITIVE_INFINITY;
+
+        for (double pitchDeg = Constants.MIN_PITCH_DEG;
+                pitchDeg <= Constants.MAX_PITCH_DEG + 1e-9;
+                pitchDeg += Constants.PITCH_SEARCH_STEP_DEG) {
+
+            double launchSpeed = requiredSpeedMetersPerSecond(
+                    horizontalDistanceMeters,
+                    pitchDeg,
+                    targetHeight);
+
+            if (!Double.isFinite(launchSpeed)) {
+                continue;
+            }
+
+            double rpm = speedToRpm(launchSpeed);
+            rpm = clamp(rpm, Constants.MIN_RPM, Constants.MAX_RPM);
+
+            if (rpm < bestRpm) {
+                bestRpm = rpm;
+                bestPitchDeg = pitchDeg;
+                bestLaunchSpeed = launchSpeed;
+            }
+        }
+
+        if (!Double.isFinite(bestRpm)) {
+            double fallbackPitchDeg = Constants.MAX_PITCH_DEG;
+            double fallbackLaunchSpeed = requiredSpeedMetersPerSecond(
+                    horizontalDistanceMeters,
+                    fallbackPitchDeg,
+                    targetHeight);
+
+            double fallbackRpm = clamp(
+                    speedToRpm(fallbackLaunchSpeed),
+                    Constants.MIN_RPM,
+                    Constants.MAX_RPM);
+
+            return new ShotParameters(
+                    fallbackRpm,
+                    Math.toRadians(fallbackPitchDeg),
+                    fallbackLaunchSpeed);
+        }
+
+        return new ShotParameters(
+                bestRpm,
+                Math.toRadians(bestPitchDeg),
+                bestLaunchSpeed);
+    }
+
+    private double estimateTimeOfFlight(double horizontalDistanceMeters, ShotParameters shot) {
+        double horizontalSpeed = shot.launchSpeedMps() * Math.cos(shot.pitchRadians());
+        if (horizontalSpeed <= 1e-6) {
+            return 0.0;
+        }
+        return horizontalDistanceMeters / horizontalSpeed;
     }
 
     @Override
@@ -122,35 +195,53 @@ public class TurretShotSolver implements Supplier<ShotSolution> {
 
         Pose3d turretPosition = kinematicsInfo.position
                 .transformBy(new Transform3d(Constants.TURRET_OFFSET, Rotation3d.kZero));
-        Translation3d fieldRelativeTurretOffset = Constants.TURRET_OFFSET
-                .rotateBy(kinematicsInfo.position.getRotation());
+
+        Translation3d fieldRelativeTurretOffset =
+                Constants.TURRET_OFFSET.rotateBy(kinematicsInfo.position.getRotation());
+
         Translation3d turretVelocity = new Translation3d(
                 kinematicsInfo.speeds.vxMetersPerSecond
-                        - (fieldRelativeTurretOffset.getY() * kinematicsInfo.speeds.omegaRadiansPerSecond),
+                        - fieldRelativeTurretOffset.getY() * kinematicsInfo.speeds.omegaRadiansPerSecond,
                 kinematicsInfo.speeds.vyMetersPerSecond
-                        + (fieldRelativeTurretOffset.getX() * kinematicsInfo.speeds.omegaRadiansPerSecond),
+                        + fieldRelativeTurretOffset.getX() * kinematicsInfo.speeds.omegaRadiansPerSecond,
                 0.0);
 
         Translation2d turretTranslation = turretPosition.getTranslation().toTranslation2d();
         Translation2d compensatedTarget = target.getTranslation().toTranslation2d();
 
-        // for (int i = 0; i < 3; i++) {
-        //     Translation2d relativeTarget = compensatedTarget.minus(turretTranslation);
-        //     double timeOfFlight = estimateTimeOfFlight(relativeTarget.getNorm());
-        //     compensatedTarget = target.getTranslation()
-        //             .minus(turretVelocity.times(timeOfFlight))
-        //             .toTranslation2d();
-        // }
+        ShotParameters shot = null;
+
+        for (int i = 0; i < Constants.LEAD_ITERATIONS; i++) {
+            Translation2d relativeTarget = compensatedTarget.minus(turretTranslation);
+
+            shot = solveShot(
+                    relativeTarget.getNorm(),
+                    target.getMeasureZ());
+
+            double timeOfFlight = estimateTimeOfFlight(relativeTarget.getNorm(), shot);
+
+            compensatedTarget = target.getTranslation()
+                    .minus(new Translation3d(
+                            turretVelocity.getX() * timeOfFlight,
+                            turretVelocity.getY() * timeOfFlight,
+                            0.0))
+                    .toTranslation2d();
+        }
 
         Translation2d shotVector = compensatedTarget.minus(turretTranslation);
-        Pair<Double, Double> rpmAndPitch = getRPMAndPitch(shotVector.getNorm());
-        double pitchRadians = rpmAndPitch.getSecond();
-        Rotation2d turretYaw = shotVector.getAngle().minus(kinematicsInfo.position.getRotation().toRotation2d());
+
+        if (shot == null) {
+            shot = solveShot(
+                    shotVector.getNorm(),
+                    target.getMeasureZ());
+        }
+
+        Rotation2d turretYaw = shotVector.getAngle()
+                .minus(kinematicsInfo.position.getRotation().toRotation2d());
 
         return new ShotSolution(
-                RPM.of(rpmAndPitch.getFirst()),
-                Radians.of(pitchRadians),
+                RPM.of(shot.rpm()),
+                Radians.of(shot.pitchRadians()),
                 Radians.of(turretYaw.getRadians()));
-
     }
 }
