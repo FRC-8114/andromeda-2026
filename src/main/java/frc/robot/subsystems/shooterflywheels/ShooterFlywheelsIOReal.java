@@ -46,10 +46,17 @@ public class ShooterFlywheelsIOReal implements ShooterFlywheelsIO {
                 .withMotorOutput(new MotorOutputConfigs()
                         .withInverted(InvertedValue.Clockwise_Positive))
                 .withCurrentLimits(CURRENT_LIMITS);
-
-        static final TalonFXConfiguration FLYWHEEL_RIGHT_MOTOR_CONFIG = FLYWHEEL_LEFT_MOTOR_CONFIG.clone()
+        static final TalonFXConfiguration FLYWHEEL_RIGHT_MOTOR_CONFIG = new TalonFXConfiguration()
+                .withSlot0(FLYWHEEL_SLOT_0)
+                .withFeedback(new FeedbackConfigs()
+                        .withSensorToMechanismRatio(gearRatio))
                 .withMotorOutput(new MotorOutputConfigs()
-                        .withInverted(InvertedValue.CounterClockwise_Positive));
+                        .withInverted(InvertedValue.CounterClockwise_Positive))
+                .withCurrentLimits(CURRENT_LIMITS);
+
+        // static final TalonFXConfiguration FLYWHEEL_RIGHT_MOTOR_CONFIG = FLYWHEEL_LEFT_MOTOR_CONFIG.clone()
+        //         .withMotorOutput(new MotorOutputConfigs()
+        //                 .withInverted(InvertedValue.CounterClockwise_Positive));
     }
 
     private final TalonFX leftFlywheel = new TalonFX(Constants.LEFT_FLYWHEEL_MOTOR_ID, RobotConstants.canBus);
@@ -86,7 +93,6 @@ public class ShooterFlywheelsIOReal implements ShooterFlywheelsIO {
         ParentDevice.optimizeBusUtilizationForAll(leftFlywheel, rightFlywheel);
 
         leftFlywheel.setControl(follower);
-
     }
 
     public void setFlywheelVelocity(AngularVelocity velocity) {
