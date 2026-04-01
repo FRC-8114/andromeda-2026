@@ -11,12 +11,12 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.FieldConstants;
-import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.hopperlanes.HopperLanes;
 import frc.robot.subsystems.shooterflywheels.ShooterFlywheels;
 import frc.robot.subsystems.shooterpitch.ShooterPitch;
 import frc.robot.subsystems.turret.Turret;
 import frc.robot.subsystems.turretfeeder.TurretFeeder;
+import frc.robot.supersystems.shooter.ShotSolverUtil.ShotSolution;
 import frc.robot.util.AllianceFlipUtil;
 
 public class Shooter extends SubsystemBase {
@@ -29,25 +29,25 @@ public class Shooter extends SubsystemBase {
     private final HopperLanes hopperLanes;
     private final Supplier<ShotSolution> shotSolver;
 
-    public Shooter(
-            Turret turret,
-            ShooterFlywheels flywheels,
-            ShooterPitch shooterPitch,
-            TurretFeeder turretFeeder,
-            HopperLanes hopperLanes,
-            Drive drive) {
-        this(
-                turret,
-                flywheels,
-                shooterPitch,
-                turretFeeder,
-                hopperLanes,
-                new TurretShotSolver(Shooter::getDefaultTargetPose, new TurretShotSolver.DriveKinematicsSupplier(drive)));
-    }
+    // public Shooter(
+    //         Turret turret,
+    //         ShooterFlywheels flywheels,
+    //         ShooterPitch shooterPitch,
+    //         TurretFeeder turretFeeder,
+    //         HopperLanes hopperLanes,
+    //         Drive drive) {
+    //     this(
+    //             turret,
+    //             flywheels,
+    //             shooterPitch,
+    //             turretFeeder,
+    //             hopperLanes,
+    //             new TurretShotSolverBallistics(Shooter::getDefaultTargetPose, new TurretShotSolverBallistics.DriveKinematicsSupplier(drive)));
+    // }
 
     public Shooter(
             Turret turret,
-            frc.robot.subsystems.shooterflywheels.ShooterFlywheels flywheels,
+            ShooterFlywheels flywheels,
             ShooterPitch shooterPitch,
             TurretFeeder turretFeeder,
             HopperLanes hopperLanes,
@@ -60,7 +60,7 @@ public class Shooter extends SubsystemBase {
         this.shotSolver = shotSolver;
     }
 
-    private static Pose3d getDefaultTargetPose() {
+    public static Pose3d getDefaultTargetPose() {
         return new Pose3d(AllianceFlipUtil.apply(FieldConstants.Hub.topCenterPoint), Rotation3d.kZero);
     }
 

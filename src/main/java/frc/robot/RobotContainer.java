@@ -41,6 +41,8 @@ import frc.robot.subsystems.shooterpitch.ShooterPitch;
 import frc.robot.subsystems.shooterpitch.ShooterPitchIOReal;
 import frc.robot.subsystems.shooterpitch.ShooterPitchIOSim;
 import frc.robot.supersystems.shooter.Shooter;
+import frc.robot.supersystems.shooter.ShotSolverUtil;
+import frc.robot.supersystems.shooter.TurretShotSolverAnglemap;
 import frc.robot.subsystems.turret.Turret;
 import frc.robot.subsystems.turret.TurretIOReal;
 import frc.robot.subsystems.turret.TurretIOSim;
@@ -117,7 +119,10 @@ public class RobotContainer {
 
         drive = subsystemRegistry.register(createDrive());
         shooter = subsystemRegistry.register(
-                new Shooter(turret, flywheels, shooterPitch, turretFeeder, hopperLanes, drive));
+            new Shooter(turret, flywheels, shooterPitch, turretFeeder, hopperLanes,
+                new TurretShotSolverAnglemap(Shooter::getDefaultTargetPose, new ShotSolverUtil.DriveKinematicsSupplier(drive))
+            )
+        );
         turret.setDefaultCommand(shooter.autoAimTurret());
         vision = subsystemRegistry.register(Vision.fromCameraConstants(
                 this::acceptVisionMeasurement,

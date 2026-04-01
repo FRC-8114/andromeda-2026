@@ -17,8 +17,9 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Distance;
 import frc.robot.subsystems.drive.Drive;
+import frc.robot.supersystems.shooter.ShotSolverUtil.ShotSolution;
 
-public class TurretShotSolver implements Supplier<ShotSolution> {
+public class TurretShotSolverBallistics implements Supplier<ShotSolution> {
     private static class Constants {
         private static final Distance TURRET_X_OFFSET = Inches.of(-6.5);   // negative X is back
         private static final Distance TURRET_Y_OFFSET = Inches.of(6.875);  // positive Y is left
@@ -30,24 +31,11 @@ public class TurretShotSolver implements Supplier<ShotSolution> {
         // Ballistic solve in SI units.
         private static final double G_METERS_PER_SEC2 = 9.806635;
 
-        /*
-         * Fitted from your earlier experimental data:
-         *
-         *   v(ft/s) = 0.00414 * RPM + 10.97
-         *
-         * Converted to m/s:
-         *
-         *   v(m/s) = 0.001261872 * RPM + 3.343656
-         */
         private static final double SPEED_PER_RPM_MPS = 0.00414 * 0.3048;
         private static final double SPEED_OFFSET_MPS = 10.97 * 0.3048;
 
-        /*
-         * Practical limits.
-         * The fit came from ~1500-2500 RPM data, so below 1500 the model is much less trustworthy.
-         */
         private static final double MIN_RPM = 1500.0;
-        private static final double MAX_RPM = 5000.0;
+        private static final double MAX_RPM = 3500.0;
 
         private static final double MIN_PITCH_DEG = 8.0;
         private static final double MAX_PITCH_DEG = 35.0;
@@ -81,7 +69,7 @@ public class TurretShotSolver implements Supplier<ShotSolution> {
         }
     }
 
-    public TurretShotSolver(
+    public TurretShotSolverBallistics(
             Supplier<Pose3d> targetSupplier,
             Supplier<KinematicsInfo> kinematicsSupplier) {
         this.targetSupplier = targetSupplier;
