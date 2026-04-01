@@ -17,8 +17,9 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Distance;
 import frc.robot.subsystems.drive.Drive;
+import frc.robot.supersystems.shooter.ShotSolverUtil.ShotSolution;
 
-public class TurretShotSolver implements Supplier<ShotSolution> {
+public class TurretShotSolverBallistics implements Supplier<ShotSolution> {
     private static class Constants {
         private static final Distance TURRET_X_OFFSET = Inches.of(-6.5);   // negative X is back
         private static final Distance TURRET_Y_OFFSET = Inches.of(6.875);  // positive Y is left
@@ -81,7 +82,7 @@ public class TurretShotSolver implements Supplier<ShotSolution> {
         }
     }
 
-    public TurretShotSolver(
+    public TurretShotSolverBallistics(
             Supplier<Pose3d> targetSupplier,
             Supplier<KinematicsInfo> kinematicsSupplier) {
         this.targetSupplier = targetSupplier;
