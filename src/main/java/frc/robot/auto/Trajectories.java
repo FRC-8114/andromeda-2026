@@ -93,12 +93,13 @@ public final class Trajectories {
                 paths[0].cmd(),
                 intakePivot.deploy()
             ),
-            paths[1].cmd(),
+            autos.stopCommand(),
             Commands.parallel(
                 intakeRollers.intake(),
                 shooter.shoot()
             )
-                .withTimeout(12)
+                .withTimeout(12),
+            paths[1].cmd()
         ));
 
         return routine;

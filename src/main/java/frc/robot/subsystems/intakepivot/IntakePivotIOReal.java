@@ -41,7 +41,7 @@ public class IntakePivotIOReal implements IntakePivotIO {
     private static final CANcoderConfiguration encoderConfig = new CANcoderConfiguration()
             .withMagnetSensor(new MagnetSensorConfigs()
                     .withSensorDirection(SensorDirectionValue.CounterClockwise_Positive)
-                    .withMagnetOffset(-0.69677734375));
+                    .withMagnetOffset(0.447021484375));
 
     private static final Slot0Configs pidConfig = new Slot0Configs()
             .withGravityType(GravityTypeValue.Arm_Cosine)
