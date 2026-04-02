@@ -33,7 +33,7 @@ public class ShooterFlywheelsIOReal implements ShooterFlywheelsIO {
                 .withKS(0.5)
                 .withKV(0.09)
                 .withKA(0.01)
-                .withKP(0.065);
+                .withKP(0.09);
 
         static final CurrentLimitsConfigs CURRENT_LIMITS = new CurrentLimitsConfigs()
                 .withStatorCurrentLimit(70)

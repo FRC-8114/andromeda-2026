@@ -26,9 +26,10 @@ public class ShooterFlywheels extends SubsystemBase implements SysIDMechanism {
 
     private final ShooterFlywheelsIO io;
     private final ShooterInputsAutoLogged inputs = new ShooterInputsAutoLogged();
-    
-    private static final LoggedNetworkNumber tuneVelocity = new LoggedNetworkNumber("Tuning/TuneShooterVelocityRPM", 2000);
-    
+
+    private static final LoggedNetworkNumber tuneVelocity = new LoggedNetworkNumber("Tuning/TuneShooterVelocityRPM",
+            2000);
+
     private SysIdRoutine sysId;
 
     public ShooterFlywheels(ShooterFlywheelsIO io) {
@@ -48,11 +49,15 @@ public class ShooterFlywheels extends SubsystemBase implements SysIDMechanism {
     }
 
     public Command runFlywheelsTunableVelocity() {
-        var targetVelocity = RPM.of(tuneVelocity.get());
+
         return runEnd(
-            () -> io.setFlywheelVelocity(targetVelocity),
-            () -> io.stopFlywheels()
-        );
+                () -> {
+                    var targetVelocity = RPM.of(tuneVelocity.get());
+                    Logger.recordOutput("ShooterFlywheelTargetRPM", targetVelocity);
+
+                    io.setFlywheelVelocity(targetVelocity);
+                },
+                () -> io.stopFlywheels());
     }
 
     public Command runFlywheels(AngularVelocity target) {
@@ -63,14 +68,14 @@ public class ShooterFlywheels extends SubsystemBase implements SysIDMechanism {
                 },
                 () -> io.stopFlywheels());
     }
+
     public Command runFlywheels(Supplier<AngularVelocity> target) {
         return runEnd(
-            () -> {
-                Logger.recordOutput("ShooterFlywheelTargetRPM", target.get());
-                io.setFlywheelVelocity(target.get());
-            },
-            () -> io.stopFlywheels()
-        );
+                () -> {
+                    Logger.recordOutput("ShooterFlywheelTargetRPM", target.get());
+                    io.setFlywheelVelocity(target.get());
+                },
+                () -> io.stopFlywheels());
     }
 
     public Command stopFlywheels() {
