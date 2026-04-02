@@ -125,7 +125,7 @@ public class RobotContainer {
                 new TurretShotSolverAnglemap(new ShotSolverUtil.TargetSupplier(kinematicsSupplier), kinematicsSupplier)
             )
         );
-        turret.setDefaultCommand(shooter.autoAimTurret());
+
         vision = subsystemRegistry.register(Vision.fromCameraConstants(
                 this::acceptVisionMeasurement,
                 this::seedPoseFromVision,
