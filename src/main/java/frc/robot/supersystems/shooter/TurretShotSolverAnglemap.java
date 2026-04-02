@@ -69,10 +69,10 @@ public class TurretShotSolverAnglemap implements Supplier<ShotSolution> {
         putMeasurement(Feet.of(8), 26, 1600);
         putMeasurement(Feet.of(9), 22.5, 2200);
         putMeasurement(Feet.of(10), 23.5, 2200);
-        putMeasurement(Feet.of(11), 25, 2300);
-        putMeasurement(Feet.of(12), 33, 2400);
-        putMeasurement(Feet.of(13), 34, 2500);
-        putMeasurement(Feet.of(14), 35, 2500);
+        putMeasurement(Feet.of(11), 30, 1900);
+        putMeasurement(Feet.of(12), 31, 2000);
+        putMeasurement(Feet.of(13), 33, 2100);
+        putMeasurement(Feet.of(14), 34, 2160);
 
         this.targetSupplier = targetSupplier;
         this.kinematicsSupplier = kinematicsSupplier;
