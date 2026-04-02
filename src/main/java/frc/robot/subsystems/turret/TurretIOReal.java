@@ -101,7 +101,9 @@ public class TurretIOReal implements TurretIO {
                 .withMotionMagicCruiseVelocity(1);
 
         private static final CurrentLimitsConfigs PIVOT_MOTOR_CURRENT_LIMITS_CONFIGS = new CurrentLimitsConfigs()
-                .withSupplyCurrentLimit(Amps.of(80))
+                .withStatorCurrentLimit(Amps.of(80))
+                .withStatorCurrentLimitEnable(true)
+                .withSupplyCurrentLimit(Amps.of(60))
                 .withSupplyCurrentLimitEnable(true);
 
         private static final SoftwareLimitSwitchConfigs PIVOT_SOFTWARE_LIMITS = new SoftwareLimitSwitchConfigs()

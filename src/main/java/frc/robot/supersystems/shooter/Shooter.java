@@ -2,22 +2,18 @@ package frc.robot.supersystems.shooter;
 
 import java.util.function.Supplier;
 
-import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.FieldConstants;
 import frc.robot.subsystems.hopperlanes.HopperLanes;
 import frc.robot.subsystems.shooterflywheels.ShooterFlywheels;
 import frc.robot.subsystems.shooterpitch.ShooterPitch;
 import frc.robot.subsystems.turret.Turret;
 import frc.robot.subsystems.turretfeeder.TurretFeeder;
 import frc.robot.supersystems.shooter.ShotSolverUtil.ShotSolution;
-import frc.robot.util.AllianceFlipUtil;
 
 public class Shooter extends SubsystemBase {
     private static final double READY_TIMEOUT_SECONDS = 0.8;
@@ -28,22 +24,6 @@ public class Shooter extends SubsystemBase {
     private final TurretFeeder turretFeeder;
     private final HopperLanes hopperLanes;
     private final Supplier<ShotSolution> shotSolver;
-
-    // public Shooter(
-    //         Turret turret,
-    //         ShooterFlywheels flywheels,
-    //         ShooterPitch shooterPitch,
-    //         TurretFeeder turretFeeder,
-    //         HopperLanes hopperLanes,
-    //         Drive drive) {
-    //     this(
-    //             turret,
-    //             flywheels,
-    //             shooterPitch,
-    //             turretFeeder,
-    //             hopperLanes,
-    //             new TurretShotSolverBallistics(Shooter::getDefaultTargetPose, new TurretShotSolverBallistics.DriveKinematicsSupplier(drive)));
-    // }
 
     public Shooter(
             Turret turret,
@@ -58,10 +38,6 @@ public class Shooter extends SubsystemBase {
         this.turretFeeder = turretFeeder;
         this.hopperLanes = hopperLanes;
         this.shotSolver = shotSolver;
-    }
-
-    public static Pose3d getDefaultTargetPose() {
-        return new Pose3d(AllianceFlipUtil.apply(FieldConstants.Hub.topCenterPoint), Rotation3d.kZero);
     }
 
     public ShotSolution getShotSolution() {

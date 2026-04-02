@@ -118,12 +118,14 @@ public class RobotContainer {
         }
 
         drive = subsystemRegistry.register(createDrive());
+
+        var kinematicsSupplier = new ShotSolverUtil.DriveKinematicsSupplier(drive);
         shooter = subsystemRegistry.register(
             new Shooter(turret, flywheels, shooterPitch, turretFeeder, hopperLanes,
-                new TurretShotSolverAnglemap(Shooter::getDefaultTargetPose, new ShotSolverUtil.DriveKinematicsSupplier(drive))
+                new TurretShotSolverAnglemap(new ShotSolverUtil.TargetSupplier(kinematicsSupplier), kinematicsSupplier)
             )
         );
-        turret.setDefaultCommand(shooter.autoAimTurret());
+
         vision = subsystemRegistry.register(Vision.fromCameraConstants(
                 this::acceptVisionMeasurement,
                 this::seedPoseFromVision,
