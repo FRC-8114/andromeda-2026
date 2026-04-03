@@ -51,7 +51,7 @@ public final class ShotSolverUtil {
         }
 
         private static Translation3d getAimPosition(Translation2d cornerA, Translation2d cornerB) {
-            return new Translation3d(cornerA.plus(cornerB).div(2));
+            return new Translation3d(cornerA.interpolate(cornerB, 0.5));
         }
 
         private static Translation3d getPassingTargetForBump(
