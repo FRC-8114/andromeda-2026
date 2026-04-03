@@ -1,5 +1,7 @@
 package frc.robot.supersystems.shooter;
 
+import static edu.wpi.first.units.Units.Meters;
+
 import java.util.function.Supplier;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -10,6 +12,9 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import frc.robot.FieldConstants;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.util.AllianceFlipUtil;
@@ -49,24 +54,48 @@ public final class ShotSolverUtil {
             return new Translation3d(cornerA.plus(cornerB).div(2));
         }
 
+        private static Translation3d getPassingTargetForBump(
+                Translation2d nearLeftCorner,
+                Translation2d nearRightCorner,
+                double bumpHeightMeters) {
+            Translation2d nearEdgeCenter = nearLeftCorner.interpolate(nearRightCorner, 0.5);
+            return new Translation3d(
+                    nearEdgeCenter.getX(),
+                    nearEdgeCenter.getY(),
+                    bumpHeightMeters + 1);
+        }
+
+        private final Translation3d leftBump = getPassingTargetForBump(
+                FieldConstants.LeftBump.nearLeftCorner,
+                FieldConstants.LeftBump.nearRightCorner,
+                FieldConstants.LeftBump.height);
+        private final Translation3d rightBump = getPassingTargetForBump(
+                FieldConstants.RightBump.nearLeftCorner,
+                FieldConstants.RightBump.nearRightCorner,
+                FieldConstants.RightBump.height);
+
+        private boolean isInAllianceZone(Pose3d robotPose) {
+            return switch (DriverStation.getAlliance().orElse(Alliance.Blue)) {
+                case Blue -> robotPose.getX() < FieldConstants.LinesVertical.neutralZoneNear;
+                case Red -> robotPose.getX() > FieldConstants.LinesVertical.neutralZoneFar;
+            };
+        }
+
         @Override
         public Pose3d get() {
             Pose3d robotPose = kinematicsSupplier.get().position;
             Translation3d target;
 
-            if (robotPose.getX() < FieldConstants.LinesVertical.neutralZoneNear) { // not in neutral zone
-                target = FieldConstants.Hub.innerCenterPoint;
+            if (isInAllianceZone(robotPose)) { // not in neutral zone
+                target = FieldConstants.Hub.innerCenterPoint; // flipped
             } else if (robotPose.getX() < FieldConstants.LinesVertical.neutralZoneFar) { // in neutral zone
                 target = (robotPose.getY() > FieldConstants.LinesHorizontal.center)
-                        ? getAimPosition(FieldConstants.RightBump.farLeftCorner,
-                                FieldConstants.RightBump.farRightCorner)
-                        : getAimPosition(FieldConstants.LeftBump.farLeftCorner, FieldConstants.LeftBump.farRightCorner);
+                        ? rightBump
+                        : leftBump;
             } else { // in opponent zone
                 target = (robotPose.getY() > FieldConstants.LinesHorizontal.center)
-                        ? getAimPosition(FieldConstants.RightBump.oppFarLeftCorner,
-                                FieldConstants.RightBump.oppFarLeftCorner)
-                        : getAimPosition(FieldConstants.LeftBump.oppFarLeftCorner,
-                                FieldConstants.LeftBump.oppFarRightCorner);
+                        ? rightBump
+                        : leftBump;
             }
 
             return new Pose3d(AllianceFlipUtil.apply(target), new Rotation3d());

@@ -15,6 +15,7 @@ import com.ctre.phoenix6.SignalLogger;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.util.HubShiftUtil;
 
 public class Robot extends LoggedRobot {
   private Command m_autonomousCommand;
@@ -54,6 +55,8 @@ public class Robot extends LoggedRobot {
   @Override
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
+
+    m_robotContainer.updateDashboard();
   }
 
   @Override
@@ -95,6 +98,8 @@ public class Robot extends LoggedRobot {
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
+
+    HubShiftUtil.initialize();
   }
 
   @Override

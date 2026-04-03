@@ -12,6 +12,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.function.Supplier;
 
+import org.littletonrobotics.junction.Logger;
+
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -35,7 +37,9 @@ public class TurretShotSolverAnglemap implements Supplier<ShotSolution> {
                 TURRET_Z_OFFSET);
 
         public static final double FLYWHEEL_RADIUS_METERS = 0.050;
-        public static final double SPIN_TRANSFER_EFFICIENCY = 0.78;
+        public static final double SPIN_TRANSFER_EFFICIENCY = 0.8;
+
+        public static final int LEAD_ITERATIONS = 6;
     }
 
     private static record ShotMeasurement(double distanceMeters, double pitchRadians, double rpm) {
@@ -121,7 +125,8 @@ public class TurretShotSolverAnglemap implements Supplier<ShotSolution> {
                     secants[sampleCount - 3]);
 
             for (int i = 1; i < sampleCount - 1; i++) {
-                if (secants[i - 1] == 0.0 || secants[i] == 0.0 || Math.signum(secants[i - 1]) != Math.signum(secants[i])) {
+                if (secants[i - 1] == 0.0 || secants[i] == 0.0
+                        || Math.signum(secants[i - 1]) != Math.signum(secants[i])) {
                     result[i] = 0.0;
                     continue;
                 }
@@ -221,6 +226,9 @@ public class TurretShotSolverAnglemap implements Supplier<ShotSolution> {
     @Override
     public ShotSolution get() {
         Pose3d target = targetSupplier.get();
+        
+        Logger.recordOutput("Shooter/TargetPosition", target);
+
         KinematicsInfo kinematicsInfo = kinematicsSupplier.get();
 
         Pose3d turretPosition = kinematicsInfo.position()
@@ -238,7 +246,7 @@ public class TurretShotSolverAnglemap implements Supplier<ShotSolution> {
         Translation2d compensatedTarget = target.getTranslation().toTranslation2d();
 
         // comment below to disable velocity compensation (SotM)
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < Constants.LEAD_ITERATIONS; i++) {
             Translation2d relativeTarget = compensatedTarget.minus(turretTranslation);
             double timeOfFlight = estimateTimeOfFlight(relativeTarget.getNorm());
             compensatedTarget = target.getTranslation()

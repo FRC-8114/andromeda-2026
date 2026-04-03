@@ -100,6 +100,10 @@ public class Vision extends SubsystemBase {
     @Override
     public void periodic() {
         allPoses.clear();
+        
+        if (RobotState.isDisabled()) {
+            seedPoseFromVision();
+        }
 
         Rotation3d gyroRotation3d = gyroRotationSupplier.get();
         AngularVelocity3d gyroVelocityRadPerSec = gyroVelocitySupplier.get();
@@ -112,11 +116,6 @@ public class Vision extends SubsystemBase {
             Logger.processInputs("Vision/" + bundle.io().getConfiguration().name(), bundle.inputs());
             observations.forEach(this::acceptObservation);
         }
-
-        if (RobotState.isDisabled()) {
-            seedPoseFromVision();
-        }
-
     }
 
 }

@@ -58,7 +58,7 @@ public class ClimberIOReal implements ClimberIO {
     }
 
     public void runVolts(Voltage volts) {
-        climbMotor.setControl(controlVoltage.withOutput(volts));
+        climbMotor.setControl(controlVoltage.withOutput(volts).withIgnoreSoftwareLimits(true));
     }
 
     public void setPosition(double absoluteDrumRotations) {

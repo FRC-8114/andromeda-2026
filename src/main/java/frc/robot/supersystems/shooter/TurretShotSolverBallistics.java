@@ -7,6 +7,8 @@ import static edu.wpi.first.units.Units.Radians;
 
 import java.util.function.Supplier;
 
+import org.littletonrobotics.junction.Logger;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -41,7 +43,7 @@ public class TurretShotSolverBallistics implements Supplier<ShotSolution> {
         private static final double MAX_PITCH_DEG = 35.0;
         private static final double PITCH_SEARCH_STEP_DEG = 0.25;
 
-        private static final int LEAD_ITERATIONS = 3;
+        private static final int LEAD_ITERATIONS = 6;
     }
 
     private final Supplier<Pose3d> targetSupplier;
@@ -179,6 +181,7 @@ public class TurretShotSolverBallistics implements Supplier<ShotSolution> {
     @Override
     public ShotSolution get() {
         Pose3d target = targetSupplier.get();
+
         KinematicsInfo kinematicsInfo = kinematicsSupplier.get();
 
         Pose3d turretPosition = kinematicsInfo.position

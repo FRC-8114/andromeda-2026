@@ -22,7 +22,7 @@ public class IntakePivot extends SubsystemBase {
         public static final Angle HOLD_ANGLE = Rotations.of(0.141);
         public static final Angle STOWED_ANGLE = Rotations.of(0.37);
 
-        private static final Current HOLD_DOWN_FEEDFORWARD = Amps.of(15);
+        private static final Current HOLD_DOWN_FEEDFORWARD = Amps.of(20);
         private static final Angle ANGLE_TOLERANCE = Degrees.of(1);
     }
 

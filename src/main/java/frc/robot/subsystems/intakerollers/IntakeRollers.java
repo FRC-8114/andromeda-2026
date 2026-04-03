@@ -12,7 +12,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class IntakeRollers extends SubsystemBase {
     private static class Constants {
-        static final Voltage intakeVoltage = Volts.of(7.3);
+        static final Voltage intakeVoltage = Volts.of(6.3);
     }
 
     private final IntakeRollersIO io;

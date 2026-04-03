@@ -62,12 +62,13 @@ public class Shooter extends SubsystemBase {
                 && shooterPitch.isAtAngle(shotSolution.pitch())
                 && turret.isAtAngle(shotSolution.turretYaw());
     }
+
     public Trigger isReadyToShootAt(Angle yaw, Angle pitch, AngularVelocity velocity) {
         return flywheels.atSpeed(velocity)
-            .and(turretFeeder.atSpeed)
-            .and(hopperLanes.atSpeed)
-            .and(new Trigger(() -> shooterPitch.isAtAngle(pitch)))
-            .and(new Trigger(() -> turret.isAtAngle(yaw)));
+                .and(turretFeeder.atSpeed)
+                .and(hopperLanes.atSpeed)
+                .and(new Trigger(() -> shooterPitch.isAtAngle(pitch)))
+                .and(new Trigger(() -> turret.isAtAngle(yaw)));
     }
 
     public Command spinUp() {
@@ -88,29 +89,25 @@ public class Shooter extends SubsystemBase {
 
     public Command shootAt(Angle yaw, Angle pitch, AngularVelocity velocity) {
         return Commands.parallel(
-            turret.setAngle(yaw),
-            flywheels.runFlywheels(velocity),
-            shooterPitch.setAngle(pitch),
-            turretFeeder.feed(),
-            Commands.waitUntil(isReadyToShootAt(yaw, pitch, velocity))
-                .withTimeout(READY_TIMEOUT_SECONDS)
-                .andThen(hopperLanes.feed())
-        );
+                turret.setAngle(yaw),
+                flywheels.runFlywheels(velocity),
+                shooterPitch.setAngle(pitch),
+                turretFeeder.feed(),
+                Commands.waitUntil(isReadyToShootAt(yaw, pitch, velocity))
+                        .withTimeout(READY_TIMEOUT_SECONDS)
+                        .andThen(hopperLanes.feed()));
     }
 
     public Command shoot() {
         return Commands.sequence(
-            Commands.deadline(
-                Commands.waitUntil(this::isReadyToShoot).withTimeout(READY_TIMEOUT_SECONDS),
-                prepareToShoot()
-            ),
-            Commands.parallel(
-                aimAtGoal(),
-                spinUp(),
-                spinUpTurretLanes(),
-                runIndexerLanes()
-            )
-        );
+                Commands.deadline(
+                        Commands.waitUntil(this::isReadyToShoot).withTimeout(READY_TIMEOUT_SECONDS),
+                        prepareToShoot()),
+                Commands.parallel(
+                        aimAtGoal(),
+                        spinUp(),
+                        spinUpTurretLanes(),
+                        runIndexerLanes()));
     }
 
     public Command cleanUpShoot() {

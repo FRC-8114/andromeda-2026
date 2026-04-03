@@ -16,7 +16,7 @@ public class VisionConstants {
         MEGATAG2
     }
 
-    public static final LimelightPoseMode LIMELIGHT_ESTIMATION_MODE = LimelightPoseMode.MEGATAG2;
+    public static LimelightPoseMode LIMELIGHT_ESTIMATION_MODE = LimelightPoseMode.MEGATAG2;
     public static final int LIMELIGHT_IMU_MODE = 4; // Internal IMU + external assist
     public static final double limelightHeartbeatTimeoutSecs = 0.5;
     public static final double maxObservationAgeSecs = 0.5;
@@ -58,13 +58,13 @@ public class VisionConstants {
     public static AprilTagFieldLayout aprilTagLayout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
     
     private static final Transform3d ROBOT_TO_CAMERA_BACKLEFT = new Transform3d(
-            new Translation3d(Inches.of(-10.8), Inches.of(12.375), Inches.of(8.75)),
-            new Rotation3d(Degrees.of(0), Degrees.of(27), Degrees.of(135)));
+            new Translation3d(Inches.of(-11.5), Inches.of(-12.5), Inches.of(7.875)),
+            new Rotation3d(Degrees.of(0), Degrees.of(34), Degrees.of(135)));
 
     // right from the perspective of the robot
     private static final Transform3d ROBOT_TO_CAMERA_BACKRIGHT = new Transform3d(
-            new Translation3d(Inches.of(-10.75), Inches.of(-11.25), Inches.of(11.25)),
-            new Rotation3d(Degrees.of(0), Degrees.of(37), Degrees.of(225)));
+            new Translation3d(Inches.of(-10.75), Inches.of(11.25), Inches.of(11.55)),
+            new Rotation3d(Degrees.of(0), Degrees.of(31), Degrees.of(225)));
 
     public static final CameraConfiguration[] cameras = {
             new LimelightCameraConfiguration("limelight-br", 1.0, ROBOT_TO_CAMERA_BACKRIGHT),

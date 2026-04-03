@@ -149,12 +149,16 @@ public class Turret extends SubsystemBase implements SysIDMechanism {
                 && Math.abs(inputs.turretVelocity.in(RadiansPerSecond)) <= Constants.READY_VELOCITY_TOLERANCE_RAD_PER_SEC;
     }
 
+    private void stop() {
+        pivotMotor.setVoltage(0);
+    }
+
     public Command setAngle(Angle angle) {
-        return run(() -> commandTarget(angle));
+        return runEnd(() -> commandTarget(angle), this::stop);
     }
 
     public Command followAngle(Supplier<Angle> angle) {
-        return run(() -> commandTarget(angle.get()));
+        return runEnd(() -> commandTarget(angle.get()), this::stop);
     }
 
     public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {

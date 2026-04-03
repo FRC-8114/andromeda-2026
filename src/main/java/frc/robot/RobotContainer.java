@@ -13,7 +13,11 @@ import choreo.auto.AutoChooser;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.auto.Autos;
 import frc.robot.generated.TunerConstants;
@@ -50,6 +54,8 @@ import frc.robot.subsystems.turretfeeder.TurretFeeder;
 import frc.robot.subsystems.turretfeeder.TurretFeederIOReal;
 import frc.robot.subsystems.turretfeeder.TurretFeederIOSim;
 import frc.robot.subsystems.vision.Vision;
+import frc.robot.subsystems.vision.VisionConstants;
+import frc.robot.subsystems.vision.VisionConstants.LimelightPoseMode;
 import frc.robot.subsystems.vision.VisionIO.PoseEstimation;
 import frc.robot.util.SubsystemRegistry;
 import java.util.Optional;
@@ -121,10 +127,9 @@ public class RobotContainer {
 
         var kinematicsSupplier = new ShotSolverUtil.DriveKinematicsSupplier(drive);
         shooter = subsystemRegistry.register(
-            new Shooter(turret, flywheels, shooterPitch, turretFeeder, hopperLanes,
-                new TurretShotSolverAnglemap(new ShotSolverUtil.TargetSupplier(kinematicsSupplier), kinematicsSupplier)
-            )
-        );
+                new Shooter(turret, flywheels, shooterPitch, turretFeeder, hopperLanes,
+                        new TurretShotSolverAnglemap(new ShotSolverUtil.TargetSupplier(kinematicsSupplier),
+                                kinematicsSupplier)));
 
         vision = subsystemRegistry.register(Vision.fromCameraConstants(
                 this::acceptVisionMeasurement,
@@ -138,6 +143,66 @@ public class RobotContainer {
 
         SmartDashboard.putData("Auto Chooser", autoChooser);
         configureBindings();
+    }
+
+    public boolean isHubActive() {
+        Optional<Alliance> alliance = DriverStation.getAlliance();
+        // If we have no alliance, we cannot be enabled, therefore no hub.
+        if (alliance.isEmpty()) {
+            return false;
+        }
+        // Hub is always enabled in autonomous.
+        if (DriverStation.isAutonomousEnabled()) {
+            return true;
+        }
+        // At this point, if we're not teleop enabled, there is no hub.
+        if (!DriverStation.isTeleopEnabled()) {
+            return false;
+        }
+
+        // We're teleop enabled, compute.
+        double matchTime = DriverStation.getMatchTime();
+        String gameData = DriverStation.getGameSpecificMessage();
+        // If we have no game data, we cannot compute, assume hub is active, as its
+        // likely early in teleop.
+        if (gameData.isEmpty()) {
+            return true;
+        }
+        boolean redInactiveFirst = false;
+        switch (gameData.charAt(0)) {
+            case 'R' -> redInactiveFirst = true;
+            case 'B' -> redInactiveFirst = false;
+            default -> {
+                // If we have invalid game data, assume hub is active.
+                return true;
+            }
+        }
+
+        // Shift was is active for blue if red won auto, or red if blue won auto.
+        boolean shift1Active = switch (alliance.get()) {
+            case Red -> !redInactiveFirst;
+            case Blue -> redInactiveFirst;
+        };
+
+        if (matchTime > 130) {
+            // Transition shift, hub is active.
+            return true;
+        } else if (matchTime > 105) {
+            // Shift 1
+            return shift1Active;
+        } else if (matchTime > 80) {
+            // Shift 2
+            return !shift1Active;
+        } else if (matchTime > 55) {
+            // Shift 3
+            return shift1Active;
+        } else if (matchTime > 30) {
+            // Shift 4
+            return !shift1Active;
+        } else {
+            // End game, hub always active.
+            return true;
+        }
     }
 
     private Drive createDrive() {
@@ -180,19 +245,30 @@ public class RobotContainer {
         driverController.leftTrigger().whileTrue(Commands.parallel(intakeRollers.intake(), intakePivot.deploy()));
 
         // driverController.povUp().whileTrue(hopperLanes.feed());
-        driverController.povUp().whileTrue(flywheels.runFlywheels(RPM.of(1800)));
+        // driverController.povUp().whileTrue(flywheels.runFlywheels(RPM.of(1800)));
 
-        driverController.povDown().whileTrue(
-                Commands.parallel(flywheels.runFlywheelsTunableVelocity(), turret.aimTunable(), shooterPitch.tuneAngle()).alongWith(Commands.waitSeconds(1)
-                        .andThen(turretFeeder.feed().until(turretFeeder.atSpeed).andThen(hopperLanes.feed().alongWith(turretFeeder.feed())))));
-        
+        driverController.start()
+                .onTrue(Commands.runOnce(() -> VisionConstants.LIMELIGHT_ESTIMATION_MODE = LimelightPoseMode.MEGATAG1));
+
+        driverController.povUp().whileTrue(climber.move(true));
+        driverController.povDown().whileTrue(climber.move(false));
+
+        // driverController.povDown().whileTrue(
+        // Commands.parallel(flywheels.runFlywheelsTunableVelocity(),
+        // turret.aimTunable(),
+        // shooterPitch.tuneAngle()).alongWith(Commands.waitSeconds(1)
+        // .andThen(turretFeeder.feed().until(turretFeeder.atSpeed).andThen(hopperLanes.feed().alongWith(turretFeeder.feed())))));
+
         driverController.povRight().whileTrue(intakePivot.pump());
 
         driverController.povLeft().whileTrue(shooter.shootAt(
-            Radians.of(1.107),
-            Degrees.of(25),
-            RPM.of(2200)
-        ));
+                Radians.of(1.107),
+                Degrees.of(25),
+                RPM.of(2200)));
+    }
+
+    public void updateDashboard() {
+        SmartDashboard.putBoolean("HubShiftTeam", isHubActive());
     }
 
     public void enabledInit() {
@@ -201,6 +277,8 @@ public class RobotContainer {
 
     public void disabledInit() {
         vision.setIMUMode(0 /* EXTERNAL_ONLY */);
+
+        driverController.getHID().setRumble(RumbleType.kBothRumble, 0.0);
     }
 
     public Command getAutonomousCommand() {
