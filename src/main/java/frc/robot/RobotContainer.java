@@ -134,7 +134,7 @@ public class RobotContainer {
         vision = subsystemRegistry.register(Vision.fromCameraConstants(
                 this::acceptVisionMeasurement,
                 this::seedPoseFromVision,
-                drive::getFieldGyroRotation3d,
+                drive::getRawGyroRotation3d,
                 drive::getRawGyroVelocityRadPerSec,
                 drive::getPose));
         // vision = null;
@@ -241,7 +241,6 @@ public class RobotContainer {
                         () -> -driverController.getRightX()));
 
         driverController.rightTrigger().whileTrue(shooter.shoot());
-        driverController.b().onTrue(intakePivot.deploy());
         driverController.leftTrigger().whileTrue(Commands.parallel(intakeRollers.intake(), intakePivot.deploy()));
 
         // driverController.povUp().whileTrue(hopperLanes.feed());
@@ -265,6 +264,8 @@ public class RobotContainer {
                 Degrees.of(180),
                 Degrees.of(25),
                 RPM.of(2200)));
+
+        driverController.b().onTrue(Commands.run(intakePivot::toggleDeploy));
     }
 
     public void updateDashboard() {
