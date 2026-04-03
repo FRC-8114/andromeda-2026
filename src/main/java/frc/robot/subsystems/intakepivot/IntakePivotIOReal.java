@@ -16,6 +16,7 @@ import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.SoftwareLimitSwitchConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.MotionMagicTorqueCurrentFOC;
+import com.ctre.phoenix6.controls.PositionTorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -66,9 +67,9 @@ public class IntakePivotIOReal implements IntakePivotIO {
                                         .withRotorToSensorRatio(GEAR_RATIO)
                                         .withSensorToMechanismRatio(1.0))
                         .withCurrentLimits(new CurrentLimitsConfigs()
-                                        .withStatorCurrentLimit(120)
+                                        .withStatorCurrentLimit(60)
                                         .withStatorCurrentLimitEnable(true)
-                                        .withSupplyCurrentLimit(70)
+                                        .withSupplyCurrentLimit(60)
                                         .withSupplyCurrentLimitEnable(true))
                         .withMotorOutput(new MotorOutputConfigs()
                                         .withNeutralMode(NeutralModeValue.Brake)
@@ -81,7 +82,7 @@ public class IntakePivotIOReal implements IntakePivotIO {
         private StatusSignal<Voltage> voltage;
         private StatusSignal<Current> current;
 
-        private static final MotionMagicTorqueCurrentFOC control = new MotionMagicTorqueCurrentFOC(0);
+        private static final PositionTorqueCurrentFOC control = new PositionTorqueCurrentFOC(0);
         private static final VoltageOut controlVoltage = new VoltageOut(0).withEnableFOC(true);
 
         public IntakePivotIOReal() {
