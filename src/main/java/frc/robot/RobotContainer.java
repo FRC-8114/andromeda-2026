@@ -272,6 +272,9 @@ public class RobotContainer {
     }
 
     public void enabledInit() {
+    }
+
+    public void teleopInit() {
         vision.setIMUMode(4 /* INTERNAL_EXTERNAL_ASSIST */);
     }
 
@@ -282,7 +285,8 @@ public class RobotContainer {
     }
 
     public Command getAutonomousCommand() {
-        return autoChooser.selectedCommand();
+        return Commands.parallel(autoChooser.selectedCommand(),
+                Commands.waitSeconds(1).andThen(() -> vision.setIMUMode(4))); // INTERNAL_EXTERNAL_ASSIST
     }
 
     public <T extends Subsystem> Optional<T> getSubsystem(Class<T> type) {

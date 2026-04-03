@@ -4,6 +4,8 @@ import static edu.wpi.first.units.Units.Meters;
 
 import java.util.function.Supplier;
 
+import org.littletonrobotics.junction.Logger;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -50,10 +52,6 @@ public final class ShotSolverUtil {
             this.kinematicsSupplier = kinematicsSupplier;
         }
 
-        private static Translation3d getAimPosition(Translation2d cornerA, Translation2d cornerB) {
-            return new Translation3d(cornerA.plus(cornerB).div(2));
-        }
-
         private static Translation3d getPassingTargetForBump(
                 Translation2d nearLeftCorner,
                 Translation2d nearRightCorner,
@@ -88,17 +86,15 @@ public final class ShotSolverUtil {
 
             if (isInAllianceZone(robotPose)) { // not in neutral zone
                 target = FieldConstants.Hub.innerCenterPoint; // flipped
-            } else if (robotPose.getX() < FieldConstants.LinesVertical.neutralZoneFar) { // in neutral zone
-                target = (robotPose.getY() > FieldConstants.LinesHorizontal.center)
-                        ? rightBump
-                        : leftBump;
             } else { // in opponent zone
                 target = (robotPose.getY() > FieldConstants.LinesHorizontal.center)
                         ? rightBump
                         : leftBump;
             }
 
-            return new Pose3d(AllianceFlipUtil.apply(target), new Rotation3d());
+            Pose3d targetPose = new Pose3d(AllianceFlipUtil.apply(target), new Rotation3d());
+            Logger.recordOutput("Shooter/Target", targetPose);
+            return targetPose;
         }
     }
 }

@@ -171,11 +171,6 @@ public class TurretShotSolverAnglemap implements Supplier<ShotSolution> {
     public TurretShotSolverAnglemap(Supplier<Pose3d> targetSupplier, Supplier<KinematicsInfo> kinematicsSupplier) {
         // putMeasurement(Feet.of(7), 20, 1300);
         // putMeasurement(Feet.of(8), 24.0, 1450);
-        // putMeasurement(Feet.of(9), 28.0, 1485);
-        // putMeasurement(Feet.of(10), 28.0, 1555);
-        // putMeasurement(Feet.of(11), 28.0, 1630);
-        // putMeasurement(Feet.of(13), 28.0, 1820);
-        // putMeasurement(Feet.of(16), 28.0, 2060);
 
         // putMeasurement(Feet.of(25), 33, 2225);
         // putMeasurement(Feet.of(40), 33, 2800);
@@ -185,12 +180,11 @@ public class TurretShotSolverAnglemap implements Supplier<ShotSolution> {
         putMeasurement(Feet.of(6), 19, 1500);
         putMeasurement(Feet.of(7), 23, 1500);
         putMeasurement(Feet.of(8), 26, 1600);
-        putMeasurement(Feet.of(9), 22.5, 2200);
-        putMeasurement(Feet.of(10), 23.5, 2200);
-        putMeasurement(Feet.of(11), 30, 1900);
-        putMeasurement(Feet.of(12), 31, 2000);
-        putMeasurement(Feet.of(13), 33, 2100);
-        putMeasurement(Feet.of(14), 34, 2160);
+        putMeasurement(Feet.of(9), 28.0, 2000);
+        putMeasurement(Feet.of(10), 28.0, 2100);
+        putMeasurement(Feet.of(11), 28.0, 2200);
+        putMeasurement(Feet.of(13), 28.0, 2300);
+        putMeasurement(Feet.of(16), 28.0, 24001);
 
         measurements.sort(Comparator.comparingDouble(ShotMeasurement::distanceMeters));
 
@@ -210,6 +204,7 @@ public class TurretShotSolverAnglemap implements Supplier<ShotSolution> {
     }
 
     private Pair<Double, Double> getRPMAndPitch(double distance) {
+        Logger.recordOutput("Shooter/EstimatedDistance", distance);
         return Pair.of(distanceToRpm.interpolate(distance), distanceToPitch.interpolate(distance));
     }
 

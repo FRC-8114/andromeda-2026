@@ -51,8 +51,8 @@ public class TurretIOReal implements TurretIO {
         private static final int ENCODER_19T_ID = 33;
         private static final int ENCODER_21T_ID = 34;
 
-        private static final double ENCODER_19T_OFFSET = -0.131591796875;
-        private static final double ENCODER_21T_OFFSET = -0.240478515625;
+        private static final double ENCODER_19T_OFFSET = -0.1787109375;
+        private static final double ENCODER_21T_OFFSET = -0.248779296875;
 
         private static final double MOTOR_TO_TURRET_RATIO = 10.0;
     }
