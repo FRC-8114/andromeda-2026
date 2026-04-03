@@ -48,7 +48,7 @@ public class IntakePivotIOReal implements IntakePivotIO {
                         .withKS(15)
                         .withKG(5)
                         .withKP(600)
-                        .withKD(40);
+                        .withKD(80);
 
         private static final TalonFXConfiguration motorConfig = new TalonFXConfiguration()
                         .withSlot0(pidConfig)
@@ -104,7 +104,7 @@ public class IntakePivotIOReal implements IntakePivotIO {
 
         @Override
         public void setTargetWithFeedForward(Angle angle, Current feedforward) {
-                pivotMotor.setControl(control.withPosition(angle).withFeedForward(feedforward));
+                pivotMotor.setControl(control.withPosition(angle));
         }
 
         @Override

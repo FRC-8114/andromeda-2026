@@ -58,7 +58,7 @@ public class VisionIOLimelight implements VisionIO {
         LimelightHelpers.setCameraPose_RobotSpace(
                 limelightName,
                 cameraTranslation.getX(),
-                -cameraTranslation.getY(), // limelight is right where wpilib is left i guess?
+                cameraTranslation.getY(),
                 cameraTranslation.getZ(),
                 Units.radiansToDegrees(cameraRotation.getX()),
                 Units.radiansToDegrees(cameraRotation.getY()),

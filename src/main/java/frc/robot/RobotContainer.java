@@ -262,7 +262,7 @@ public class RobotContainer {
         driverController.povRight().whileTrue(intakePivot.pump());
 
         driverController.povLeft().whileTrue(shooter.shootAt(
-                Radians.of(1.107),
+                Degrees.of(180),
                 Degrees.of(25),
                 RPM.of(2200)));
     }
@@ -276,7 +276,7 @@ public class RobotContainer {
     }
 
     public void disabledInit() {
-        vision.setIMUMode(0 /* EXTERNAL_ONLY */);
+        vision.setIMUMode(1 /* EXTERNAL_SEED */);
 
         driverController.getHID().setRumble(RumbleType.kBothRumble, 0.0);
     }
