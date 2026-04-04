@@ -223,6 +223,11 @@ public class RobotContainer {
     }
 
     private void acceptVisionMeasurement(PoseEstimation observation) {
+        if (DriverStation.isAutonomous()) {
+            // don't accept vision measurements during auto ig
+            return;
+        }
+
         drive.addVisionMeasurement(observation.pose().toPose2d(), observation.timestamp().in(Seconds),
                 observation.stddev());
     }
@@ -258,14 +263,14 @@ public class RobotContainer {
         // shooterPitch.tuneAngle()).alongWith(Commands.waitSeconds(1)
         // .andThen(turretFeeder.feed().until(turretFeeder.atSpeed).andThen(hopperLanes.feed().alongWith(turretFeeder.feed())))));
 
+        driverController.b().onTrue(Commands.runOnce(intakePivot::toggleStowing));
+
         driverController.povRight().whileTrue(intakePivot.pump());
 
         driverController.povLeft().whileTrue(shooter.shootAt(
                 Degrees.of(180),
                 Degrees.of(25),
                 RPM.of(2200)));
-
-        driverController.b().onTrue(Commands.run(intakePivot::toggleDeploy));
     }
 
     public void updateDashboard() {
@@ -286,8 +291,7 @@ public class RobotContainer {
     }
 
     public Command getAutonomousCommand() {
-        return Commands.parallel(autoChooser.selectedCommand(),
-                Commands.waitSeconds(1).andThen(() -> vision.setIMUMode(4))); // INTERNAL_EXTERNAL_ASSIST
+        return autoChooser.selectedCommand();
     }
 
     public <T extends Subsystem> Optional<T> getSubsystem(Class<T> type) {

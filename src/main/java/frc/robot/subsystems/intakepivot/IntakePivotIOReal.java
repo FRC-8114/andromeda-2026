@@ -42,14 +42,14 @@ public class IntakePivotIOReal implements IntakePivotIO {
         private static final CANcoderConfiguration encoderConfig = new CANcoderConfiguration()
                         .withMagnetSensor(new MagnetSensorConfigs()
                                         .withSensorDirection(SensorDirectionValue.CounterClockwise_Positive)
-                                        .withMagnetOffset(0.447021484375));
+                                        .withMagnetOffset(0.440673828125));
 
         private static final Slot0Configs pidConfig = new Slot0Configs()
                         .withGravityType(GravityTypeValue.Arm_Cosine)
                         .withKS(15)
                         .withKG(5)
-                        .withKP(600)
-                        .withKD(80);
+                        .withKP(500)
+                        .withKD(90); 
 
         private static final TalonFXConfiguration motorConfig = new TalonFXConfiguration()
                         .withSlot0(pidConfig)
@@ -67,7 +67,7 @@ public class IntakePivotIOReal implements IntakePivotIO {
                                         .withRotorToSensorRatio(GEAR_RATIO)
                                         .withSensorToMechanismRatio(1.0))
                         .withCurrentLimits(new CurrentLimitsConfigs()
-                                        .withStatorCurrentLimit(70)
+                                        .withStatorCurrentLimit(90)
                                         .withStatorCurrentLimitEnable(true)
                                         .withSupplyCurrentLimit(70)
                                         .withSupplyCurrentLimitEnable(true))

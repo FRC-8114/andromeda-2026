@@ -2,6 +2,7 @@ package frc.robot.subsystems.intakepivot;
 
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.Seconds;
 
@@ -17,8 +18,8 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 public class IntakePivot extends SubsystemBase {
     public static class Constants {
         public static final Angle DEPLOYED_ANGLE = Degrees.of(0);
-        public static final Angle HOLD_ANGLE = Rotations.of(0.141);
-        public static final Angle STOWED_ANGLE = Rotations.of(0.37);
+        public static final Angle HOLD_ANGLE = Radians.of(1);
+        public static final Angle STOWED_ANGLE = Rotations.of(0.4);
 
         private static final Current HOLD_DOWN_FEEDFORWARD = Amps.of(20);
         private static final Angle ANGLE_TOLERANCE = Degrees.of(1);
@@ -37,15 +38,16 @@ public class IntakePivot extends SubsystemBase {
         return new Trigger(
                 () -> inputs.position.isNear(ang, Constants.ANGLE_TOLERANCE));
     }
+
     public Trigger isDeployed = isAtAngle(Constants.DEPLOYED_ANGLE);
     public Trigger isStowed = isAtAngle(Constants.STOWED_ANGLE);
     public Trigger isAtHold = isAtAngle(Constants.HOLD_ANGLE);
 
     public Command deploy() {
         return runEnd(
-            () -> io.setTargetWithFeedForward(Constants.DEPLOYED_ANGLE,
-                Constants.HOLD_DOWN_FEEDFORWARD),
-            () -> io.setTarget(Constants.HOLD_ANGLE));
+                () -> io.setTargetWithFeedForward(Constants.DEPLOYED_ANGLE,
+                        Constants.HOLD_DOWN_FEEDFORWARD),
+                () -> io.setTarget(Constants.HOLD_ANGLE));
     }
 
     public Command hold() {
@@ -54,16 +56,29 @@ public class IntakePivot extends SubsystemBase {
 
     public Command pump() {
         return Commands.repeatingSequence(
-            run(() -> io.setTarget(Rotations.of(0.08))) // low
-                .withTimeout(Seconds.of(0.25)),
-            run(() -> io.setTarget(Rotations.of(0.20)))
-                .withTimeout(Seconds.of(0.25))
-        )
-            .finallyDo(() -> io.setTarget(Constants.HOLD_ANGLE));
+                run(() -> io.setTarget(Rotations.of(0.08))) // low
+                        .withTimeout(Seconds.of(0.25)),
+                run(() -> io.setTarget(Rotations.of(0.20)))
+                        .withTimeout(Seconds.of(0.25)))
+                .finallyDo(() -> io.setTarget(Constants.HOLD_ANGLE));
+    }
+
+    private boolean isStowing = false;
+
+    public void toggleStowing() {
+        if (isStowing) {
+            // stop stowing
+            setDefaultCommand(hold());
+        } else {
+            // start stowing
+            setDefaultCommand(stow());
+        }
+
+        isStowing = !isStowing;
     }
 
     public Command stow() {
-        return run(() -> io.setTarget(Constants.STOWED_ANGLE)).until(isStowed);
+        return run(() -> io.setTarget(Constants.STOWED_ANGLE));
     }
 
     @Override

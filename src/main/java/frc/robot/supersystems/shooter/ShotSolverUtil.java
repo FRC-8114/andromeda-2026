@@ -87,7 +87,7 @@ public final class ShotSolverUtil {
             if (isInAllianceZone(robotPose)) { // not in neutral zone
                 target = FieldConstants.Hub.innerCenterPoint; // flipped
             } else { // in opponent zone
-                target = (robotPose.getY() > FieldConstants.LinesHorizontal.center)
+                target = (robotPose.getY() < FieldConstants.LinesHorizontal.center)
                         ? rightBump
                         : leftBump;
             }

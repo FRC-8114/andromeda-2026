@@ -9,6 +9,7 @@ import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
+import frc.robot.FieldConstants;
 
 public class VisionConstants {
     public enum LimelightPoseMode {
@@ -16,7 +17,7 @@ public class VisionConstants {
         MEGATAG2
     }
 
-    public static LimelightPoseMode LIMELIGHT_ESTIMATION_MODE = LimelightPoseMode.MEGATAG2;
+    public static LimelightPoseMode LIMELIGHT_ESTIMATION_MODE = LimelightPoseMode.MEGATAG1;
     public static final int LIMELIGHT_IMU_MODE = 4; // Internal IMU + external assist
     public static final double limelightHeartbeatTimeoutSecs = 0.5;
     public static final double maxObservationAgeSecs = 0.5;
@@ -55,7 +56,7 @@ public class VisionConstants {
     }
 
     // AprilTag layout
-    public static AprilTagFieldLayout aprilTagLayout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
+    public static AprilTagFieldLayout aprilTagLayout = FieldConstants.fieldLayout;
     // limelight is right-positive
     private static final Transform3d ROBOT_TO_CAMERA_BACKLEFT = new Transform3d(
             new Translation3d(Inches.of(-13 + 1.85), Inches.of(-14.5 + 1.6), Inches.of(7.875)),
@@ -84,6 +85,6 @@ public class VisionConstants {
     public static double angularStdDevBaseline = 0.06; // Radians
 
     // Multipliers to apply for MegaTag 2 observations
-    public static double linearStdDevMegatag2Factor = 0.5; // More stable than full 3D solve
+    public static double linearStdDevMegatag2Factor = 0.7; // More stable than full 3D solve
     public static double angularStdDevMegatag2Factor = Double.POSITIVE_INFINITY; // No rotation data available
 }

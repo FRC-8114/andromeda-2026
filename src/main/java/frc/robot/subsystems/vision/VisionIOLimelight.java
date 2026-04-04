@@ -301,12 +301,12 @@ public class VisionIOLimelight implements VisionIO {
     private void setRobotOrientation(Rotation3d gyroRotation3d, AngularVelocity3d gyroVelocityRadPerSec) {
         LimelightHelpers.SetRobotOrientation(
                 limelightName,
-                Units.radiansToDegrees(gyroRotation3d.getZ()),
-                Units.radiansToDegrees(gyroVelocityRadPerSec.yawRadPerSec()),
-                Units.radiansToDegrees(gyroRotation3d.getY()),
-                Units.radiansToDegrees(gyroVelocityRadPerSec.pitchRadPerSec()),
-                Units.radiansToDegrees(gyroRotation3d.getX()),
-                Units.radiansToDegrees(gyroVelocityRadPerSec.rollRadPerSec()));
+                Units.radiansToDegrees(gyroRotation3d.getZ()), 0,0,0,0,0);
+                // Units.radiansToDegrees(gyroVelocityRadPerSec.yawRadPerSec()),
+                // Units.radiansToDegrees(gyroRotation3d.getY()),
+                // Units.radiansToDegrees(gyroVelocityRadPerSec.pitchRadPerSec()),
+                // Units.radiansToDegrees(gyroRotation3d.getX()),
+                // Units.radiansToDegrees(gyroVelocityRadPerSec.rollRadPerSec()));
     }
 
     private boolean shouldRejectEstimate(LimelightObservation observation, boolean rejectOnZError) {

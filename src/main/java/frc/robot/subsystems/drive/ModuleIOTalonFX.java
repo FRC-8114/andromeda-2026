@@ -114,6 +114,7 @@ public class ModuleIOTalonFX implements ModuleIO {
         driveConfig.MotorOutput.Inverted = constants.DriveMotorInverted
                 ? InvertedValue.Clockwise_Positive
                 : InvertedValue.CounterClockwise_Positive;
+                
         tryUntilOk(5, () -> driveTalon.getConfigurator().apply(driveConfig, 0.25));
         tryUntilOk(5, () -> driveTalon.setPosition(0.0, 0.25));
 
