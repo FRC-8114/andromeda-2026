@@ -247,8 +247,12 @@ public class RobotContainer {
         // driverController.povUp().whileTrue(hopperLanes.feed());
         // driverController.povUp().whileTrue(flywheels.runFlywheels(RPM.of(1800)));
 
-        driverController.povUp().whileTrue(climber.move(true));
-        driverController.povDown().whileTrue(climber.move(false));
+        driverController.povUp().whileTrue(climber.move(false));
+        driverController.povDown().whileTrue(climber.move(true));
+
+        driverController.x().onTrue(climber.deploy());
+        driverController.y().onTrue(climber.climb());
+        driverController.a().onTrue(climber.stow());
 
         // driverController.povDown().whileTrue(
         // Commands.parallel(flywheels.runFlywheelsTunableVelocity(),
@@ -259,11 +263,7 @@ public class RobotContainer {
         driverController.b().onTrue(Commands.runOnce(intakePivot::toggleStowing));
 
         driverController.povRight().whileTrue(intake.pump());
-
-        driverController.povLeft().whileTrue(shooter.shootAt(
-                Degrees.of(180),
-                Degrees.of(25),
-                RPM.of(2200)));
+        driverController.povLeft().onTrue(climber.doNext());
     }
 
     public void updateDashboard() {

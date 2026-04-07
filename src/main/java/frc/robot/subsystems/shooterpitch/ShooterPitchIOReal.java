@@ -86,7 +86,7 @@ public class ShooterPitchIOReal implements ShooterPitchIO {
 
     @Override
     public boolean supportsHomingReseed() {
-        return true;
+        return false;
     }
 
     @Override

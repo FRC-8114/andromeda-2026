@@ -3,7 +3,6 @@ package frc.robot.subsystems.shooterpitch;
 import static edu.wpi.first.units.Units.Degree;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Radians;
-import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 
 import java.util.function.Supplier;
@@ -26,7 +25,7 @@ public class ShooterPitch extends SubsystemBase {
         private static final double READY_VELOCITY_TOLERANCE_RAD_PER_SEC = Math.toRadians(5.0);
 
         private static final Angle ZERO_ANGLE = Degrees.of(0);
-        private static final double DEFAULT_HOMING_VOLTAGE = -1.5;
+        private static final double DEFAULT_HOMING_VOLTAGE = -3;
         private static final double DEFAULT_HOMING_CURRENT_SPIKE_AMPS = 30.0;
     }
 

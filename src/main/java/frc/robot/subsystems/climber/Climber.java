@@ -7,6 +7,7 @@ import java.util.Set;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -29,6 +30,7 @@ public class Climber extends SubsystemBase {
         this.io = io;
     }
 
+    public final Trigger stowCurrentSpike = new Trigger(() -> inputs.currentAmps >= 30);
     public final Trigger isStowed = new Trigger(() -> MathUtil.isNear(ClimberConstants.stowRotations, inputs.positionRot, rotationTolerance));
     public final Trigger isDeployed = new Trigger(() -> MathUtil.isNear(ClimberConstants.deployRotations, inputs.positionRot, rotationTolerance));
     public final Trigger isClimbed = new Trigger(() -> MathUtil.isNear(ClimberConstants.climbRotations, inputs.positionRot, rotationTolerance));
@@ -52,13 +54,14 @@ public class Climber extends SubsystemBase {
     }
 
     public Command stow() {
+        double startStow = Timer.getFPGATimestamp();
         return run(() -> io.setPosition(ClimberConstants.stowRotations))
-            .until(isStowed)
+            .until(isStowed.or(stowCurrentSpike.and(() -> (Timer.getFPGATimestamp() - startStow) > 1 )))
             .andThen(runOnce(() -> {this.state = ClimbState.STOW;}));
     }
 
-    public Command move(boolean up) {
-        return runEnd(() -> io.runVolts(Volts.of(5).times(up ? -1 : 1)), () -> io.runVolts(Volts.of(0)));
+    public Command move(boolean down) {
+        return runEnd(() -> io.runVolts(Volts.of(5).times(down ? -1 : 1)), () -> io.runVolts(Volts.of(0)));
     }
 
     public Command doNext() {

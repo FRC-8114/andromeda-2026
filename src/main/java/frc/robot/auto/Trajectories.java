@@ -138,10 +138,14 @@ public final class Trajectories {
             paths[0].resetOdometry(),
             Commands.deadline(
                 paths[0].cmd(),
-                intakePivot.deploy()
+                Commands.parallel(
+                    intakePivot.deploy(),
+                    intakeRollers.intake()
+                )
             ),
             autos.stopCommand(),
             Commands.parallel(
+                intakePivot.deploy(),
                 intakeRollers.intake(),
                 shooter.shoot()
             )
