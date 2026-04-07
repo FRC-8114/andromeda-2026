@@ -26,8 +26,8 @@ public class TurretFeederIOReal implements TurretFeederIO {
 
         static final Slot0Configs pidConfig = new Slot0Configs()
                 .withKS(20)
-                .withKV(0.5)
-                .withKP(30)
+                .withKV(1)
+                .withKP(80)
                 .withKD(0);
 
         static final TalonFXConfiguration motorConfig = new TalonFXConfiguration()

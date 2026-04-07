@@ -58,7 +58,7 @@ public class Climber extends SubsystemBase {
     }
 
     public Command move(boolean up) {
-        return runEnd(() -> io.runVolts(Volts.of(3.92).times(up ? -1 : 1)), () -> io.runVolts(Volts.of(0)));
+        return runEnd(() -> io.runVolts(Volts.of(5).times(up ? -1 : 1)), () -> io.runVolts(Volts.of(0)));
     }
 
     public Command doNext() {

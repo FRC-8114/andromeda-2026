@@ -238,12 +238,16 @@ public class RobotContainer {
 
     private final CommandXboxController driverController = new CommandXboxController(0);
 
+    boolean isSOTMSpeedEnabled = false;
+
     private void configureBindings() {
         drive.setDefaultCommand(
                 drive.joystickDrive(
                         () -> -driverController.getLeftY(),
                         () -> -driverController.getLeftX(),
-                        () -> -driverController.getRightX()));
+                        () -> -driverController.getRightX(),
+                        () -> drive.getMaxLinearSpeedMetersPerSec() * (driverController.rightTrigger().getAsBoolean() ? 0.2 : 1),
+                        () -> drive.getMaxAngularSpeedRadPerSec() * (driverController.rightTrigger().getAsBoolean() ? 0.2 : 1)));
 
         driverController.rightTrigger().whileTrue(shooter.shoot());
         driverController.leftTrigger().whileTrue(Commands.parallel(intakeRollers.intake(), intakePivot.deploy()));

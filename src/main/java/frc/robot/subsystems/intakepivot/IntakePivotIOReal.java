@@ -48,8 +48,8 @@ public class IntakePivotIOReal implements IntakePivotIO {
                         .withGravityType(GravityTypeValue.Arm_Cosine)
                         .withKS(15)
                         .withKG(5)
-                        .withKP(500)
-                        .withKD(90); 
+                        .withKP(600)
+                        .withKD(90);
 
         private static final TalonFXConfiguration motorConfig = new TalonFXConfiguration()
                         .withSlot0(pidConfig)

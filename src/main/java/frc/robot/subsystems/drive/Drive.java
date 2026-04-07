@@ -46,6 +46,7 @@ import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
@@ -588,7 +589,8 @@ public class Drive extends SubsystemBase implements SysIDMechanism {
     public Command joystickDrive(
             DoubleSupplier xSupplier,
             DoubleSupplier ySupplier,
-            DoubleSupplier omegaSupplier) {
+            DoubleSupplier omegaSupplier,
+            Supplier<Double> linearMaxSpeeds, Supplier<Double> angularMaxSupplier) {
         return run(
                 () -> {
                     // Get linear velocity
@@ -601,11 +603,14 @@ public class Drive extends SubsystemBase implements SysIDMechanism {
                     // Square rotation value for more precise control
                     omega = Math.copySign(omega * omega, omega);
 
+                    double maxLinearSpeed = linearMaxSpeeds.get();
+                    double maxAngularSpeed = angularMaxSupplier.get();
+
                     // Convert to field relative speeds & send command
                     ChassisSpeeds speeds = new ChassisSpeeds(
-                            linearVelocity.getX() * getMaxLinearSpeedMetersPerSec(),
-                            linearVelocity.getY() * getMaxLinearSpeedMetersPerSec(),
-                            omega * getMaxAngularSpeedRadPerSec());
+                            linearVelocity.getX() * maxLinearSpeed,
+                            linearVelocity.getY() * maxLinearSpeed,
+                            omega * maxAngularSpeed);
                     runVelocity(
                             ChassisSpeeds.fromFieldRelativeSpeeds(
                                     speeds,

@@ -23,10 +23,8 @@ public class HopperLanesIOReal implements HopperLanesIO {
 
     static final Slot0Configs pidConfig = new Slot0Configs()
         .withKS(0.31077)
-        .withKV(0.01988)
-        .withKP(1)
-        .withKI(0.0)
-        .withKD(0.0);
+        .withKV(0.8)
+        .withKP(8);
 
     static final TalonFXConfiguration motorConfig = new TalonFXConfiguration()
         .withFeedback(new FeedbackConfigs()
@@ -38,7 +36,7 @@ public class HopperLanesIOReal implements HopperLanesIO {
 
     private final TalonFX laneMotor = new TalonFX(indexerMotorId, RobotConstants.canBus);
 
-    private final VelocityVoltage control = new VelocityVoltage(0).withEnableFOC(true);
+    private final VelocityVoltage control = new VelocityVoltage(0);
 
     private final VoltageOut controlVoltage = new VoltageOut(0);
     private final TorqueCurrentFOC currentControl = new TorqueCurrentFOC(0);

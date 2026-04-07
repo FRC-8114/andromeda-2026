@@ -57,7 +57,7 @@ public record ChoreoTraj(
     public static final ChoreoTraj Trench2xDepot = new ChoreoTraj(
         "Trench2xDepot",
         OptionalInt.empty(),
-        24.43717,
+        19.54625,
         new Pose2d(4.25199, 7.44921, Rotation2d.fromRadians(0)),
         new Pose2d(3.34792, 7.55081, Rotation2d.fromRadians(0))
     );
@@ -65,7 +65,7 @@ public record ChoreoTraj(
     public static final ChoreoTraj Trench2xDepot$0 = new ChoreoTraj(
         "Trench2xDepot",
         OptionalInt.of(0),
-        11.83556,
+        7.60409,
         new Pose2d(4.25199, 7.44921, Rotation2d.fromRadians(0)),
         new Pose2d(6.59219, 7.39841, Rotation2d.fromRadians(0))
     );
@@ -73,7 +73,7 @@ public record ChoreoTraj(
     public static final ChoreoTraj Trench2xDepot$1 = new ChoreoTraj(
         "Trench2xDepot",
         OptionalInt.of(1),
-        1.9018300000000004,
+        1.6706700000000003,
         new Pose2d(6.59219, 7.39841, Rotation2d.fromRadians(0)),
         new Pose2d(3.3439, 7.55081, Rotation2d.fromRadians(0))
     );
@@ -81,7 +81,7 @@ public record ChoreoTraj(
     public static final ChoreoTraj Trench2xDepot$2 = new ChoreoTraj(
         "Trench2xDepot",
         OptionalInt.of(2),
-        1.9092500000000001,
+        1.67854,
         new Pose2d(3.3439, 7.55081, Rotation2d.fromRadians(0)),
         new Pose2d(6.59219, 7.39841, Rotation2d.fromRadians(0))
     );
@@ -89,7 +89,7 @@ public record ChoreoTraj(
     public static final ChoreoTraj Trench2xDepot$3 = new ChoreoTraj(
         "Trench2xDepot",
         OptionalInt.of(3),
-        6.539070000000001,
+        6.51609,
         new Pose2d(6.59219, 7.39841, Rotation2d.fromRadians(0)),
         new Pose2d(6.27074, 7.08763, Rotation2d.fromRadians(1.5708))
     );
@@ -97,14 +97,14 @@ public record ChoreoTraj(
     public static final ChoreoTraj Trench2xDepot$4 = new ChoreoTraj(
         "Trench2xDepot",
         OptionalInt.of(4),
-        2.251459999999998,
+        2.07686,
         new Pose2d(6.27074, 7.08763, Rotation2d.fromRadians(1.5708)),
         new Pose2d(3.34792, 7.55081, Rotation2d.fromRadians(0))
     );
     public static final ChoreoTraj Trench2xOutpost = new ChoreoTraj(
         "Trench2xOutpost",
         OptionalInt.empty(),
-        19.54625,
+        19.20665,
         new Pose2d(4.25199, 0.62799, Rotation2d.fromRadians(0)),
         new Pose2d(3.34792, 0.52639, Rotation2d.fromRadians(0))
     );
@@ -112,7 +112,7 @@ public record ChoreoTraj(
     public static final ChoreoTraj Trench2xOutpost$0 = new ChoreoTraj(
         "Trench2xOutpost",
         OptionalInt.of(0),
-        7.60409,
+        7.40917,
         new Pose2d(4.25199, 0.62799, Rotation2d.fromRadians(0)),
         new Pose2d(6.59219, 0.67879, Rotation2d.fromRadians(0))
     );
@@ -120,7 +120,7 @@ public record ChoreoTraj(
     public static final ChoreoTraj Trench2xOutpost$1 = new ChoreoTraj(
         "Trench2xOutpost",
         OptionalInt.of(1),
-        1.6706700000000003,
+        1.6668700000000012,
         new Pose2d(6.59219, 0.67879, Rotation2d.fromRadians(0)),
         new Pose2d(3.3439, 0.52639, Rotation2d.fromRadians(0))
     );
@@ -128,16 +128,16 @@ public record ChoreoTraj(
     public static final ChoreoTraj Trench2xOutpost$2 = new ChoreoTraj(
         "Trench2xOutpost",
         OptionalInt.of(2),
-        1.67854,
+        1.45594,
         new Pose2d(3.3439, 0.52639, Rotation2d.fromRadians(0)),
-        new Pose2d(6.59219, 0.67879, Rotation2d.fromRadians(0))
+        new Pose2d(6.13499, 0.67879, Rotation2d.fromRadians(0))
     );
     /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
     public static final ChoreoTraj Trench2xOutpost$3 = new ChoreoTraj(
         "Trench2xOutpost",
         OptionalInt.of(3),
-        6.51609,
-        new Pose2d(6.59219, 0.67879, Rotation2d.fromRadians(0)),
+        6.597809999999999,
+        new Pose2d(6.13499, 0.67879, Rotation2d.fromRadians(0)),
         new Pose2d(6.27074, 0.98957, Rotation2d.fromRadians(-1.5708))
     );
     /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
