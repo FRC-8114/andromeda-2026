@@ -114,15 +114,27 @@ public class TurretShotSolverAnglemap implements Supplier<ShotSolution> {
 
         Translation2d turretTranslation = turretPosition.getTranslation().toTranslation2d();
         Translation2d compensatedTarget = target.getTranslation().toTranslation2d();
+        double previousStepErrorMeters = Double.NaN;
+        double lastErrorReductionMeters = 0.0;
 
         // comment below to disable velocity compensation (SotM)
         for (int i = 0; i < 3; i++) {
             Translation2d relativeTarget = compensatedTarget.minus(turretTranslation);
             double timeOfFlight = estimateTimeOfFlight(relativeTarget.getNorm());
-            compensatedTarget = target.getTranslation()
+            Translation2d nextCompensatedTarget = target.getTranslation()
                     .minus(turretVelocity.times(timeOfFlight))
                     .toTranslation2d();
+
+            double stepErrorMeters = nextCompensatedTarget.getDistance(compensatedTarget);
+            if (Double.isFinite(previousStepErrorMeters)) {
+                lastErrorReductionMeters = previousStepErrorMeters - stepErrorMeters;
+            }
+
+            previousStepErrorMeters = stepErrorMeters;
+            compensatedTarget = nextCompensatedTarget;
         }
+
+        Logger.recordOutput("Shooter/SOTM/LastErrorReductionMeters", lastErrorReductionMeters);
 
         Translation2d shotVector = compensatedTarget.minus(turretTranslation);
         Pair<Double, Double> rpmAndPitch = getRPMAndPitch(shotVector.getNorm());
