@@ -40,8 +40,6 @@ import frc.robot.RobotConstants.RobotMode;
 import frc.robot.generated.TunerConstants;
 import frc.robot.util.AllianceFlipUtil;
 import frc.robot.util.SysIDMechanism;
-import frc.robot.subsystems.vision.AngularVelocity3d;
-
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -50,6 +48,8 @@ import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
+
+import limelight.networktables.AngularVelocity3d;
 
 public class Drive extends SubsystemBase implements SysIDMechanism {
     private class Constants {
@@ -189,6 +189,8 @@ public class Drive extends SubsystemBase implements SysIDMechanism {
         }
         odometryLock.unlock();
 
+        Logger.recordOutput("Drive/SwerveStates/Measured", getModuleStates());
+
         // Stop moving when disabled
         if (DriverStation.isDisabled()) {
             for (var module : modules) {
@@ -240,6 +242,7 @@ public class Drive extends SubsystemBase implements SysIDMechanism {
         ChassisSpeeds discreteSpeeds = ChassisSpeeds.discretize(speeds, 0.02);
         SwerveModuleState[] setpointStates = kinematics.toSwerveModuleStates(discreteSpeeds);
         SwerveDriveKinematics.desaturateWheelSpeeds(setpointStates, TunerConstants.kSpeedAt12Volts);
+        Logger.recordOutput("Drive/SwerveStates/Setpoints", setpointStates);
 
         // Send setpoints to modules
         for (int i = 0; i < 4; i++) {
@@ -367,7 +370,7 @@ public class Drive extends SubsystemBase implements SysIDMechanism {
 
     private double getRotationCharacterizationYawVelocityRadPerSec() {
         if (gyroInputs.connected) {
-            return gyroInputs.yawVelocityRadPerSec.in(RadiansPerSecond);
+            return gyroInputs.yawVelocity.in(RadiansPerSecond);
         }
         return getChassisSpeeds().omegaRadiansPerSecond;
     }
@@ -520,9 +523,9 @@ public class Drive extends SubsystemBase implements SysIDMechanism {
      */
     public AngularVelocity3d getRawGyroVelocityRadPerSec() {
         return new AngularVelocity3d(
-                gyroInputs.rollVelocityRadPerSec.in(RadiansPerSecond),
-                gyroInputs.pitchVelocityRadPerSec.in(RadiansPerSecond),
-                gyroInputs.yawVelocityRadPerSec.in(RadiansPerSecond));
+                gyroInputs.rollVelocity,
+                gyroInputs.pitchVelocity,
+                gyroInputs.yawVelocity);
     }
 
     /** Resets the current odometry pose. */

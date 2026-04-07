@@ -10,11 +10,23 @@ public interface ShooterPitchIO {
         public double pitchPosition = 0;
         public double velocityRadsPerSec = 0;
         public double appliedVoltage = 0;
+        public double appliedCurrentAmps = 0;
     }
 
     void setTarget(Angle angle);
 
     void setVoltage(double volts);
+
+    default void setHomingVoltage(double volts) {
+        setVoltage(volts);
+    }
+
+    default boolean supportsHomingReseed() {
+        return false;
+    }
+
+    default void reseedPosition(Angle angle) {
+    }
 
     void updateInputs(ShooterPitchInputs inputs);
 }

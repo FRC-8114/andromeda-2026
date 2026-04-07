@@ -49,9 +49,9 @@ public class GyroIOPigeon2 implements GyroIO {
         inputs.yawPosition = Rotation2d.fromRadians(yaw.getValue().in(Radians));
         inputs.pitchPosition = Rotation2d.fromRadians(pitch.getValue().in(Radians));
         inputs.rollPosition = Rotation2d.fromRadians(roll.getValue().in(Radians));
-        inputs.yawVelocityRadPerSec = yawVelocity.getValue();
-        inputs.pitchVelocityRadPerSec = pitchVelocity.getValue();
-        inputs.rollVelocityRadPerSec = rollVelocity.getValue();
+        inputs.yawVelocity = yawVelocity.getValue();
+        inputs.pitchVelocity = pitchVelocity.getValue();
+        inputs.rollVelocity = rollVelocity.getValue();
 
         inputs.odometryYawTimestamps = yawTimestampQueue.stream().mapToDouble((Double value) -> value).toArray();
         inputs.odometryYawPositions = yawPositionQueue.stream()

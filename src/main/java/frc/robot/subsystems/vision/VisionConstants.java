@@ -9,18 +9,14 @@ import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
-import frc.robot.FieldConstants;
+import limelight.networktables.LimelightSettings.ImuMode;
 
 public class VisionConstants {
-    public enum LimelightPoseMode {
-        MEGATAG1,
-        MEGATAG2
-    }
-
-    public static LimelightPoseMode LIMELIGHT_ESTIMATION_MODE = LimelightPoseMode.MEGATAG1;
-    public static final int LIMELIGHT_IMU_MODE = 4; // Internal IMU + external assist
+    public static final ImuMode LIMELIGHT_IMU_MODE = ImuMode.InternalImuExternalAssist;
+    public static final ImuMode LIMELIGHT_SEED_IMU_MODE = ImuMode.SyncInternalImu;
     public static final double limelightHeartbeatTimeoutSecs = 0.5;
     public static final double maxObservationAgeSecs = 0.5;
+    public static final double maxObservationDistanceMeters = 8.0;
 
     public interface CameraConfiguration {
         String name();

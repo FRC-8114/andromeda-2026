@@ -18,6 +18,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.auto.Autos;
 import frc.robot.generated.TunerConstants;
@@ -44,6 +45,7 @@ import frc.robot.subsystems.shooterflywheels.ShooterFlywheelsIOSim;
 import frc.robot.subsystems.shooterpitch.ShooterPitch;
 import frc.robot.subsystems.shooterpitch.ShooterPitchIOReal;
 import frc.robot.subsystems.shooterpitch.ShooterPitchIOSim;
+import frc.robot.supersystems.intake.Intake;
 import frc.robot.supersystems.shooter.Shooter;
 import frc.robot.supersystems.shooter.ShotSolverUtil;
 import frc.robot.supersystems.shooter.TurretShotSolverAnglemap;
@@ -55,8 +57,6 @@ import frc.robot.subsystems.turretfeeder.TurretFeederIOReal;
 import frc.robot.subsystems.turretfeeder.TurretFeederIOSim;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionConstants;
-import frc.robot.subsystems.vision.VisionConstants.LimelightPoseMode;
-import frc.robot.subsystems.vision.VisionIO.PoseEstimation;
 import frc.robot.util.SubsystemRegistry;
 import java.util.Optional;
 
@@ -87,6 +87,9 @@ public class RobotContainer {
     private final IntakeRollers intakeRollers;
 
     @SuppressWarnings("unused")
+    private final Intake intake;
+
+    @SuppressWarnings("unused")
     private final Climber climber;
 
     @SuppressWarnings("unused")
@@ -105,6 +108,7 @@ public class RobotContainer {
                 hopperLanes = subsystemRegistry.register(new HopperLanes(new HopperLanesIOReal()));
                 intakePivot = subsystemRegistry.register(new IntakePivot(new IntakePivotIOReal()));
                 intakeRollers = subsystemRegistry.register(new IntakeRollers(new IntakeRollersIOReal()));
+                intake = subsystemRegistry.register(new Intake(intakePivot, intakeRollers));
                 climber = subsystemRegistry.register(new Climber(new ClimberIOReal()));
                 break;
             }
@@ -116,6 +120,7 @@ public class RobotContainer {
                 hopperLanes = subsystemRegistry.register(new HopperLanes(new HopperLanesIOSim()));
                 intakePivot = subsystemRegistry.register(new IntakePivot(new IntakePivotIOSim()));
                 intakeRollers = subsystemRegistry.register(new IntakeRollers(new IntakeRollersIOSim()));
+                intake = subsystemRegistry.register(new Intake(intakePivot, intakeRollers));
                 climber = subsystemRegistry.register(new Climber(new ClimberIOSim()));
                 break;
             }
@@ -132,12 +137,12 @@ public class RobotContainer {
                                 kinematicsSupplier)));
 
         vision = subsystemRegistry.register(Vision.fromCameraConstants(
-                this::acceptVisionMeasurement,
-                this::seedPoseFromVision,
-                drive::getRawGyroRotation3d,
-                drive::getRawGyroVelocityRadPerSec,
-                drive::getPose));
-        // vision = null;
+                () -> new Vision.RobotStateSample(
+                        Timer.getFPGATimestamp(),
+                        drive.getFieldGyroRotation3d(),
+                        drive.getRawGyroVelocityRadPerSec()),
+                drive::addVisionMeasurement,
+                drive::setPose));
 
         autoChooser = new Autos(subsystemRegistry).createChooser();
 
@@ -222,20 +227,6 @@ public class RobotContainer {
         };
     }
 
-    private void acceptVisionMeasurement(PoseEstimation observation) {
-        if (DriverStation.isAutonomous()) {
-            // don't accept vision measurements during auto ig
-            return;
-        }
-
-        drive.addVisionMeasurement(observation.pose().toPose2d(), observation.timestamp().in(Seconds),
-                observation.stddev());
-    }
-
-    private void seedPoseFromVision(PoseEstimation observation) {
-        drive.setPose(observation.pose().toPose2d());
-    }
-
     private final CommandXboxController driverController = new CommandXboxController(0);
 
     boolean isSOTMSpeedEnabled = false;
@@ -250,13 +241,11 @@ public class RobotContainer {
                         () -> drive.getMaxAngularSpeedRadPerSec() * (driverController.rightTrigger().getAsBoolean() ? 0.2 : 1)));
 
         driverController.rightTrigger().whileTrue(shooter.shoot());
-        driverController.leftTrigger().whileTrue(Commands.parallel(intakeRollers.intake(), intakePivot.deploy()));
+        driverController.b().onTrue(intake.deploy());
+        driverController.leftTrigger().whileTrue(intake.intake());
 
         // driverController.povUp().whileTrue(hopperLanes.feed());
         // driverController.povUp().whileTrue(flywheels.runFlywheels(RPM.of(1800)));
-
-        driverController.start()
-                .onTrue(Commands.runOnce(() -> VisionConstants.LIMELIGHT_ESTIMATION_MODE = LimelightPoseMode.MEGATAG1));
 
         driverController.povUp().whileTrue(climber.move(true));
         driverController.povDown().whileTrue(climber.move(false));
@@ -269,7 +258,7 @@ public class RobotContainer {
 
         driverController.b().onTrue(Commands.runOnce(intakePivot::toggleStowing));
 
-        driverController.povRight().whileTrue(intakePivot.pump());
+        driverController.povRight().whileTrue(intake.pump());
 
         driverController.povLeft().whileTrue(shooter.shootAt(
                 Degrees.of(180),
@@ -285,11 +274,11 @@ public class RobotContainer {
     }
 
     public void teleopInit() {
-        vision.setIMUMode(4 /* INTERNAL_EXTERNAL_ASSIST */);
+        vision.setIMUMode(VisionConstants.LIMELIGHT_IMU_MODE);
     }
 
     public void disabledInit() {
-        vision.setIMUMode(1 /* EXTERNAL_SEED */);
+        vision.setIMUMode(VisionConstants.LIMELIGHT_SEED_IMU_MODE);
 
         driverController.getHID().setRumble(RumbleType.kBothRumble, 0.0);
     }

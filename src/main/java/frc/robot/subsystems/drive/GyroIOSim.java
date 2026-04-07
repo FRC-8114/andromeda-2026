@@ -11,9 +11,9 @@ public class GyroIOSim implements GyroIO {
         inputs.yawPosition = Rotation2d.kZero;
         inputs.pitchPosition = Rotation2d.kZero;
         inputs.rollPosition = Rotation2d.kZero;
-        inputs.yawVelocityRadPerSec = RadiansPerSecond.of(0.0);
-        inputs.pitchVelocityRadPerSec = RadiansPerSecond.of(0.0);
-        inputs.rollVelocityRadPerSec = RadiansPerSecond.of(0.0);
+        inputs.yawVelocity = RadiansPerSecond.of(0.0);
+        inputs.pitchVelocity = RadiansPerSecond.of(0.0);
+        inputs.rollVelocity = RadiansPerSecond.of(0.0);
         inputs.odometryYawTimestamps = new double[] {};
         inputs.odometryYawPositions = new Rotation2d[] {};
     }

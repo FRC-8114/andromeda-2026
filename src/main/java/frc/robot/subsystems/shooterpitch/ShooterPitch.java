@@ -13,6 +13,7 @@ import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
@@ -25,6 +26,8 @@ public class ShooterPitch extends SubsystemBase {
         private static final double READY_VELOCITY_TOLERANCE_RAD_PER_SEC = Math.toRadians(5.0);
 
         private static final Angle ZERO_ANGLE = Degrees.of(0);
+        private static final double DEFAULT_HOMING_VOLTAGE = -1.5;
+        private static final double DEFAULT_HOMING_CURRENT_SPIKE_AMPS = 30.0;
     }
 
     private final ShooterPitchIO pitchMotor;
@@ -33,6 +36,10 @@ public class ShooterPitch extends SubsystemBase {
 
     private final LoggedNetworkNumber angle = new LoggedNetworkNumber("Tuning/ShooterPitch",
             Constants.MIN_ANGLE.in(Degrees));
+    private final LoggedNetworkNumber homingVoltage = new LoggedNetworkNumber(
+            "Tuning/ShooterPitchHomingVoltage", Constants.DEFAULT_HOMING_VOLTAGE);
+    private final LoggedNetworkNumber homingCurrentSpikeAmps = new LoggedNetworkNumber(
+            "Tuning/ShooterPitchHomingCurrentSpikeAmps", Constants.DEFAULT_HOMING_CURRENT_SPIKE_AMPS);
 
     public ShooterPitch(ShooterPitchIO pitchMotor) {
         this.pitchMotor = pitchMotor;
@@ -44,7 +51,7 @@ public class ShooterPitch extends SubsystemBase {
                 new SysIdRoutine.Mechanism(
                         (voltage) -> pitchMotor.setVoltage(voltage.in(Volts)), null, this));
 
-        setDefaultCommand(setAngle(Degrees.of(0)));
+        setDefaultCommand(Commands.either(homeAndReseed(), holdMinAngle(), pitchMotor::supportsHomingReseed));
     }
 
     public double getPitchPositionRads() {
@@ -64,6 +71,25 @@ public class ShooterPitch extends SubsystemBase {
     public boolean isAtAngle(Angle target) {
         return target.isNear(getPitchPosition(), Constants.ANGLE_TOLERANCE)
                 && Math.abs(inputs.velocityRadsPerSec) <= Constants.READY_VELOCITY_TOLERANCE_RAD_PER_SEC;
+    }
+
+    private boolean hasHomingCurrentSpike() {
+        return Math.abs(inputs.appliedCurrentAmps) >= homingCurrentSpikeAmps.get();
+    }
+
+    private Command holdMinAngle() {
+        return run(() -> pitchMotor.setTarget(Constants.MIN_ANGLE));
+    }
+
+    public Command homeAndReseed() {
+        return Commands.sequence(
+                runEnd(() -> pitchMotor.setHomingVoltage(homingVoltage.get()), () -> pitchMotor.setVoltage(0.0))
+                        .until(this::hasHomingCurrentSpike),
+                runOnce(() -> {
+                    pitchMotor.setVoltage(0.0);
+                    pitchMotor.reseedPosition(Constants.MIN_ANGLE);
+                }),
+                holdMinAngle());
     }
 
     public Command setAngle(Angle pitchAngle) {

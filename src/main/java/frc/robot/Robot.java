@@ -100,6 +100,7 @@ public class Robot extends LoggedRobot {
     }
 
     HubShiftUtil.initialize();
+    m_robotContainer.teleopInit();
   }
 
   @Override

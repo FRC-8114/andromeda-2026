@@ -13,9 +13,9 @@ public interface GyroIO {
         public Rotation2d yawPosition = Rotation2d.kZero;
         public Rotation2d pitchPosition = Rotation2d.kZero;
         public Rotation2d rollPosition = Rotation2d.kZero;
-        public AngularVelocity yawVelocityRadPerSec = RadiansPerSecond.of(0.0);
-        public AngularVelocity pitchVelocityRadPerSec = RadiansPerSecond.of(0.0);
-        public AngularVelocity rollVelocityRadPerSec = RadiansPerSecond.of(0.0);
+        public AngularVelocity yawVelocity = RadiansPerSecond.of(0.0);
+        public AngularVelocity pitchVelocity = RadiansPerSecond.of(0.0);
+        public AngularVelocity rollVelocity = RadiansPerSecond.of(0.0);
         public double[] odometryYawTimestamps = new double[] {};
         public Rotation2d[] odometryYawPositions = new Rotation2d[] {};
     }

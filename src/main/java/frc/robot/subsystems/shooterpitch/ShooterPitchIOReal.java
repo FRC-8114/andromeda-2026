@@ -3,6 +3,7 @@ package frc.robot.subsystems.shooterpitch;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 
+import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.MotionMagicConfigs;
@@ -15,6 +16,7 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.GravityTypeValue;
 
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.Current;
 import frc.robot.RobotConstants;
 
 public class ShooterPitchIOReal implements ShooterPitchIO {
@@ -61,6 +63,8 @@ public class ShooterPitchIOReal implements ShooterPitchIO {
     private final TalonFX turretPitchMotor = new TalonFX(Constants.turretPitchMotorId, RobotConstants.canBus);
     private final MotionMagicVoltage control = new MotionMagicVoltage(ShooterPitch.Constants.MIN_ANGLE);
     private final VoltageOut voltageControl = new VoltageOut(0);
+    private final VoltageOut homingVoltageControl = new VoltageOut(0).withIgnoreSoftwareLimits(true);
+    private final StatusSignal<Current> currentSignal = turretPitchMotor.getTorqueCurrent();
 
     public ShooterPitchIOReal() {
         turretPitchMotor.getConfigurator().apply(Constants.pitchMotorCfg);
@@ -75,9 +79,25 @@ public class ShooterPitchIOReal implements ShooterPitchIO {
         turretPitchMotor.setControl(voltageControl.withOutput(volts));
     }
 
+    @Override
+    public void setHomingVoltage(double volts) {
+        turretPitchMotor.setControl(homingVoltageControl.withOutput(volts));
+    }
+
+    @Override
+    public boolean supportsHomingReseed() {
+        return true;
+    }
+
+    @Override
+    public void reseedPosition(Angle angle) {
+        turretPitchMotor.setPosition(angle);
+    }
+
     public void updateInputs(ShooterPitchInputs inputs) {
         inputs.pitchPosition = turretPitchMotor.getPosition().getValue().in(Radians);
         inputs.velocityRadsPerSec = turretPitchMotor.getVelocity().getValue().in(RadiansPerSecond);
         inputs.appliedVoltage = turretPitchMotor.getMotorVoltage().getValueAsDouble();
+        inputs.appliedCurrentAmps = currentSignal.refresh().getValueAsDouble();
     }
 }
