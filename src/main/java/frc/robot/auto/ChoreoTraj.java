@@ -34,7 +34,7 @@ public record ChoreoTraj(
     public static final ChoreoTraj ShootDepot = new ChoreoTraj(
         "ShootDepot",
         OptionalInt.empty(),
-        11.53433,
+        10.85773,
         new Pose2d(3.54902, 4.00775, Rotation2d.fromRadians(3.14159)),
         new Pose2d(1.00236, 4.56509, Rotation2d.fromRadians(1.5708))
     );
@@ -42,7 +42,7 @@ public record ChoreoTraj(
     public static final ChoreoTraj ShootDepot$0 = new ChoreoTraj(
         "ShootDepot",
         OptionalInt.of(0),
-        4.99311,
+        4.18974,
         new Pose2d(3.54902, 4.00775, Rotation2d.fromRadians(3.14159)),
         new Pose2d(0.81357, 5.98337, Rotation2d.fromRadians(3.14159))
     );
@@ -50,8 +50,16 @@ public record ChoreoTraj(
     public static final ChoreoTraj ShootDepot$1 = new ChoreoTraj(
         "ShootDepot",
         OptionalInt.of(1),
-        6.541220000000001,
+        5.19155,
         new Pose2d(0.81357, 5.98337, Rotation2d.fromRadians(3.14159)),
+        new Pose2d(1.00236, 5.00743, Rotation2d.fromRadians(1.5708))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj ShootDepot$2 = new ChoreoTraj(
+        "ShootDepot",
+        OptionalInt.of(2),
+        1.4764400000000002,
+        new Pose2d(1.00236, 5.00743, Rotation2d.fromRadians(1.5708)),
         new Pose2d(1.00236, 4.56509, Rotation2d.fromRadians(1.5708))
     );
     public static final ChoreoTraj Trench2xDepot = new ChoreoTraj(
@@ -158,6 +166,7 @@ public record ChoreoTraj(
         Map.entry("ShootDepot", ShootDepot),
         Map.entry("ShootDepot$0", ShootDepot$0),
         Map.entry("ShootDepot$1", ShootDepot$1),
+        Map.entry("ShootDepot$2", ShootDepot$2),
         Map.entry("Trench2xDepot", Trench2xDepot),
         Map.entry("Trench2xDepot$0", Trench2xDepot$0),
         Map.entry("Trench2xDepot$1", Trench2xDepot$1),

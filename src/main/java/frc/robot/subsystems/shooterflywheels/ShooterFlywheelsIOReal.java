@@ -30,10 +30,9 @@ public class ShooterFlywheelsIOReal implements ShooterFlywheelsIO {
         static final double gearRatio = 0.83;
 
         static final Slot0Configs FLYWHEEL_SLOT_0 = new Slot0Configs()
-                .withKS(0.5)
+                .withKS(0.35)
                 .withKV(0.09)
-                .withKA(0.01)
-                .withKP(0.09);
+                .withKP(0.2);
 
         static final CurrentLimitsConfigs CURRENT_LIMITS = new CurrentLimitsConfigs()
                 .withStatorCurrentLimit(70)

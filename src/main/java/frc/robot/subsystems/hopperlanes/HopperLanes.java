@@ -54,6 +54,10 @@ public class HopperLanes extends SubsystemBase implements SysIDMechanism {
                 io::stopMotor);
     }
 
+    public Command reverse() {
+        return runEnd(() -> io.runVolts(Volts.of(-6)), io::stopMotor);
+    }
+
     public AngularVelocity getVelocity() {
         return RPM.of(inputs.velocityRPM);
     }

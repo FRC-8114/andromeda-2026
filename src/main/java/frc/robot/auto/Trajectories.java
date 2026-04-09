@@ -10,8 +10,10 @@ import choreo.auto.AutoRoutine;
 import choreo.auto.AutoTrajectory;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import frc.robot.subsystems.climber.Climber;
 import frc.robot.subsystems.intakepivot.IntakePivot;
 import frc.robot.subsystems.intakerollers.IntakeRollers;
+import frc.robot.supersystems.intake.Intake;
 import frc.robot.supersystems.shooter.Shooter;
 import frc.robot.util.SubsystemRegistry;
 
@@ -35,8 +37,8 @@ public final class Trajectories {
         chooser.addRoutine("ShootDepot", () -> shootDepot(
             autos,
             subsystems.get(Shooter.class).get(),
-            subsystems.get(IntakePivot.class).get(),
-            subsystems.get(IntakeRollers.class).get()
+            subsystems.get(Intake.class).get(),
+            subsystems.get(Climber.class).get()
         ));
     }
 
@@ -130,7 +132,7 @@ public final class Trajectories {
         return routine;
     }
 
-    private static AutoRoutine shootDepot(Autos autos, Shooter shooter, IntakePivot intakePivot, IntakeRollers intakeRollers) {
+    private static AutoRoutine shootDepot(Autos autos, Shooter shooter, Intake intake, Climber climber) {
         AutoRoutine routine = autos.routine("ShootDepot");
         var paths = autos.split(routine, ChoreoTraj.ShootDepot);
 
@@ -138,19 +140,25 @@ public final class Trajectories {
             paths[0].resetOdometry(),
             Commands.deadline(
                 paths[0].cmd(),
-                Commands.parallel(
-                    intakePivot.deploy(),
-                    intakeRollers.intake()
-                )
+                intake.intake()
             ),
             autos.stopCommand(),
             Commands.parallel(
-                intakePivot.deploy(),
-                intakeRollers.intake(),
-                shooter.shoot()
+                shooter.shoot(),
+                Commands.sequence(
+                    intake.intake()
+                        .withTimeout(Seconds.of(3.5)),
+                    intake.pump()
+                )
             )
-                .withTimeout(8),
-            paths[1].cmd()
+                .withTimeout(6),
+            Commands.parallel(
+                paths[1].cmd(),
+                climber.deploy()
+            ),
+            paths[2].cmd(),
+            autos.stopCommand(),
+            climber.climb()
         ));
 
         return routine;
