@@ -3,10 +3,11 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 FIELD_HEIGHT="8.0772"
 
-input="src/main/deploy/choreo/Trench2xOutpost.traj"
-rename="Trench2xDepot"
+dir="${SCRIPT_DIR}/src/main/deploy/choreo"
+input="PPOutpostTrench"
+rename="PPDepotTrench"
 
 jq -f "${SCRIPT_DIR}/pathflipper.jq" \
   --argjson FIELD_HEIGHT "$FIELD_HEIGHT" \
   --arg NAME "$rename" \
-  "$input" > "$(dirname "$input")/${rename}.traj"
+  "${dir}/${input}.traj" > "${dir}/${rename}.traj"

@@ -24,36 +24,6 @@ public record ChoreoTraj(
     Pose2d initialPoseBlue,
     Pose2d endPoseBlue
 ) {
-    public static final ChoreoTraj CalibrateMOI = new ChoreoTraj(
-        "CalibrateMOI",
-        OptionalInt.empty(),
-        13.17337,
-        new Pose2d(1.8288, 1.8288, Rotation2d.fromRadians(0)),
-        new Pose2d(1.8288, 1.8288, Rotation2d.fromRadians(0))
-    );
-    public static final ChoreoTraj ShootDepot = new ChoreoTraj(
-        "ShootDepot",
-        OptionalInt.empty(),
-        11.53433,
-        new Pose2d(3.54902, 4.00775, Rotation2d.fromRadians(3.14159)),
-        new Pose2d(1.00236, 4.56509, Rotation2d.fromRadians(1.5708))
-    );
-    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
-    public static final ChoreoTraj ShootDepot$0 = new ChoreoTraj(
-        "ShootDepot",
-        OptionalInt.of(0),
-        4.99311,
-        new Pose2d(3.54902, 4.00775, Rotation2d.fromRadians(3.14159)),
-        new Pose2d(0.81357, 5.98337, Rotation2d.fromRadians(3.14159))
-    );
-    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
-    public static final ChoreoTraj ShootDepot$1 = new ChoreoTraj(
-        "ShootDepot",
-        OptionalInt.of(1),
-        6.541220000000001,
-        new Pose2d(0.81357, 5.98337, Rotation2d.fromRadians(3.14159)),
-        new Pose2d(1.00236, 4.56509, Rotation2d.fromRadians(1.5708))
-    );
     public static final ChoreoTraj Trench2xDepot = new ChoreoTraj(
         "Trench2xDepot",
         OptionalInt.empty(),
@@ -100,6 +70,50 @@ public record ChoreoTraj(
         2.07686,
         new Pose2d(6.27074, 7.08763, Rotation2d.fromRadians(1.5708)),
         new Pose2d(3.34792, 7.55081, Rotation2d.fromRadians(0))
+    );
+    public static final ChoreoTraj PPOutpostTrench = new ChoreoTraj(
+        "PPOutpostTrench",
+        OptionalInt.empty(),
+        4.19525,
+        new Pose2d(3.61456, 1.73911, Rotation2d.fromRadians(0)),
+        new Pose2d(11, 0.67231, Rotation2d.fromRadians(1.56452))
+    );
+    public static final ChoreoTraj ShootDepot = new ChoreoTraj(
+        "ShootDepot",
+        OptionalInt.empty(),
+        11.53433,
+        new Pose2d(3.54902, 4.00775, Rotation2d.fromRadians(3.14159)),
+        new Pose2d(1.00236, 4.56509, Rotation2d.fromRadians(1.5708))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj ShootDepot$0 = new ChoreoTraj(
+        "ShootDepot",
+        OptionalInt.of(0),
+        4.99311,
+        new Pose2d(3.54902, 4.00775, Rotation2d.fromRadians(3.14159)),
+        new Pose2d(0.81357, 5.98337, Rotation2d.fromRadians(3.14159))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj ShootDepot$1 = new ChoreoTraj(
+        "ShootDepot",
+        OptionalInt.of(1),
+        6.541220000000001,
+        new Pose2d(0.81357, 5.98337, Rotation2d.fromRadians(3.14159)),
+        new Pose2d(1.00236, 4.56509, Rotation2d.fromRadians(1.5708))
+    );
+    public static final ChoreoTraj PPOutpostBump = new ChoreoTraj(
+        "PPOutpostBump",
+        OptionalInt.empty(),
+        4.63932,
+        new Pose2d(3.61456, 1.73911, Rotation2d.fromRadians(0)),
+        new Pose2d(10.71742, 2.54263, Rotation2d.fromRadians(1.5708))
+    );
+    public static final ChoreoTraj CalibrateMOI = new ChoreoTraj(
+        "CalibrateMOI",
+        OptionalInt.empty(),
+        13.17337,
+        new Pose2d(1.8288, 1.8288, Rotation2d.fromRadians(0)),
+        new Pose2d(1.8288, 1.8288, Rotation2d.fromRadians(0))
     );
     public static final ChoreoTraj Trench2xOutpost = new ChoreoTraj(
         "Trench2xOutpost",
@@ -154,16 +168,18 @@ public record ChoreoTraj(
      * This allows for trajectory data to be looked up with strings during runtime.
      */
     public static final Map<String, ChoreoTraj> ALL_TRAJECTORIES = Map.ofEntries(
-        Map.entry("CalibrateMOI", CalibrateMOI),
-        Map.entry("ShootDepot", ShootDepot),
-        Map.entry("ShootDepot$0", ShootDepot$0),
-        Map.entry("ShootDepot$1", ShootDepot$1),
         Map.entry("Trench2xDepot", Trench2xDepot),
         Map.entry("Trench2xDepot$0", Trench2xDepot$0),
         Map.entry("Trench2xDepot$1", Trench2xDepot$1),
         Map.entry("Trench2xDepot$2", Trench2xDepot$2),
         Map.entry("Trench2xDepot$3", Trench2xDepot$3),
         Map.entry("Trench2xDepot$4", Trench2xDepot$4),
+        Map.entry("PPOutpostTrench", PPOutpostTrench),
+        Map.entry("ShootDepot", ShootDepot),
+        Map.entry("ShootDepot$0", ShootDepot$0),
+        Map.entry("ShootDepot$1", ShootDepot$1),
+        Map.entry("PPOutpostBump", PPOutpostBump),
+        Map.entry("CalibrateMOI", CalibrateMOI),
         Map.entry("Trench2xOutpost", Trench2xOutpost),
         Map.entry("Trench2xOutpost$0", Trench2xOutpost$0),
         Map.entry("Trench2xOutpost$1", Trench2xOutpost$1),
