@@ -1,13 +1,35 @@
 #!/usr/bin/env bash
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+set -eou pipefail
+
+SCRIPT_DIR=$(cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd)
+CHOREO_DIR=$(realpath "${SCRIPT_DIR}/../src/main/deploy/choreo")
 
 FIELD_HEIGHT="8.0772"
 
-dir="${SCRIPT_DIR}/src/main/deploy/choreo"
-input="PPOutpostTrench"
-rename="PPDepotTrench"
+flip_path() {
+    local input="$1"
+    local rename="$2"
 
-jq -f "${SCRIPT_DIR}/pathflipper.jq" \
-  --argjson FIELD_HEIGHT "$FIELD_HEIGHT" \
-  --arg NAME "$rename" \
-  "${dir}/${input}.traj" > "${dir}/${rename}.traj"
+    local from="${CHOREO_DIR}/${input}.traj"
+    local to="${CHOREO_DIR}/${rename}.traj"
+
+    printf "Flipping %s -> %s\n" "$input" "$rename"
+    test -f "$to" || touch "$to"
+
+    test -f "$from" || {
+        printf "Can't find path %s" "$from"
+        exit 1
+    }
+    
+    jq -f "${SCRIPT_DIR}/pathflipper.jq" \
+      --argjson FIELD_HEIGHT "$FIELD_HEIGHT" \
+      --arg NAME "$rename" \
+      "$from" > "$to"
+}
+
+flip_path "Trench2xOutpost" "Trench2xDepot"
+
+flip_path "PPOutpostBumpTrench"   "PPDepotBumpTrench"
+flip_path "PPOutpostTrenchTrench" "PPDepotTrenchTrench"
+flip_path "PPOutpostBumpBump" "PPDepotBumpBump"
+flip_path "PPOutpostTrenchBump" "PPDepotTrenchBump"
