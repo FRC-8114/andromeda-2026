@@ -1,11 +1,7 @@
 package frc.robot.subsystems.intakepivot;
 
-import static edu.wpi.first.units.Units.Amps;
-import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.RPM;
-
-import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.StatusSignalCollection;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
@@ -16,7 +12,7 @@ import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.SoftwareLimitSwitchConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.MotionMagicTorqueCurrentFOC;
-import com.ctre.phoenix6.controls.PositionTorqueCurrentFOC;
+import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -33,88 +29,126 @@ import edu.wpi.first.units.measure.Voltage;
 import frc.robot.RobotConstants;
 
 public class IntakePivotIOReal implements IntakePivotIO {
-        private static final int motorID = 51;
-        private static final int encoderID = 53;
-        private static final double GEAR_RATIO = 11.8125;
+    private static class Constants {
+        static final int MOTOR_ID = 51;
+        static final int ENCODER_ID = 53;
+        static final double GEAR_RATIO = 11.8125;
+        static final double MAGNET_OFFSET = 0.440673828125;
+    }
 
-        private final CANcoder pivotEncoder = new CANcoder(encoderID, RobotConstants.canBus);
+    private static final MagnetSensorConfigs MAGNET_SENSOR_CONFIG = new MagnetSensorConfigs()
+            .withSensorDirection(SensorDirectionValue.CounterClockwise_Positive)
+            .withMagnetOffset(Constants.MAGNET_OFFSET);
 
-        private static final CANcoderConfiguration encoderConfig = new CANcoderConfiguration()
-                        .withMagnetSensor(new MagnetSensorConfigs()
-                                        .withSensorDirection(SensorDirectionValue.CounterClockwise_Positive)
-                                        .withMagnetOffset(0.440673828125));
+    private static final CANcoderConfiguration ENCODER_CONFIG = new CANcoderConfiguration()
+            .withMagnetSensor(MAGNET_SENSOR_CONFIG);
 
-        private static final Slot0Configs pidConfig = new Slot0Configs()
-                        .withGravityType(GravityTypeValue.Arm_Cosine)
-                        .withKS(15)
-                        .withKG(5)
-                        .withKP(600)
-                        .withKD(90);
+    private static final Slot0Configs PID_CONFIG = new Slot0Configs()
+            .withGravityType(GravityTypeValue.Arm_Cosine)
+            .withKS(15)
+            .withKG(5)
+            .withKP(600)
+            .withKD(90);
 
-        private static final TalonFXConfiguration motorConfig = new TalonFXConfiguration()
-                        .withSlot0(pidConfig)
-                        .withMotionMagic(new MotionMagicConfigs()
-                                        .withMotionMagicCruiseVelocity(10)
-                                        .withMotionMagicAcceleration(45))
-                        .withSoftwareLimitSwitch(new SoftwareLimitSwitchConfigs()
-                                        .withForwardSoftLimitEnable(true)
-                                        .withForwardSoftLimitThreshold(IntakePivot.Constants.STOWED_ANGLE)
-                                        .withReverseSoftLimitEnable(true)
-                                        .withReverseSoftLimitThreshold(IntakePivot.Constants.DEPLOYED_ANGLE))
-                        .withFeedback(new FeedbackConfigs()
-                                        .withFeedbackRemoteSensorID(encoderID)
-                                        .withFeedbackSensorSource(FeedbackSensorSourceValue.FusedCANcoder)
-                                        .withRotorToSensorRatio(GEAR_RATIO)
-                                        .withSensorToMechanismRatio(1.0))
-                        .withCurrentLimits(new CurrentLimitsConfigs()
-                                        .withStatorCurrentLimit(90)
-                                        .withStatorCurrentLimitEnable(true)
-                                        .withSupplyCurrentLimit(70)
-                                        .withSupplyCurrentLimitEnable(true))
-                        .withMotorOutput(new MotorOutputConfigs()
-                                        .withNeutralMode(NeutralModeValue.Brake)
-                                        .withInverted(InvertedValue.CounterClockwise_Positive));
+    private static final MotionMagicConfigs MOTION_MAGIC_CONFIG = new MotionMagicConfigs()
+            .withMotionMagicCruiseVelocity(10)
+            .withMotionMagicAcceleration(45);
 
-        private static final TalonFX pivotMotor = new TalonFX(motorID, RobotConstants.canBus);
+    private static final SoftwareLimitSwitchConfigs SOFT_LIMIT_CONFIG = new SoftwareLimitSwitchConfigs()
+            .withForwardSoftLimitEnable(true)
+            .withForwardSoftLimitThreshold(IntakePivot.Constants.STOWED_ANGLE)
+            .withReverseSoftLimitEnable(true)
+            .withReverseSoftLimitThreshold(IntakePivot.Constants.DEPLOYED_ANGLE);
 
-        private StatusSignal<Angle> position;
-        private StatusSignal<AngularVelocity> velocity;
-        private StatusSignal<Voltage> voltage;
-        private StatusSignal<Current> current;
+    private static final FeedbackConfigs FEEDBACK_CONFIG = new FeedbackConfigs()
+            .withFeedbackRemoteSensorID(Constants.ENCODER_ID)
+            .withFeedbackSensorSource(FeedbackSensorSourceValue.FusedCANcoder)
+            .withRotorToSensorRatio(Constants.GEAR_RATIO)
+            .withSensorToMechanismRatio(1.0);
 
-        private static final PositionTorqueCurrentFOC control = new PositionTorqueCurrentFOC(0);
-        private static final VoltageOut controlVoltage = new VoltageOut(0).withEnableFOC(true);
+    private static final CurrentLimitsConfigs CURRENT_LIMITS_CONFIG = new CurrentLimitsConfigs()
+            .withStatorCurrentLimit(90)
+            .withStatorCurrentLimitEnable(true)
+            .withSupplyCurrentLimit(70)
+            .withSupplyCurrentLimitEnable(true);
 
-        public IntakePivotIOReal() {
-                pivotMotor.getConfigurator().apply(motorConfig);
-                pivotEncoder.getConfigurator().apply(encoderConfig);
+    private static final MotorOutputConfigs MOTOR_OUTPUT_CONFIG = new MotorOutputConfigs()
+            .withNeutralMode(NeutralModeValue.Brake)
+            .withInverted(InvertedValue.CounterClockwise_Positive);
 
-                position = pivotMotor.getPosition();
-                velocity = pivotMotor.getVelocity();
-                voltage = pivotMotor.getMotorVoltage();
-                current = pivotMotor.getTorqueCurrent();
-        }
+    private static final TalonFXConfiguration MOTOR_CONFIG = new TalonFXConfiguration()
+            .withSlot0(PID_CONFIG)
+            .withMotionMagic(MOTION_MAGIC_CONFIG)
+            .withSoftwareLimitSwitch(SOFT_LIMIT_CONFIG)
+            .withFeedback(FEEDBACK_CONFIG)
+            .withCurrentLimits(CURRENT_LIMITS_CONFIG)
+            .withMotorOutput(MOTOR_OUTPUT_CONFIG);
 
-        public void runVolts(Voltage volts) {
-                pivotMotor.setControl(controlVoltage.withOutput(volts));
-        }
+    private final CANcoder pivotEncoder = new CANcoder(Constants.ENCODER_ID, RobotConstants.canBus);
+    private final TalonFX pivotMotor = new TalonFX(Constants.MOTOR_ID, RobotConstants.canBus);
 
-        public void setTarget(Angle angle) {
-                pivotMotor.setControl(control.withPosition(angle));
-        }
+    private final MotionMagicTorqueCurrentFOC control = new MotionMagicTorqueCurrentFOC(0);
+    private final TorqueCurrentFOC controlCurrent = new TorqueCurrentFOC(0);
+    private final VoltageOut controlVoltage = new VoltageOut(0).withEnableFOC(true);
 
-        @Override
-        public void setTargetWithFeedForward(Angle angle, Current feedforward) {
-                pivotMotor.setControl(control.withPosition(angle));
-        }
+    private final StatusSignal<Angle> positionSignal;
+    private final StatusSignal<AngularVelocity> velocitySignal;
+    private final StatusSignal<Voltage> voltageSignal;
+    private final StatusSignal<Current> currentSignal;
+    private final StatusSignalCollection pivotSignals = new StatusSignalCollection();
 
-        @Override
-        public void updateInputs(IntakePivotInputs inputs) {
-                BaseStatusSignal.refreshAll(position, velocity, voltage, current);
+    private Angle targetAngle = IntakePivot.Constants.STOWED_ANGLE;
 
-                inputs.position = position.getValue();
-                inputs.velocity = velocity.getValue();
-                inputs.appliedVoltage = voltage.getValue();
-                inputs.appliedCurrent = current.getValue();
-        }
+    public IntakePivotIOReal() {
+        pivotMotor.getConfigurator().apply(MOTOR_CONFIG);
+        pivotEncoder.getConfigurator().apply(ENCODER_CONFIG);
+
+        positionSignal = pivotMotor.getPosition();
+        velocitySignal = pivotMotor.getVelocity();
+        voltageSignal = pivotMotor.getMotorVoltage();
+        currentSignal = pivotMotor.getTorqueCurrent();
+
+        pivotSignals.addSignals(positionSignal, velocitySignal, voltageSignal, currentSignal);
+        pivotSignals.setUpdateFrequencyForAll(50);
+
+        pivotMotor.optimizeBusUtilization();
+    }
+
+    @Override
+    public void setTarget(Angle angle) {
+        targetAngle = angle;
+        pivotMotor.setControl(control.withPosition(angle));
+    }
+
+    @Override
+    public void setTargetWithFeedForward(Angle angle, Current feedforward) {
+        targetAngle = angle;
+        pivotMotor.setControl(control.withPosition(angle).withFeedForward(feedforward));
+    }
+
+    @Override
+    public void runVolts(Voltage volts) {
+        pivotMotor.setControl(controlVoltage.withOutput(volts));
+    }
+
+    @Override
+    public void runCurrent(Current current) {
+        pivotMotor.setControl(controlCurrent.withOutput(current));
+    }
+
+    @Override
+    public void stop() {
+        pivotMotor.stopMotor();
+    }
+
+    @Override
+    public void updateInputs(IntakePivotInputs inputs) {
+        pivotSignals.refreshAll();
+
+        inputs.targetAngleRadians.mut_replace(targetAngle);
+        inputs.positionRadians.mut_replace(positionSignal.getValue());
+        inputs.velocityRadPerSec.mut_replace(velocitySignal.getValue());
+        inputs.voltageVolts.mut_replace(voltageSignal.getValue());
+        inputs.currentAmps.mut_replace(currentSignal.getValue());
+    }
 }
