@@ -10,9 +10,17 @@ public class Intake extends SubsystemBase {
     private final IntakePivot pivot;
     private final IntakeRollers rollers;
 
+    private boolean isDefaultStow = false;
+
     public Intake(IntakePivot pivot, IntakeRollers rollers) {
         this.pivot = pivot;
         this.rollers = rollers;
+
+        setDefaultCommand(stowSwitchCommand());
+    }
+
+    private Command stowSwitchCommand() {
+        return Commands.either(stow(), hold(), () -> isDefaultStow);
     }
 
     public Command intake() {

@@ -59,16 +59,16 @@ public class Shooter extends SubsystemBase {
         return flywheels.atSpeed(shotSolution.rpm()).getAsBoolean()
                 && turretFeeder.atSpeed.getAsBoolean()
                 && hopperLanes.atSpeed.getAsBoolean()
-                && shooterPitch.isAtAngle(shotSolution.pitch())
-                && turret.isAtAngle(shotSolution.turretYaw());
+                && shooterPitch.isAtAngle(shotSolution.pitch()).getAsBoolean()
+                && turret.isAtAngle(shotSolution.turretYaw()).getAsBoolean();
     }
 
     public Trigger isReadyToShootAt(Angle yaw, Angle pitch, AngularVelocity velocity) {
         return flywheels.atSpeed(velocity)
                 .and(turretFeeder.atSpeed)
                 .and(hopperLanes.atSpeed)
-                .and(new Trigger(() -> shooterPitch.isAtAngle(pitch)))
-                .and(new Trigger(() -> turret.isAtAngle(yaw)));
+                .and(shooterPitch.isAtAngle(pitch))
+                .and(turret.isAtAngle(yaw));
     }
 
     public Command spinUp() {
