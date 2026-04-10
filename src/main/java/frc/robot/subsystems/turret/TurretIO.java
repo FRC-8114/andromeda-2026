@@ -8,23 +8,25 @@ import static edu.wpi.first.units.Units.Volts;
 import org.littletonrobotics.junction.AutoLog;
 
 import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.units.measure.AngularVelocity;
-import edu.wpi.first.units.measure.Current;
-import edu.wpi.first.units.measure.Voltage;
+import edu.wpi.first.units.measure.MutAngle;
+import edu.wpi.first.units.measure.MutAngularVelocity;
+import edu.wpi.first.units.measure.MutCurrent;
+import edu.wpi.first.units.measure.MutVoltage;
 
 public interface TurretIO {
     @AutoLog
     public static class TurretIOInputs {
         public boolean hasValidCRT = false;
 
-        public Angle goalPosition = Degrees.of(0); 
-        public Angle currentTurretPosition = Degrees.of(0);
-        public Angle crtTurretPosition = Degrees.of(0);
-        public AngularVelocity turretVelocity = RPM.of(0);
-        public Voltage appliedVoltage = Volts.of(0);
-        public Current appliedCurrent = Amps.of(0);
+        public MutAngle goalPositionRadians = Degrees.mutable(0);
+        public MutAngle positionRadians = Degrees.mutable(0);
+        public MutAngle crtPositionRadians = Degrees.mutable(0);
+        public MutAngularVelocity velocityRadPerSec = RPM.mutable(0);
+        public MutVoltage voltageVolts = Volts.mutable(0);
+        public MutCurrent currentAmps = Amps.mutable(0);
 
-        public long motorPositionErrorCounter = 0;
+        public double crtPositionErrorRadians = 0.0;
+        public long reseedSampleCount = 0;
     }
 
     void updateInputs(TurretIOInputs inputs);

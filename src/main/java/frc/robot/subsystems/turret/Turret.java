@@ -10,30 +10,40 @@ import static edu.wpi.first.units.Units.Volts;
 import java.util.List;
 import java.util.function.Supplier;
 
+import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.util.SysIDMechanism;
 
 public class Turret extends SubsystemBase implements SysIDMechanism {
     public static class Constants {
         private static final Angle CONTROL_TOLERANCE = Degrees.of(1.5);
-        private static final double READY_VELOCITY_TOLERANCE_RAD_PER_SEC = Math.toRadians(8.0);
+        private static final AngularVelocity READY_VELOCITY_TOLERANCE = RadiansPerSecond.of(Math.toRadians(8.0));
 
         // The reachable travel range wraps around +X, so robot-relative zero lies in
         // the deadzone.
         public static final Angle MIN_ANGLE = Degrees.of(40);
-        public static final Angle MAX_ANGLE = Radians.of(4.85);
+        public static final Angle MAX_ANGLE = Degrees.of(277.87);
     }
 
     private final TurretIO pivotMotor;
     private final TurretIOInputsAutoLogged inputs = new TurretIOInputsAutoLogged();
     private final SysIdRoutine sysId;
+
+    private Angle currentTarget = Constants.MIN_ANGLE;
+
+    @AutoLogOutput
+    public final Trigger isAtTarget;
+
+    private static final LoggedNetworkNumber tuneAngle = new LoggedNetworkNumber("Tuning/TuneTurretAngle", 180);
 
     public Turret(TurretIO pivotMotor) {
         this.pivotMotor = pivotMotor;
@@ -45,112 +55,89 @@ public class Turret extends SubsystemBase implements SysIDMechanism {
                 new SysIdRoutine.Mechanism(
                         (voltage) -> pivotMotor.setVoltage(voltage.in(Volts)), null, this));
 
-    }
-
-    private static final LoggedNetworkNumber tuneAngle = new LoggedNetworkNumber("Tuning/TuneShooterAngle", 180);
-
-    public Command aimTunable() {
-        return followAngle(() -> Degrees.of(tuneAngle.get()));
+        isAtTarget = new Trigger(() -> checkAtAngle(currentTarget));
     }
 
     public static Angle normalizeAngle(Angle angle) {
-        double fullRotationRadians = 2.0 * Math.PI;
-        double normalizedAngle = angle.in(Radians) % fullRotationRadians;
-
-        if (normalizedAngle < 0.0) {
-            normalizedAngle += fullRotationRadians;
-        }
-
-        return Radians.of(normalizedAngle);
+        return Radians.of(MathUtil.inputModulus(angle.in(Radians), 0.0, 2.0 * Math.PI));
     }
 
     public static boolean isWithinTravelRange(Angle angle) {
-        double normalizedAngle = normalizeAngle(angle).in(Radians);
-        return normalizedAngle >= Constants.MIN_ANGLE.in(Radians)
-                && normalizedAngle <= Constants.MAX_ANGLE.in(Radians);
+        double rad = normalizeAngle(angle).in(Radians);
+        return rad >= Constants.MIN_ANGLE.in(Radians) && rad <= Constants.MAX_ANGLE.in(Radians);
     }
 
-    private static Angle getClosestBoundary(Angle angle) {
-        Angle normalizedAngle = normalizeAngle(angle);
-        double minDistance = Math.abs(MathUtil.inputModulus(
-                normalizedAngle.in(Radians) - Constants.MIN_ANGLE.in(Radians),
-                -Math.PI,
-                Math.PI));
-        double maxDistance = Math.abs(MathUtil.inputModulus(
-                normalizedAngle.in(Radians) - Constants.MAX_ANGLE.in(Radians),
-                -Math.PI,
-                Math.PI));
-        return minDistance <= maxDistance ? Constants.MIN_ANGLE : Constants.MAX_ANGLE;
+    private static Angle getClosestBoundary(Angle normalizedAngle) {
+        double minDist = Math.abs(MathUtil.inputModulus(
+                normalizedAngle.in(Radians) - Constants.MIN_ANGLE.in(Radians), -Math.PI, Math.PI));
+        double maxDist = Math.abs(MathUtil.inputModulus(
+                normalizedAngle.in(Radians) - Constants.MAX_ANGLE.in(Radians), -Math.PI, Math.PI));
+        return minDist <= maxDist ? Constants.MIN_ANGLE : Constants.MAX_ANGLE;
     }
 
     public static Angle clampAngle(Angle angle) {
-        Angle normalizedAngle = normalizeAngle(angle);
-        if (isWithinTravelRange(normalizedAngle)) {
-            return normalizedAngle;
-        }
-        return getClosestBoundary(normalizedAngle);
+        Angle normalized = normalizeAngle(angle);
+        return isWithinTravelRange(normalized) ? normalized : getClosestBoundary(normalized);
     }
 
     public static Angle resolveTargetAngle(Angle currentAngle, Angle requestedAngle) {
-        Angle normalizedCurrentAngle = normalizeAngle(currentAngle);
-        Angle normalizedRequestedAngle = normalizeAngle(requestedAngle);
+        Angle normalizedCurrent = normalizeAngle(currentAngle);
+        Angle normalizedRequested = normalizeAngle(requestedAngle);
 
-        if (isWithinTravelRange(normalizedRequestedAngle)) {
-            return normalizedRequestedAngle;
+        if (isWithinTravelRange(normalizedRequested)) {
+            return normalizedRequested;
         }
 
         double shortestError = MathUtil.inputModulus(
-                normalizedRequestedAngle.in(Radians) - normalizedCurrentAngle.in(Radians),
-                -Math.PI,
-                Math.PI);
+                normalizedRequested.in(Radians) - normalizedCurrent.in(Radians), -Math.PI, Math.PI);
 
-        if (shortestError > 0.0) {
+        if (shortestError > 0.0)
             return Constants.MAX_ANGLE;
-        }
-        if (shortestError < 0.0) {
+        if (shortestError < 0.0)
             return Constants.MIN_ANGLE;
-        }
-        return getClosestBoundary(normalizedRequestedAngle);
+        return getClosestBoundary(normalizedRequested);
     }
 
     static double calculateTravelErrorRadians(Angle currentAngle, Angle targetAngle) {
-        return normalizeAngle(targetAngle).in(Radians) - normalizeAngle(currentAngle).in(Radians);
+        return MathUtil.inputModulus(
+                normalizeAngle(targetAngle).in(Radians) - normalizeAngle(currentAngle).in(Radians),
+                -Math.PI, Math.PI);
     }
 
     private Angle getTurretPosition() {
-        return normalizeAngle(inputs.currentTurretPosition);
+        return normalizeAngle(inputs.positionRadians);
     }
 
-    private Angle getResolvedTargetAngle(Angle target) {
-        return resolveTargetAngle(getTurretPosition(), target);
+    private boolean checkAtAngle(Angle target) {
+        Angle position = getTurretPosition();
+        double error = calculateTravelErrorRadians(position, resolveTargetAngle(position, target));
+        return Math.abs(error) <= Constants.CONTROL_TOLERANCE.in(Radians)
+                && Math.abs(inputs.velocityRadPerSec.in(RadiansPerSecond)) <= Constants.READY_VELOCITY_TOLERANCE.in(RadiansPerSecond);
     }
 
     private void commandTarget(Angle target) {
-        Angle normalizedTarget = normalizeAngle(target);
-        Angle resolvedTarget = getResolvedTargetAngle(normalizedTarget);
-        double error = Math.abs(calculateTravelErrorRadians(getTurretPosition(), resolvedTarget));
-        
+        Angle position = getTurretPosition();
+        Angle resolvedTarget = resolveTargetAngle(position, target);
+        currentTarget = resolvedTarget;
+
+        double error = Math.abs(calculateTravelErrorRadians(position, resolvedTarget));
         if (error > Constants.CONTROL_TOLERANCE.in(Radians)) {
             pivotMotor.setTarget(resolvedTarget);
         } else {
-            pivotMotor.setVoltage(0);
+            pivotMotor.setVoltage(0.0);
         }
     }
 
-    @Override
-    public void periodic() {
-        pivotMotor.updateInputs(inputs);
-        Logger.processInputs("Turret", inputs);
-    }
-
-    public boolean isAtAngle(Angle target) {
-        double error = calculateTravelErrorRadians(getTurretPosition(), getResolvedTargetAngle(target));
-        return Math.abs(error) <= Constants.CONTROL_TOLERANCE.in(Radians)
-                && Math.abs(inputs.turretVelocity.in(RadiansPerSecond)) <= Constants.READY_VELOCITY_TOLERANCE_RAD_PER_SEC;
-    }
-
     private void stop() {
-        pivotMotor.setVoltage(0);
+        pivotMotor.setVoltage(0.0);
+    }
+
+    private Command sysIdSettle() {
+        return run(this::stop).withTimeout(1.0);
+    }
+
+    public Trigger isAtAngle(Angle target) {
+        return new Trigger(() -> checkAtAngle(target));
     }
 
     public Command setAngle(Angle angle) {
@@ -161,24 +148,27 @@ public class Turret extends SubsystemBase implements SysIDMechanism {
         return runEnd(() -> commandTarget(angle.get()), this::stop);
     }
 
+    public Command aimTunable() {
+        return followAngle(() -> Degrees.of(tuneAngle.get()));
+    }
+
     public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
-        return run(() -> pivotMotor.setVoltage(0.0))
-                .withTimeout(1.0)
-                .andThen(sysId.quasistatic(direction)
-                        // .until(this::isOutOfBounds)
-                        .finallyDo(() -> pivotMotor.setVoltage(0.0)));
+        return sysIdSettle().andThen(sysId.quasistatic(direction).finallyDo(this::stop));
     }
 
     public Command sysIdDynamic(SysIdRoutine.Direction direction) {
-        return run(() -> pivotMotor.setVoltage(0.0))
-                .withTimeout(1.0)
-                .andThen(sysId.dynamic(direction)
-                        // .until(this::isOutOfBounds)
-                        .finallyDo(() -> pivotMotor.setVoltage(0.0)));
+        return sysIdSettle().andThen(sysId.dynamic(direction).finallyDo(this::stop));
     }
 
     @Override
     public List<SysIDMechanism.NamedMechanism> sysIdMechanisms() {
         return List.of(SysIDMechanism.named("Turret", this::sysIdDynamic, this::sysIdQuasistatic));
+    }
+
+    @Override
+    public void periodic() {
+        pivotMotor.updateInputs(inputs);
+        inputs.goalPositionRadians.mut_replace(currentTarget);
+        Logger.processInputs("Turret", inputs);
     }
 }

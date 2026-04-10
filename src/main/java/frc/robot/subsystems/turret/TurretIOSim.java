@@ -25,7 +25,6 @@ public class TurretIOSim implements TurretIO {
 
     private boolean closedLoop = false;
     private double appliedVolts = 0.0;
-    private Angle targetAngle = Radians.of(0.0);
 
     public TurretIOSim() {
         sim = new DCMotorSim(
@@ -33,12 +32,11 @@ public class TurretIOSim implements TurretIO {
                 GEARBOX);
         double initialAngle = 0.5 * (Turret.Constants.MIN_ANGLE.in(Radians) + Turret.Constants.MAX_ANGLE.in(Radians));
         sim.setState(VecBuilder.fill(initialAngle, 0.0));
-        targetAngle = Radians.of(initialAngle);
+        controller.setSetpoint(initialAngle);
     }
 
     public void setTarget(Angle angle) {
         closedLoop = true;
-        targetAngle = angle;
         controller.setSetpoint(angle.in(Radians));
     }
 
@@ -58,12 +56,12 @@ public class TurretIOSim implements TurretIO {
         sim.update(0.02);
 
         inputs.hasValidCRT = true;
-        inputs.goalPosition = targetAngle;
-        inputs.currentTurretPosition = Radians.of(sim.getAngularPositionRad());
-        inputs.crtTurretPosition = Radians.of(sim.getAngularPositionRad());
-        inputs.motorPositionErrorCounter = 0;
-        inputs.turretVelocity = RadiansPerSecond.of(sim.getAngularVelocityRadPerSec());
-        inputs.appliedVoltage = Volts.of(appliedVolts);
+        inputs.positionRadians.mut_replace(sim.getAngularPositionRad(), Radians);
+        inputs.crtPositionRadians.mut_replace(sim.getAngularPositionRad(), Radians);
+        inputs.crtPositionErrorRadians = 0.0;
+        inputs.reseedSampleCount = 0;
+        inputs.velocityRadPerSec.mut_replace(sim.getAngularVelocityRadPerSec(), RadiansPerSecond);
+        inputs.voltageVolts.mut_replace(appliedVolts, Volts);
     }
 
     @Override
