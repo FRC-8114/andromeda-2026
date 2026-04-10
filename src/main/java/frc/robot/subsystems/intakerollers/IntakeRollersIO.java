@@ -22,7 +22,7 @@ public interface IntakeRollersIO {
 
         public MutAngularVelocity velocityRadPerSec = RadiansPerSecond.mutable(0);
         public MutVoltage appliedVoltageVolts = Volts.mutable(0);
-        public MutAngle positionRotations = Rotations.mutable(0);
+        public MutAngle positionRadians = Rotations.mutable(0);
         public MutCurrent currentAmps = Amps.mutable(0);
     }
 

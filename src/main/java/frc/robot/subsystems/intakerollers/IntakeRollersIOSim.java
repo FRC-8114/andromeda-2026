@@ -70,7 +70,7 @@ public class IntakeRollersIOSim implements IntakeRollersIO {
         inputs.targetVelocityRadPerSec.mut_replace(targetVelocity);
         inputs.velocityRadPerSec.mut_replace(rollerSim.getAngularVelocity());
         inputs.appliedVoltageVolts.mut_replace(rollerAppliedVolts, Volts);
-        inputs.positionRotations.mut_replace(rollerSim.getAngularPosition());
+        inputs.positionRadians.mut_replace(rollerSim.getAngularPosition());
         inputs.currentAmps.mut_replace(rollerSim.getCurrentDrawAmps(), Amps);
     }
 }

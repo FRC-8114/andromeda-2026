@@ -88,7 +88,7 @@ public class IntakeRollersIOReal implements IntakeRollersIO {
 
         inputs.velocityRadPerSec.mut_replace(velocitySignal.getValue());
         inputs.appliedVoltageVolts.mut_replace(voltageSignal.getValue());
-        inputs.positionRotations.mut_replace(angleSignal.getValue());
+        inputs.positionRadians.mut_replace(angleSignal.getValue());
         inputs.currentAmps.mut_replace(motorTorqueCurrent.getValue());
     }
 }
