@@ -1,7 +1,7 @@
 package frc.robot.subsystems.shooterflywheels;
 
-import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.StatusSignalCollection;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
@@ -23,76 +23,71 @@ import frc.robot.RobotConstants;
 
 public class ShooterFlywheelsIOReal implements ShooterFlywheelsIO {
     private static class Constants {
-        static final int LEFT_FLYWHEEL_MOTOR_ID = 35;
-        static final int RIGHT_FLYWHEEL_MOTOR_ID = 36;
-        static final double SIGNAL_UPDATE_HZ = 50.0;
+        static final int LEFT_MOTOR_ID = 35;
+        static final int RIGHT_MOTOR_ID = 36;
+        static final double GEAR_RATIO = 0.83;
 
-        static final double gearRatio = 0.83;
-
-        static final Slot0Configs FLYWHEEL_SLOT_0 = new Slot0Configs()
-                .withKS(0.35)
+        static final Slot0Configs SLOT0_CONFIG = new Slot0Configs()
+                .withKS(0.5)
                 .withKV(0.09)
                 .withKP(0.2);
 
-        static final CurrentLimitsConfigs CURRENT_LIMITS = new CurrentLimitsConfigs()
+        static final CurrentLimitsConfigs CURRENT_LIMITS_CONFIG = new CurrentLimitsConfigs()
                 .withStatorCurrentLimit(70)
                 .withSupplyCurrentLimit(70);
 
-        static final TalonFXConfiguration FLYWHEEL_LEFT_MOTOR_CONFIG = new TalonFXConfiguration()
-                .withSlot0(FLYWHEEL_SLOT_0)
-                .withFeedback(new FeedbackConfigs()
-                        .withSensorToMechanismRatio(gearRatio))
+        static final FeedbackConfigs FEEDBACK_CONFIG = new FeedbackConfigs()
+                .withSensorToMechanismRatio(GEAR_RATIO);
+
+        static final TalonFXConfiguration LEFT_MOTOR_CONFIG = new TalonFXConfiguration()
+                .withSlot0(SLOT0_CONFIG)
+                .withFeedback(FEEDBACK_CONFIG)
                 .withMotorOutput(new MotorOutputConfigs()
                         .withInverted(InvertedValue.Clockwise_Positive))
-                .withCurrentLimits(CURRENT_LIMITS);
-        static final TalonFXConfiguration FLYWHEEL_RIGHT_MOTOR_CONFIG = new TalonFXConfiguration()
-                .withSlot0(FLYWHEEL_SLOT_0)
-                .withFeedback(new FeedbackConfigs()
-                        .withSensorToMechanismRatio(gearRatio))
+                .withCurrentLimits(CURRENT_LIMITS_CONFIG);
+
+        static final TalonFXConfiguration RIGHT_MOTOR_CONFIG = new TalonFXConfiguration()
+                .withSlot0(SLOT0_CONFIG)
+                .withFeedback(FEEDBACK_CONFIG)
                 .withMotorOutput(new MotorOutputConfigs()
                         .withInverted(InvertedValue.CounterClockwise_Positive))
-                .withCurrentLimits(CURRENT_LIMITS);
-
-        // static final TalonFXConfiguration FLYWHEEL_RIGHT_MOTOR_CONFIG = FLYWHEEL_LEFT_MOTOR_CONFIG.clone()
-        //         .withMotorOutput(new MotorOutputConfigs()
-        //                 .withInverted(InvertedValue.CounterClockwise_Positive));
+                .withCurrentLimits(CURRENT_LIMITS_CONFIG);
     }
 
-    private final TalonFX leftFlywheel = new TalonFX(Constants.LEFT_FLYWHEEL_MOTOR_ID, RobotConstants.canBus);
-    private final TalonFX rightFlywheel = new TalonFX(Constants.RIGHT_FLYWHEEL_MOTOR_ID, RobotConstants.canBus);
-
-    private final StatusSignal<AngularVelocity> leftVelocity = leftFlywheel.getVelocity();
-    private final StatusSignal<Current> leftCurrent = leftFlywheel.getTorqueCurrent();
-    private final StatusSignal<Voltage> leftVoltage = leftFlywheel.getMotorVoltage();
-    private final StatusSignal<Angle> leftPosition = leftFlywheel.getPosition();
-    private final StatusSignal<AngularVelocity> rightVelocity = rightFlywheel.getVelocity();
-    private final StatusSignal<Current> rightCurrent = rightFlywheel.getTorqueCurrent();
-    private final StatusSignal<Voltage> rightVoltage = rightFlywheel.getMotorVoltage();
-    private final StatusSignal<Angle> rightPosition = rightFlywheel.getPosition();
+    private final TalonFX leftFlywheel = new TalonFX(Constants.LEFT_MOTOR_ID, RobotConstants.canBus);
+    private final TalonFX rightFlywheel = new TalonFX(Constants.RIGHT_MOTOR_ID, RobotConstants.canBus);
 
     private final VelocityVoltage velocityControl = new VelocityVoltage(0).withSlot(0);
-    private final TorqueCurrentFOC torqueControl = new TorqueCurrentFOC(0);
+    private final TorqueCurrentFOC currentControl = new TorqueCurrentFOC(0);
     private final VoltageOut voltageControl = new VoltageOut(0);
-    private final StrictFollower follower = new StrictFollower(Constants.RIGHT_FLYWHEEL_MOTOR_ID);
+    private final StrictFollower follower = new StrictFollower(Constants.RIGHT_MOTOR_ID);
+
+    private final StatusSignal<AngularVelocity> leftVelocitySignal = leftFlywheel.getVelocity();
+    private final StatusSignal<Current> leftCurrentSignal = leftFlywheel.getTorqueCurrent();
+    private final StatusSignal<Voltage> leftVoltageSignal = leftFlywheel.getMotorVoltage();
+    private final StatusSignal<Angle> leftPositionSignal = leftFlywheel.getPosition();
+    private final StatusSignal<AngularVelocity> rightVelocitySignal = rightFlywheel.getVelocity();
+    private final StatusSignal<Current> rightCurrentSignal = rightFlywheel.getTorqueCurrent();
+    private final StatusSignal<Voltage> rightVoltageSignal = rightFlywheel.getMotorVoltage();
+    private final StatusSignal<Angle> rightPositionSignal = rightFlywheel.getPosition();
+    private final StatusSignalCollection flywheelSignals = new StatusSignalCollection();
+
+    private AngularVelocity targetVelocity = leftVelocitySignal.getValue();
 
     public ShooterFlywheelsIOReal() {
-        leftFlywheel.getConfigurator().apply(Constants.FLYWHEEL_LEFT_MOTOR_CONFIG);
-        rightFlywheel.getConfigurator().apply(Constants.FLYWHEEL_RIGHT_MOTOR_CONFIG);
+        leftFlywheel.getConfigurator().apply(Constants.LEFT_MOTOR_CONFIG);
+        rightFlywheel.getConfigurator().apply(Constants.RIGHT_MOTOR_CONFIG);
 
-        BaseStatusSignal.setUpdateFrequencyForAll(
-                Constants.SIGNAL_UPDATE_HZ,
-                leftVelocity,
-                leftCurrent,
-                leftVoltage,
-                leftPosition,
-                rightVelocity,
-                rightCurrent,
-                rightVoltage,
-                rightPosition);
+        flywheelSignals.addSignals(
+                leftVelocitySignal, leftCurrentSignal, leftVoltageSignal, leftPositionSignal,
+                rightVelocitySignal, rightCurrentSignal, rightVoltageSignal, rightPositionSignal);
+        flywheelSignals.setUpdateFrequencyForAll(50);
+
         ParentDevice.optimizeBusUtilizationForAll(leftFlywheel, rightFlywheel);
     }
 
     public void setFlywheelVelocity(AngularVelocity velocity) {
+        targetVelocity = velocity;
         rightFlywheel.setControl(velocityControl.withVelocity(velocity));
         leftFlywheel.setControl(follower);
     }
@@ -102,35 +97,29 @@ public class ShooterFlywheelsIOReal implements ShooterFlywheelsIO {
         leftFlywheel.setControl(follower);
     }
 
-    public void runCurrent(double current) {
-        rightFlywheel.setControl(torqueControl.withOutput(current));
+    public void runCurrent(Current current) {
+        rightFlywheel.setControl(currentControl.withOutput(current));
         leftFlywheel.setControl(follower);
     }
 
-    public void stopFlywheels() {
+    public void stop() {
         rightFlywheel.stopMotor();
         leftFlywheel.setControl(follower);
     }
 
-    public void updateInputs(ShooterInputs inputs) {
-        BaseStatusSignal.refreshAll(
-                leftVelocity,
-                leftCurrent,
-                leftVoltage,
-                leftPosition,
-                rightVelocity,
-                rightCurrent,
-                rightVoltage,
-                rightPosition);
+    public void updateInputs(ShooterFlywheelsInputs inputs) {
+        flywheelSignals.refreshAll();
 
-        inputs.leftFlywheelVelocity = leftVelocity.getValue();
-        inputs.leftCurrent = leftCurrent.getValue();
-        inputs.leftAppliedVoltage = leftVoltage.getValue();
-        inputs.leftPosition = leftPosition.getValue();
+        inputs.targetVelocity.mut_replace(targetVelocity);
 
-        inputs.rightFlywheelVelocity = rightVelocity.getValue();
-        inputs.rightCurrent = rightCurrent.getValue();
-        inputs.rightAppliedVoltage = rightVoltage.getValue();
-        inputs.rightPosition = rightPosition.getValue();
+        inputs.leftVelocity.mut_replace(leftVelocitySignal.getValue());
+        inputs.leftCurrent.mut_replace(leftCurrentSignal.getValue());
+        inputs.leftAppliedVoltage.mut_replace(leftVoltageSignal.getValue());
+        inputs.leftPosition.mut_replace(leftPositionSignal.getValue());
+
+        inputs.rightVelocity.mut_replace(rightVelocitySignal.getValue());
+        inputs.rightCurrent.mut_replace(rightCurrentSignal.getValue());
+        inputs.rightAppliedVoltage.mut_replace(rightVoltageSignal.getValue());
+        inputs.rightPosition.mut_replace(rightPositionSignal.getValue());
     }
 }
