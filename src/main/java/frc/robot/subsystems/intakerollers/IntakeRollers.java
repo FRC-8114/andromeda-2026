@@ -12,7 +12,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class IntakeRollers extends SubsystemBase {
     private static class Constants {
-        static final Voltage intakeVoltage = Volts.of(7.5);
+        private static final Voltage INTAKE_VOLTAGE = Volts.of(7.5);
+        private static final AngularVelocity INTAKE_VELOCITY = RPM.of(1500);
     }
 
     private final IntakeRollersIO io;
@@ -22,28 +23,22 @@ public class IntakeRollers extends SubsystemBase {
         this.io = io;
     }
 
-    public Command intakeForever() {
-        return run(() -> io.runVolts(Constants.intakeVoltage));
-    }
-    public Command stopIntake() {
-        return runOnce(() -> io.stopRollers());
+    public Command intake() {
+        return startEnd(() -> io.setTargetVelocity(Constants.INTAKE_VELOCITY), () -> io.stop());
     }
 
-    public Command intake() {
-        return runEnd(
-            () -> io.runVolts(Constants.intakeVoltage),
-            () -> io.runVolts(Volts.of(0.0))
-        )
-            .withName("Intake Rollers");
+    public Command stop() {
+        return runOnce(() -> io.stop());
     }
 
     public AngularVelocity getVelocity() {
-        return RPM.of(inputs.velocityRPM);
+        return inputs.velocityRadPerSec.copy();
     }
 
     @Override
     public void periodic() {
         io.updateInputs(inputs);
+        
         Logger.processInputs("IntakeRollers", inputs);
     }
 }

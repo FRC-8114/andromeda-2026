@@ -17,41 +17,31 @@ public class Intake extends SubsystemBase {
 
     public Command intake() {
         return Commands.parallel(
-            pivot.deploy(),
-            rollers.intake()
-        )
-            .withName("Intake");
+                pivot.deploy(),
+                rollers.intake());
     }
 
     public Command hold() {
         return Commands.parallel(
-            pivot.hold(),
-            rollers.stopIntake()
-        )
-            .withName("IntakeHold");
+                pivot.hold(),
+                rollers.stop());
     }
 
     public Command deploy() {
         return Commands.parallel(
-            pivot.deploy(),
-            rollers.stopIntake()
-        )
-            .withName("IntakeDeploy");
+                pivot.deploy(),
+                rollers.stop());
     }
 
     public Command stow() {
         return Commands.parallel(
-            pivot.stow(),
-            rollers.stopIntake()
-        )
-            .withName("IntakeStow");
+                pivot.stow(),
+                rollers.stop());
     }
 
     public Command pump() {
         return Commands.parallel(
-            pivot.pump(),
-            rollers.stopIntake()
-        )
-            .withName("IntakePump");
+                pivot.pump(),
+                rollers.stop());
     }
 }
