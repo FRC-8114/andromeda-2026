@@ -26,9 +26,11 @@ public class HopperLanesIOReal implements HopperLanesIO {
         .withKV(0.8)
         .withKP(8);
 
+    private static final double gearRatio = 6.66666;
+
     static final TalonFXConfiguration motorConfig = new TalonFXConfiguration()
         .withFeedback(new FeedbackConfigs()
-            .withSensorToMechanismRatio(12))
+            .withSensorToMechanismRatio(gearRatio))
         .withCurrentLimits(new CurrentLimitsConfigs()
             .withSupplyCurrentLimit(60)
             .withSupplyCurrentLimitEnable(true))
