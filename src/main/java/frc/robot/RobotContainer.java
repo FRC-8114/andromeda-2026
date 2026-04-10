@@ -260,7 +260,7 @@ public class RobotContainer {
                                         .andThen(turretFeeder.feed().until(turretFeeder.atSpeed)
                                                 .andThen(hopperLanes.feed().alongWith(turretFeeder.feed())))));
 
-        // driverController.b().onTrue(Commands.runOnce(intake));
+        driverController.b().onTrue(Commands.runOnce(intake::toggleStow));
 
         driverController.povRight().whileTrue(intake.pump());
         driverController.povLeft().onTrue(climber.doNext());

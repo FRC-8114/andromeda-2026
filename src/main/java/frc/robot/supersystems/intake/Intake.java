@@ -23,6 +23,10 @@ public class Intake extends SubsystemBase {
         return Commands.either(stow(), hold(), () -> isDefaultStow);
     }
 
+    public void toggleStow() {
+        isDefaultStow = !isDefaultStow;
+    }
+
     public Command intake() {
         return Commands.parallel(
                 pivot.deploy(),

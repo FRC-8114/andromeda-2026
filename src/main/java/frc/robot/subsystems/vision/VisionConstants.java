@@ -5,7 +5,6 @@ import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
-import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
@@ -21,7 +20,9 @@ public class VisionConstants {
 
     public interface CameraConfiguration {
         String name();
+
         double stdDeviation();
+
         Transform3d robotToCamera();
     }
 
@@ -54,15 +55,33 @@ public class VisionConstants {
 
     // AprilTag layout
     public static AprilTagFieldLayout aprilTagLayout = FieldConstants.fieldLayout;
+    /*
+     * Back Left:
+     * Pitch: 28.10
+     * Yaw:45
+     * -14.5 + 1.84
+     * -13 + 1.907
+     * height from floor: 8.222
+     * 
+     */
     // limelight is right-positive
     private static final Transform3d ROBOT_TO_CAMERA_BACKLEFT = new Transform3d(
-            new Translation3d(Inches.of(-13 + 1.85), Inches.of(-14.5 + 1.6), Inches.of(7.875)),
-            new Rotation3d(Degrees.of(0), Degrees.of(34), Degrees.of(135)));
+            new Translation3d(Inches.of(-14.5 + 1.84), Inches.of(-13 + 1.907), Inches.of(8.222)),
+            new Rotation3d(Degrees.of(0), Degrees.of(28.10), Degrees.of(135)));
 
+    /*
+     * Back Right:
+     * Pitch:28.1
+     * Yaw:45
+     * 14.5 - 1.799
+     * -13 + 1.924
+     * height from floor: 11.487
+     * 
+     */
     // right from the perspective of the robot
     private static final Transform3d ROBOT_TO_CAMERA_BACKRIGHT = new Transform3d(
-            new Translation3d(Inches.of(-13 + 1.99), Inches.of(14.5 - 2.62), Inches.of(11.55)),
-            new Rotation3d(Degrees.of(0), Degrees.of(27), Degrees.of(225)));
+            new Translation3d(Inches.of(14.5 - 1.799), Inches.of(-13 + 1.924), Inches.of(11.487)),
+            new Rotation3d(Degrees.of(0), Degrees.of(28.1), Degrees.of(225)));
 
     public static final CameraConfiguration[] cameras = {
             new LimelightCameraConfiguration("limelight-br", 1.0, ROBOT_TO_CAMERA_BACKRIGHT),
@@ -70,7 +89,7 @@ public class VisionConstants {
     };
 
     public static boolean USE_TAG_WHITELIST = false;
-    public static final int[] TAG_WHITELIST = {23, 29};
+    public static final int[] TAG_WHITELIST = { 23, 29 };
 
     // Basic filtering thresholds
     public static double maxAmbiguity = 0.3;
