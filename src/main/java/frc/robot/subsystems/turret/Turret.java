@@ -25,7 +25,7 @@ import frc.robot.util.SysIDMechanism;
 
 public class Turret extends SubsystemBase implements SysIDMechanism {
     public static class Constants {
-        private static final Angle CONTROL_TOLERANCE = Degrees.of(1.5);
+        private static final Angle CONTROL_TOLERANCE = Degrees.of(1);
         private static final AngularVelocity READY_VELOCITY_TOLERANCE = RadiansPerSecond.of(Math.toRadians(8.0));
 
         // The reachable travel range wraps around +X, so robot-relative zero lies in
@@ -50,12 +50,14 @@ public class Turret extends SubsystemBase implements SysIDMechanism {
 
         sysId = new SysIdRoutine(
                 new SysIdRoutine.Config(
-                        Volts.of(0.5).per(Second), Volts.of(5), Seconds.of(12),
+                        Volts.of(2).per(Second), Volts.of(20), Seconds.of(10),
                         (state) -> Logger.recordOutput("Turret/SysIdState", state.toString())),
                 new SysIdRoutine.Mechanism(
-                        (voltage) -> pivotMotor.setVoltage(voltage.in(Volts)), null, this));
+                        (voltage) -> pivotMotor.setCurrent(voltage.in(Volts)), null, this));
 
         isAtTarget = new Trigger(() -> checkAtAngle(currentTarget));
+
+        setDefaultCommand(setAngle(Degrees.of(180)));
     }
 
     public static Angle normalizeAngle(Angle angle) {
@@ -112,7 +114,8 @@ public class Turret extends SubsystemBase implements SysIDMechanism {
         Angle position = getTurretPosition();
         double error = calculateTravelErrorRadians(position, resolveTargetAngle(position, target));
         return Math.abs(error) <= Constants.CONTROL_TOLERANCE.in(Radians)
-                && Math.abs(inputs.velocityRadPerSec.in(RadiansPerSecond)) <= Constants.READY_VELOCITY_TOLERANCE.in(RadiansPerSecond);
+                && Math.abs(inputs.velocityRadPerSec.in(RadiansPerSecond)) <= Constants.READY_VELOCITY_TOLERANCE
+                        .in(RadiansPerSecond);
     }
 
     private void commandTarget(Angle target) {

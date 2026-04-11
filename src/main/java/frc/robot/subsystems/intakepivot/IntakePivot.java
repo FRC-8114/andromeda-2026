@@ -26,7 +26,7 @@ public class IntakePivot extends SubsystemBase implements SysIDMechanism {
     public static class Constants {
         public static final Angle DEPLOYED_ANGLE = Degrees.of(0);
         public static final Angle HOLD_ANGLE = Radians.of(1);
-        public static final Angle STOWED_ANGLE = Rotations.of(0.4);
+        public static final Angle STOWED_ANGLE = Rotations.of(0.291);
 
         static final Angle PUMP_LOW_ANGLE = Rotations.of(0.08);
         static final Angle PUMP_HIGH_ANGLE = Rotations.of(0.20);

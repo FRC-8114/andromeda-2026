@@ -23,37 +23,43 @@ public class Intake extends SubsystemBase {
         return Commands.either(stow(), hold(), () -> isDefaultStow);
     }
 
+    private Command withThis(Command command) {
+        command.addRequirements(this);
+
+        return command;
+    }
+
     public void toggleStow() {
         isDefaultStow = !isDefaultStow;
     }
 
     public Command intake() {
-        return Commands.parallel(
+        return withThis(Commands.parallel(
                 pivot.deploy(),
-                rollers.intake());
+                rollers.intake()));
     }
 
     public Command hold() {
-        return Commands.parallel(
+        return withThis(Commands.parallel(
                 pivot.hold(),
-                rollers.stop());
+                rollers.stop()));
     }
 
     public Command deploy() {
-        return Commands.parallel(
+        return withThis(Commands.parallel(
                 pivot.deploy(),
-                rollers.stop());
+                rollers.stop()));
     }
 
     public Command stow() {
-        return Commands.parallel(
+        return withThis(Commands.parallel(
                 pivot.stow(),
-                rollers.stop());
+                rollers.stop()));
     }
 
     public Command pump() {
-        return Commands.parallel(
+        return withThis(Commands.parallel(
                 pivot.pump(),
-                rollers.stop());
+                rollers.stop()));
     }
 }

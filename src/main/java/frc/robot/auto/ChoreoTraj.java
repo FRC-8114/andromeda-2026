@@ -24,40 +24,12 @@ public record ChoreoTraj(
     Pose2d initialPoseBlue,
     Pose2d endPoseBlue
 ) {
-    public static final ChoreoTraj PPOutpostBumpTrench = new ChoreoTraj(
-        "PPOutpostBumpTrench",
+    public static final ChoreoTraj CalibrateMOI = new ChoreoTraj(
+        "CalibrateMOI",
         OptionalInt.empty(),
-        2.79747,
-        new Pose2d(3.54126, 1.71829, Rotation2d.fromRadians(1.5708)),
-        new Pose2d(10.59566, 0.67635, Rotation2d.fromRadians(1.56452))
-    );
-    public static final ChoreoTraj PPDepotBumpTrench = new ChoreoTraj(
-        "PPDepotBumpTrench",
-        OptionalInt.empty(),
-        2.79747,
-        new Pose2d(3.54126, 6.35891, Rotation2d.fromRadians(-1.5708)),
-        new Pose2d(10.59566, 7.40085, Rotation2d.fromRadians(-1.56452))
-    );
-    public static final ChoreoTraj PPDepotTrenchTrench = new ChoreoTraj(
-        "PPDepotTrenchTrench",
-        OptionalInt.empty(),
-        2.24683,
-        new Pose2d(3.54638, 7.40089, Rotation2d.fromRadians(-1.5708)),
-        new Pose2d(10.59566, 7.40085, Rotation2d.fromRadians(-1.56452))
-    );
-    public static final ChoreoTraj PPOutpostTrenchTrench = new ChoreoTraj(
-        "PPOutpostTrenchTrench",
-        OptionalInt.empty(),
-        2.24683,
-        new Pose2d(3.54638, 0.67631, Rotation2d.fromRadians(1.5708)),
-        new Pose2d(10.59566, 0.67635, Rotation2d.fromRadians(1.56452))
-    );
-    public static final ChoreoTraj PPOutpostBumpBump = new ChoreoTraj(
-        "PPOutpostBumpBump",
-        OptionalInt.empty(),
-        2.96969,
-        new Pose2d(3.55011, 1.72191, Rotation2d.fromRadians(1.5708)),
-        new Pose2d(10.52268, 2.24802, Rotation2d.fromRadians(1.5708))
+        13.17337,
+        new Pose2d(1.8288, 1.8288, Rotation2d.fromRadians(0)),
+        new Pose2d(1.8288, 1.8288, Rotation2d.fromRadians(0))
     );
     public static final ChoreoTraj ShootDepot = new ChoreoTraj(
         "ShootDepot",
@@ -90,26 +62,52 @@ public record ChoreoTraj(
         new Pose2d(1.00236, 5.00743, Rotation2d.fromRadians(1.5708)),
         new Pose2d(1.00236, 4.56509, Rotation2d.fromRadians(1.5708))
     );
-    public static final ChoreoTraj PPDepotBumpBump = new ChoreoTraj(
-        "PPDepotBumpBump",
+    public static final ChoreoTraj Trench2xDepot = new ChoreoTraj(
+        "Trench2xDepot",
         OptionalInt.empty(),
-        2.96969,
-        new Pose2d(3.55011, 6.35529, Rotation2d.fromRadians(-1.5708)),
-        new Pose2d(10.52268, 5.82918, Rotation2d.fromRadians(-1.5708))
+        19.54625,
+        new Pose2d(4.25199, 7.44921, Rotation2d.fromRadians(0)),
+        new Pose2d(3.34792, 7.55081, Rotation2d.fromRadians(0))
     );
-    public static final ChoreoTraj PPDepotTrenchBump = new ChoreoTraj(
-        "PPDepotTrenchBump",
-        OptionalInt.empty(),
-        2.45408,
-        new Pose2d(3.54372, 7.39698, Rotation2d.fromRadians(-1.5708)),
-        new Pose2d(10.52268, 5.82918, Rotation2d.fromRadians(-1.5708))
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj Trench2xDepot$0 = new ChoreoTraj(
+        "Trench2xDepot",
+        OptionalInt.of(0),
+        7.60409,
+        new Pose2d(4.25199, 7.44921, Rotation2d.fromRadians(0)),
+        new Pose2d(6.59219, 7.39841, Rotation2d.fromRadians(0))
     );
-    public static final ChoreoTraj CalibrateMOI = new ChoreoTraj(
-        "CalibrateMOI",
-        OptionalInt.empty(),
-        13.17337,
-        new Pose2d(1.8288, 1.8288, Rotation2d.fromRadians(0)),
-        new Pose2d(1.8288, 1.8288, Rotation2d.fromRadians(0))
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj Trench2xDepot$1 = new ChoreoTraj(
+        "Trench2xDepot",
+        OptionalInt.of(1),
+        1.6706700000000003,
+        new Pose2d(6.59219, 7.39841, Rotation2d.fromRadians(0)),
+        new Pose2d(3.3439, 7.55081, Rotation2d.fromRadians(0))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj Trench2xDepot$2 = new ChoreoTraj(
+        "Trench2xDepot",
+        OptionalInt.of(2),
+        1.67854,
+        new Pose2d(3.3439, 7.55081, Rotation2d.fromRadians(0)),
+        new Pose2d(6.59219, 7.39841, Rotation2d.fromRadians(0))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj Trench2xDepot$3 = new ChoreoTraj(
+        "Trench2xDepot",
+        OptionalInt.of(3),
+        6.51609,
+        new Pose2d(6.59219, 7.39841, Rotation2d.fromRadians(0)),
+        new Pose2d(6.27074, 7.08763, Rotation2d.fromRadians(1.5708))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj Trench2xDepot$4 = new ChoreoTraj(
+        "Trench2xDepot",
+        OptionalInt.of(4),
+        2.07686,
+        new Pose2d(6.27074, 7.08763, Rotation2d.fromRadians(1.5708)),
+        new Pose2d(3.34792, 7.55081, Rotation2d.fromRadians(0))
     );
     public static final ChoreoTraj Trench2xOutpost = new ChoreoTraj(
         "Trench2xOutpost",
@@ -158,38 +156,29 @@ public record ChoreoTraj(
         new Pose2d(6.27074, 0.98957, Rotation2d.fromRadians(-1.5708)),
         new Pose2d(3.34792, 0.52639, Rotation2d.fromRadians(0))
     );
-    public static final ChoreoTraj PPOutpostTrenchBump = new ChoreoTraj(
-        "PPOutpostTrenchBump",
-        OptionalInt.empty(),
-        2.45408,
-        new Pose2d(3.54372, 0.68022, Rotation2d.fromRadians(1.5708)),
-        new Pose2d(10.52268, 2.24802, Rotation2d.fromRadians(1.5708))
-    );
 
     /**
      * A map between trajectory names and their corresponding data.
      * This allows for trajectory data to be looked up with strings during runtime.
      */
     public static final Map<String, ChoreoTraj> ALL_TRAJECTORIES = Map.ofEntries(
-        Map.entry("PPOutpostBumpTrench", PPOutpostBumpTrench),
-        Map.entry("PPDepotBumpTrench", PPDepotBumpTrench),
-        Map.entry("PPDepotTrenchTrench", PPDepotTrenchTrench),
-        Map.entry("PPOutpostTrenchTrench", PPOutpostTrenchTrench),
-        Map.entry("PPOutpostBumpBump", PPOutpostBumpBump),
+        Map.entry("CalibrateMOI", CalibrateMOI),
         Map.entry("ShootDepot", ShootDepot),
         Map.entry("ShootDepot$0", ShootDepot$0),
         Map.entry("ShootDepot$1", ShootDepot$1),
         Map.entry("ShootDepot$2", ShootDepot$2),
-        Map.entry("PPDepotBumpBump", PPDepotBumpBump),
-        Map.entry("PPDepotTrenchBump", PPDepotTrenchBump),
-        Map.entry("CalibrateMOI", CalibrateMOI),
+        Map.entry("Trench2xDepot", Trench2xDepot),
+        Map.entry("Trench2xDepot$0", Trench2xDepot$0),
+        Map.entry("Trench2xDepot$1", Trench2xDepot$1),
+        Map.entry("Trench2xDepot$2", Trench2xDepot$2),
+        Map.entry("Trench2xDepot$3", Trench2xDepot$3),
+        Map.entry("Trench2xDepot$4", Trench2xDepot$4),
         Map.entry("Trench2xOutpost", Trench2xOutpost),
         Map.entry("Trench2xOutpost$0", Trench2xOutpost$0),
         Map.entry("Trench2xOutpost$1", Trench2xOutpost$1),
         Map.entry("Trench2xOutpost$2", Trench2xOutpost$2),
         Map.entry("Trench2xOutpost$3", Trench2xOutpost$3),
-        Map.entry("Trench2xOutpost$4", Trench2xOutpost$4),
-        Map.entry("PPOutpostTrenchBump", PPOutpostTrenchBump)
+        Map.entry("Trench2xOutpost$4", Trench2xOutpost$4)
     );
 
     /**

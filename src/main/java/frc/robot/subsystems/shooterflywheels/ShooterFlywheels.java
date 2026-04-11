@@ -23,11 +23,6 @@ public class ShooterFlywheels extends SubsystemBase implements SysIDMechanism {
     private static class Constants {
         static final double FLYWHEEL_TOLERANCE_RPM = 50.0;
 
-        // Current-based SysID: values passed to WPILib as "volts" but applied as amps.
-        // 70A stator limit — 30A step gives meaningful spin-up without saturation.
-        static final double SYSID_RAMP_AMPS_PER_SEC = 3.0;
-        static final double SYSID_STEP_AMPS = 30.0;
-        static final double SYSID_TIMEOUT_SECS = 10.0;
     }
 
     private final ShooterFlywheelsIO io;
@@ -42,13 +37,11 @@ public class ShooterFlywheels extends SubsystemBase implements SysIDMechanism {
 
         sysId = new SysIdRoutine(
             new SysIdRoutine.Config(
-                // Lie to WPILib: these are A/s and A respectively, not V/s and V.
-                Volts.of(Constants.SYSID_RAMP_AMPS_PER_SEC).per(Second),
-                Volts.of(Constants.SYSID_STEP_AMPS),
-                Seconds.of(Constants.SYSID_TIMEOUT_SECS),
+                Volts.of(3.0).per(Second),
+                Volts.of(30.0),
+                Seconds.of(10.0),
                 (state) -> Logger.recordOutput("ShooterFlywheels/SysIdState", state.toString())),
             new SysIdRoutine.Mechanism(
-                // Reinterpret the "voltage" magnitude as amps.
                 (fakeVolts) -> io.runCurrent(Amps.of(fakeVolts.in(Volts))),
                 null, this));
     }

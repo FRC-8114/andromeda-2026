@@ -22,6 +22,7 @@ import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.SoftwareLimitSwitchConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.PositionTorqueCurrentFOC;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VoltageOut;
@@ -47,8 +48,8 @@ public class TurretIOReal implements TurretIO {
         static final int ENCODER_19T_ID = 33;
         static final int ENCODER_21T_ID = 34;
 
-        static final double ENCODER_19T_OFFSET = -0.315185546875;
-        static final double ENCODER_21T_OFFSET = -0.317138671875;
+        static final double ENCODER_19T_OFFSET = -0.297607421875;
+        static final double ENCODER_21T_OFFSET = -0.3046875;
         static final double MOTOR_TO_TURRET_RATIO = 10.0;
 
         // CRT
@@ -89,9 +90,9 @@ public class TurretIOReal implements TurretIO {
                 .withMagnetSensor(ENCODER_21T_MAGNET_CONFIG);
 
         static final Slot0Configs PIVOT_SLOT0 = new Slot0Configs()
-                .withKS(9.6)
-                .withKP(12)
-                .withKD(1)
+                .withKS(49)
+                .withKP(70)
+                .withKD(30)
                 .withStaticFeedforwardSign(StaticFeedforwardSignValue.UseClosedLoopSign);
 
         static final MotionMagicConfigs PIVOT_MOTION_MAGIC = new MotionMagicConfigs()
@@ -134,7 +135,7 @@ public class TurretIOReal implements TurretIO {
     private final StatusSignal<Angle> encoder21TPosition = encoder21T.getAbsolutePosition();
     private final StatusSignalCollection turretSignals = new StatusSignalCollection();
 
-    private final PositionVoltage positionControl = new PositionVoltage(Math.PI).withEnableFOC(true);
+    private final PositionTorqueCurrentFOC positionControl = new PositionTorqueCurrentFOC(Math.PI);
     private final VoltageOut voltageControl = new VoltageOut(0);
     private final TorqueCurrentFOC currentControl = new TorqueCurrentFOC(0);
     private final MedianFilter crtMedianFilter = new MedianFilter(Constants.CRT_MEDIAN_TAPS);
@@ -163,8 +164,6 @@ public class TurretIOReal implements TurretIO {
     private void applyConfiguration(String key, StatusCode status) {
         Logger.recordOutput(key, status.getName());
     }
-
-    // --- CRT pipeline (all raw double, no allocations) ---
 
     private double getAbsoluteCrtAngleRad() {
         double raw19TTeeth = encoder19TPosition.getValueAsDouble() * Constants.ENCODER_19T_TEETH;
@@ -205,9 +204,10 @@ public class TurretIOReal implements TurretIO {
     }
 
     private boolean shouldReseed(OptionalDouble crtRad, AngularVelocity velocity) {
-        return crtRad.isPresent()
-                && isWithinLimits(crtRad.getAsDouble())
-                && Math.abs(velocity.in(RadiansPerSecond)) <= Constants.RESEED_VELOCITY_THRESHOLD.in(RadiansPerSecond);
+        return false;
+        // return crtRad.isPresent()
+        //         && isWithinLimits(crtRad.getAsDouble())
+        //         && Math.abs(velocity.in(RadiansPerSecond)) <= Constants.RESEED_VELOCITY_THRESHOLD.in(RadiansPerSecond);
     }
 
     private void updateReseedState(TurretIOInputs inputs, OptionalDouble crtRad, double positionRad,

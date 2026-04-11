@@ -13,6 +13,7 @@ import org.littletonrobotics.junction.Logger;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.util.SysIDMechanism;
@@ -20,7 +21,7 @@ import frc.robot.util.SysIDMechanism;
 public class IntakeRollers extends SubsystemBase implements SysIDMechanism {
     private static class Constants {
         static final Voltage INTAKE_VOLTAGE = Volts.of(7.5);
-        static final AngularVelocity INTAKE_VELOCITY = RPM.of(1500);
+        // static final AngularVelocity INTAKE_VELOCITY = RPM.of(2000);
     }
 
     private final IntakeRollersIO io;
@@ -43,11 +44,11 @@ public class IntakeRollers extends SubsystemBase implements SysIDMechanism {
     }
 
     public Command intake() {
-        return startEnd(() -> io.setTargetVelocity(Constants.INTAKE_VELOCITY), io::stop);
+        return startEnd(() -> io.runVolts(Constants.INTAKE_VOLTAGE), io::stop);
     }
 
     public Command stop() {
-        return runOnce(io::stop);
+        return Commands.idle(); // runOnce(io::stop);
     }
 
     public AngularVelocity getVelocity() {

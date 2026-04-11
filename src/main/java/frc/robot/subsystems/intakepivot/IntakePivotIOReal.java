@@ -1,5 +1,8 @@
 package frc.robot.subsystems.intakepivot;
 
+import static edu.wpi.first.units.Units.Rotations;
+
+import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.StatusSignalCollection;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
@@ -15,6 +18,7 @@ import com.ctre.phoenix6.controls.MotionMagicTorqueCurrentFOC;
 import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.CANcoder;
+import com.ctre.phoenix6.hardware.ParentDevice;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.GravityTypeValue;
@@ -33,20 +37,20 @@ public class IntakePivotIOReal implements IntakePivotIO {
         static final int MOTOR_ID = 51;
         static final int ENCODER_ID = 53;
         static final double GEAR_RATIO = 11.8125;
-        static final double MAGNET_OFFSET = 0.440673828125;
+        static final double MAGNET_OFFSET = -0.138427734375;
     }
 
     private static final MagnetSensorConfigs MAGNET_SENSOR_CONFIG = new MagnetSensorConfigs()
             .withSensorDirection(SensorDirectionValue.CounterClockwise_Positive)
-            .withMagnetOffset(Constants.MAGNET_OFFSET);
+            .withMagnetOffset(Constants.MAGNET_OFFSET)
+            .withAbsoluteSensorDiscontinuityPoint(Rotations.of(0.32));
 
     private static final CANcoderConfiguration ENCODER_CONFIG = new CANcoderConfiguration()
             .withMagnetSensor(MAGNET_SENSOR_CONFIG);
 
     private static final Slot0Configs PID_CONFIG = new Slot0Configs()
             .withGravityType(GravityTypeValue.Arm_Cosine)
-            .withKS(15)
-            .withKG(5)
+            .withKS(10)
             .withKP(600)
             .withKD(90);
 
@@ -91,6 +95,8 @@ public class IntakePivotIOReal implements IntakePivotIO {
     private final TorqueCurrentFOC controlCurrent = new TorqueCurrentFOC(0);
     private final VoltageOut controlVoltage = new VoltageOut(0).withEnableFOC(true);
 
+    // private final StatusSignal<Angle> encoderPositionSignal;
+
     private final StatusSignal<Angle> positionSignal;
     private final StatusSignal<AngularVelocity> velocitySignal;
     private final StatusSignal<Voltage> voltageSignal;
@@ -103,6 +109,7 @@ public class IntakePivotIOReal implements IntakePivotIO {
         pivotMotor.getConfigurator().apply(MOTOR_CONFIG);
         pivotEncoder.getConfigurator().apply(ENCODER_CONFIG);
 
+        // encoderPositionSignal = pivotEncoder.getPosition();
         positionSignal = pivotMotor.getPosition();
         velocitySignal = pivotMotor.getVelocity();
         voltageSignal = pivotMotor.getMotorVoltage();
@@ -111,7 +118,9 @@ public class IntakePivotIOReal implements IntakePivotIO {
         pivotSignals.addSignals(positionSignal, velocitySignal, voltageSignal, currentSignal);
         pivotSignals.setUpdateFrequencyForAll(50);
 
-        pivotMotor.optimizeBusUtilization();
+        ParentDevice.optimizeBusUtilizationForAll(pivotEncoder, pivotMotor);
+
+        pivotEncoder.setPosition(pivotEncoder.getAbsolutePosition().getValue());
     }
 
     @Override
