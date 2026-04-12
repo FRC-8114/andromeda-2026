@@ -27,7 +27,7 @@ flip_path() {
       "$from" > "$to"
 }
 
-flip_path "Trench2xOutpost" "Trench2xDepot"
+# flip_path "Trench2xOutpost" "Trench2xDepot"
 
 flip_path "PPOutpostBumpTrench"   "PPDepotBumpTrench"
 flip_path "PPOutpostTrenchTrench" "PPDepotTrenchTrench"

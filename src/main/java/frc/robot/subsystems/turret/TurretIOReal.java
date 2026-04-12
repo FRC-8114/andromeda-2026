@@ -90,9 +90,9 @@ public class TurretIOReal implements TurretIO {
                 .withMagnetSensor(ENCODER_21T_MAGNET_CONFIG);
 
         static final Slot0Configs PIVOT_SLOT0 = new Slot0Configs()
-                .withKS(49)
-                .withKP(70)
-                .withKD(30)
+                .withKS(9.6)
+                .withKP(12)
+                .withKD(1)
                 .withStaticFeedforwardSign(StaticFeedforwardSignValue.UseClosedLoopSign);
 
         static final MotionMagicConfigs PIVOT_MOTION_MAGIC = new MotionMagicConfigs()

@@ -20,8 +20,8 @@ import frc.robot.util.SysIDMechanism;
 
 public class IntakeRollers extends SubsystemBase implements SysIDMechanism {
     private static class Constants {
-        static final Voltage INTAKE_VOLTAGE = Volts.of(7.5);
-        // static final AngularVelocity INTAKE_VELOCITY = RPM.of(2000);
+        static final Voltage INTAKE_VOLTAGE = Volts.of(11);
+        // static final AngularVelocity INTAKE_VELOCITY = RPM.of(1700);
     }
 
     private final IntakeRollersIO io;
@@ -33,13 +33,12 @@ public class IntakeRollers extends SubsystemBase implements SysIDMechanism {
 
         sysId = new SysIdRoutine(
                 new SysIdRoutine.Config(
-                        // these are amps, not volts
-                        Volts.of(3.0).per(Second),
-                        Volts.of(50.0),
-                        Seconds.of(10.0),
+                        null,
+                        null,
+                        null,
                         (state) -> Logger.recordOutput("IntakeRollers/SysIdState", state.toString())),
                 new SysIdRoutine.Mechanism(
-                        (fakeVolts) -> io.runCurrent(Amps.of(fakeVolts.in(Volts))),
+                        (volts) -> io.runVolts(volts),
                         null, this));
     }
 
@@ -47,8 +46,15 @@ public class IntakeRollers extends SubsystemBase implements SysIDMechanism {
         return startEnd(() -> io.runVolts(Constants.INTAKE_VOLTAGE), io::stop);
     }
 
+    public Command intakeVolts() {
+        return startEnd(
+            () -> io.runVolts(Constants.INTAKE_VOLTAGE),
+            io::stop
+        );
+    }
+
     public Command stop() {
-        return Commands.idle(); // runOnce(io::stop);
+        return runOnce(io::stop);
     }
 
     public AngularVelocity getVelocity() {

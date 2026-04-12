@@ -77,6 +77,7 @@ public class TurretShotSolverAnglemap implements Supplier<ShotSolution> {
         putMeasurement(Feet.of(15), 25, 2400);
         putMeasurement(Feet.of(16), 26, 2550);
         putMeasurement(Feet.of(17), 27, 2500);
+        
         this.targetSupplier = targetSupplier;
         this.kinematicsSupplier = kinematicsSupplier;
     }
@@ -95,7 +96,7 @@ public class TurretShotSolverAnglemap implements Supplier<ShotSolution> {
         double exitVelocity = (rpm * 2.0 * Math.PI * Constants.FLYWHEEL_RADIUS_METERS / 60.0)
                 * Constants.SPIN_TRANSFER_EFFICIENCY;
 
-        return horizontalDist / (exitVelocity * Math.cos(pitchRad));
+        return horizontalDist / (exitVelocity * Math.sin(pitchRad));
     }
 
     @Override
@@ -120,7 +121,7 @@ public class TurretShotSolverAnglemap implements Supplier<ShotSolution> {
         double lastErrorReductionMeters = 0.0;
 
         // comment below to disable velocity compensation (SotM)
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 5; i++) {
             Translation2d relativeTarget = compensatedTarget.minus(turretTranslation);
             double timeOfFlight = estimateTimeOfFlight(relativeTarget.getNorm());
             Translation2d nextCompensatedTarget = target.getTranslation()

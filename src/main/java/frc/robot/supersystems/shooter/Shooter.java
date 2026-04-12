@@ -75,16 +75,8 @@ public class Shooter extends SubsystemBase {
         return flywheels.runFlywheels(() -> getShotSolution().rpm());
     }
 
-    public Command spinUpTurretLanes() {
-        return turretFeeder.feed();
-    }
-
-    public Command runIndexerLanes() {
-        return hopperLanes.feed();
-    }
-
     public Command prepareToShoot() {
-        return Commands.parallel(aimAtGoal(), spinUp(), spinUpTurretLanes());
+        return Commands.parallel(aimAtGoal(), spinUp(), turretFeeder.feed(), hopperLanes.reverse());
     }
 
     public Command shootAt(Angle yaw, Angle pitch, AngularVelocity velocity) {
@@ -106,8 +98,8 @@ public class Shooter extends SubsystemBase {
                 Commands.parallel(
                         aimAtGoal(),
                         spinUp(),
-                        spinUpTurretLanes(),
-                        runIndexerLanes()));
+                        turretFeeder.feed(),
+                        hopperLanes.feed()));
     }
 
     public Command cleanUpShoot() {

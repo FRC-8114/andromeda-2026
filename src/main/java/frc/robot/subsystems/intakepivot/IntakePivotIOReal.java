@@ -43,7 +43,7 @@ public class IntakePivotIOReal implements IntakePivotIO {
     private static final MagnetSensorConfigs MAGNET_SENSOR_CONFIG = new MagnetSensorConfigs()
             .withSensorDirection(SensorDirectionValue.CounterClockwise_Positive)
             .withMagnetOffset(Constants.MAGNET_OFFSET)
-            .withAbsoluteSensorDiscontinuityPoint(Rotations.of(0.32));
+            .withAbsoluteSensorDiscontinuityPoint(1);
 
     private static final CANcoderConfiguration ENCODER_CONFIG = new CANcoderConfiguration()
             .withMagnetSensor(MAGNET_SENSOR_CONFIG);
@@ -120,7 +120,9 @@ public class IntakePivotIOReal implements IntakePivotIO {
 
         ParentDevice.optimizeBusUtilizationForAll(pivotEncoder, pivotMotor);
 
-        pivotEncoder.setPosition(pivotEncoder.getAbsolutePosition().getValue());
+        Angle absolutePosition = pivotEncoder.getAbsolutePosition().refresh().getValue();
+        pivotEncoder.setPosition(absolutePosition);
+        pivotMotor.setPosition(absolutePosition);
     }
 
     @Override

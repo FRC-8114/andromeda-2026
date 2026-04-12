@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.Timer;
@@ -135,7 +136,11 @@ public class RobotContainer {
                         Timer.getFPGATimestamp(),
                         drive.getFieldGyroRotation3d(),
                         drive.getRawGyroVelocityRadPerSec()),
-                drive::addVisionMeasurement,
+                (pose, timestamp, stddev) -> {
+                    // if (!DriverStation.isAutonomousEnabled()) {
+                        drive.addVisionMeasurement(pose, timestamp, stddev);
+                    // }
+                },
                 drive::setPose));
 
         autoChooser = new Autos(subsystemRegistry).createChooser();
@@ -253,12 +258,12 @@ public class RobotContainer {
         driverController.rightBumper().whileTrue(hopperLanes.reverse());
 
         // driverController.povDown().whileTrue(
-        //         Commands.parallel(flywheels.runFlywheelsTunableVelocity(),
-        //                 turret.aimTunable(),
-        //                 shooterPitch.tuneAngle()).alongWith(
-        //                         Commands.waitSeconds(1)
-        //                                 .andThen(turretFeeder.feed().until(turretFeeder.atSpeed)
-        //                                         .andThen(hopperLanes.feed().alongWith(turretFeeder.feed())))));
+        // Commands.parallel(flywheels.runFlywheelsTunableVelocity(),
+        // turret.aimTunable(),
+        // shooterPitch.tuneAngle()).alongWith(
+        // Commands.waitSeconds(1)
+        // .andThen(turretFeeder.feed().until(turretFeeder.atSpeed)
+        // .andThen(hopperLanes.feed().alongWith(turretFeeder.feed())))));
 
         driverController.b().onTrue(Commands.runOnce(intake::toggleStow));
 

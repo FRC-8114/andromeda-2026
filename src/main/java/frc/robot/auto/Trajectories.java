@@ -18,115 +18,85 @@ import frc.robot.supersystems.shooter.Shooter;
 import frc.robot.util.SubsystemRegistry;
 
 public final class Trajectories {
-    private Trajectories() {}
+    private Trajectories() {
+    }
 
     public static void addAutos(AutoChooser chooser, Autos autos, SubsystemRegistry subsystems) {
         chooser.addRoutine("TUNE_MOI", () -> tuneMoi(autos));
         chooser.addRoutine("Trench2xOutpost", () -> trench2xOutpost(
-            autos,
-            subsystems.get(IntakePivot.class).get(),
-            subsystems.get(IntakeRollers.class).get(),
-            subsystems.get(Shooter.class).get()
-        ));
+                autos,
+                subsystems.get(IntakePivot.class).get(),
+                subsystems.get(IntakeRollers.class).get(),
+                subsystems.get(Shooter.class).get()));
         chooser.addRoutine("Trench2xDepot", () -> trench2xDepot(
-            autos,
-            subsystems.get(IntakePivot.class).get(),
-            subsystems.get(IntakeRollers.class).get(),
-            subsystems.get(Shooter.class).get()
-        ));
+                autos,
+                subsystems.get(Intake.class).get(),
+                subsystems.get(Shooter.class).get()));
         chooser.addRoutine("ShootDepot", () -> shootDepot(
-            autos,
-            subsystems.get(Shooter.class).get(),
-            subsystems.get(Intake.class).get(),
-            subsystems.get(Climber.class).get()
-        ));
+                autos,
+                subsystems.get(Shooter.class).get(),
+                subsystems.get(Intake.class).get(),
+                subsystems.get(Climber.class).get()));
     }
 
     // private static Command fullShootSequence(Shooter shooter) {
-    //     return shooter.shootAt(
-    //         Radians.of(1.107),
-    //         Degrees.of(29),
-    //         RPM.of(2000)
-    //     );
+    // return shooter.shootAt(
+    // Radians.of(1.107),
+    // Degrees.of(29),
+    // RPM.of(2000)
+    // );
     // }
 
-    private static AutoRoutine trench2xOutpost(Autos autos, IntakePivot intakePivot, IntakeRollers intakeRollers, Shooter shooter) {
+    private static AutoRoutine trench2xOutpost(Autos autos, IntakePivot intakePivot, IntakeRollers intakeRollers,
+            Shooter shooter) {
         AutoRoutine routine = autos.routine("Trench2xOutpost");
         AutoTrajectory[] paths = autos.split(routine, ChoreoTraj.Trench2xOutpost);
 
         routine.active().onTrue(Commands.sequence(
-            paths[0].resetOdometry(),
-            Commands.deadline( // do first sweep + rollers active
-                paths[0].cmd(),
+                paths[0].resetOdometry(),
+                Commands.deadline( // do first sweep + rollers active
+                        paths[0].cmd(),
+                        Commands.parallel(
+                                intakeRollers.intake(),
+                                intakePivot.deploy())),
+                paths[1].cmd(), // drive to shoot
+                autos.stopCommand(), // NO MORE DRIFTING PLS
                 Commands.parallel(
-                    intakeRollers.intake(),
-                    intakePivot.deploy()
-                )
-            ),
-            paths[1].cmd(), // drive to shoot
-            autos.stopCommand(), // NO MORE DRIFTING PLS
-            Commands.parallel(
-                intakePivot.pump(),
-                shooter.shoot()
-            )
-                .withTimeout(Seconds.of(12)),
-            paths[2].cmd(), // drive to pre-sweep
-            Commands.deadline( // second sweep + rollers active
-                paths[3].cmd(),
+                        intakePivot.pump(),
+                        shooter.shoot())
+                        .withTimeout(Seconds.of(12)),
+                paths[2].cmd(), // drive to pre-sweep
+                Commands.deadline( // second sweep + rollers active
+                        paths[3].cmd(),
+                        Commands.parallel(
+                                intakeRollers.intake(),
+                                intakePivot.deploy())),
+                paths[4].cmd(), // drive to shoot
+                autos.stopCommand(),
                 Commands.parallel(
-                    intakeRollers.intake(),
-                    intakePivot.deploy()
-                )
-            ),
-            paths[4].cmd(), // drive to shoot
-            autos.stopCommand(),
-            Commands.parallel(
-                intakePivot.pump(),
-                shooter.shoot()
-            )
-                .withTimeout(Seconds.of(4)),
-            autos.stopCommand()
-        ));
+                        intakePivot.pump(),
+                        shooter.shoot())
+                        .withTimeout(Seconds.of(4)),
+                autos.stopCommand()));
 
         return routine;
     }
 
-    private static AutoRoutine trench2xDepot(Autos autos, IntakePivot intakePivot, IntakeRollers intakeRollers, Shooter shooter) {
+    private static AutoRoutine trench2xDepot(Autos autos, Intake intake, Shooter shooter) {
         AutoRoutine routine = autos.routine("Trench2xDepot");
         AutoTrajectory[] paths = autos.split(routine, ChoreoTraj.Trench2xDepot);
 
         routine.active().onTrue(Commands.sequence(
-            paths[0].resetOdometry(),
-            Commands.deadline( // do first sweep + rollers active
-                paths[0].cmd(),
+                paths[0].resetOdometry(),
+                Commands.deadline( // do first sweep + rollers active
+                        paths[0].cmd(),
+                        intake.intake()),
+                paths[1].cmd(), // drive to shoot
+                autos.stopCommand(), // NO MORE DRIFTING PLS
                 Commands.parallel(
-                    intakeRollers.intake(),
-                    intakePivot.deploy()
-                )
-            ),
-            paths[1].cmd(), // drive to shoot
-            autos.stopCommand(), // NO MORE DRIFTING PLS
-            Commands.parallel(
-                intakePivot.pump(),
-                shooter.shoot()
-            )
-                .withTimeout(Seconds.of(12)),
-            paths[2].cmd(), // drive to pre-sweep
-            Commands.deadline( // second sweep + rollers active
-                paths[3].cmd(),
-                Commands.parallel(
-                    intakeRollers.intake(),
-                    intakePivot.deploy()
-                )
-            ),
-            paths[4].cmd(), // drive to shoot
-            autos.stopCommand(),
-            Commands.parallel(
-                intakePivot.pump(),
-                shooter.shoot()
-            )
-                .withTimeout(Seconds.of(4)),
-            autos.stopCommand()
+                        intake.pump(),
+                        shooter.shoot())
+                        .withTimeout(Seconds.of(12))
         ));
 
         return routine;
@@ -137,33 +107,28 @@ public final class Trajectories {
         var paths = autos.split(routine, ChoreoTraj.ShootDepot);
 
         routine.active().onTrue(Commands.sequence(
-            paths[0].resetOdometry(),
-            Commands.deadline(
-                paths[0].cmd(),
-                intake.intake()
-            ),
-            autos.stopCommand(),
-            Commands.parallel(
-                shooter.shoot(),
-                Commands.sequence(
-                    intake.intake()
-                        .withTimeout(Seconds.of(3.5)),
-                    intake.pump()
-                )
-            )
-                .withTimeout(6),
-            Commands.parallel(
-                paths[1].cmd(),
-                climber.deploy()
-            ),
-            paths[2].cmd(),
-            autos.stopCommand(),
-            climber.climb()
-        ));
+                paths[0].resetOdometry(),
+                Commands.deadline(
+                        paths[0].cmd(),
+                        intake.intake()),
+                autos.stopCommand(),
+                Commands.parallel(
+                        shooter.shoot(),
+                        Commands.sequence(
+                                intake.intake()
+                                        .withTimeout(Seconds.of(3.5)),
+                                intake.pump()))
+                        .withTimeout(6),
+                Commands.parallel(
+                        paths[1].cmd(),
+                        climber.deploy()),
+                paths[2].cmd(),
+                autos.stopCommand(),
+                climber.climb()));
 
         return routine;
     }
-    
+
     private static AutoRoutine tuneMoi(Autos autos) {
         AutoRoutine routine = autos.routine("TUNE_MOI");
         AutoTrajectory path = autos.trajectory(routine, ChoreoTraj.CalibrateMOI);

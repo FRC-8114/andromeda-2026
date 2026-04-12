@@ -23,9 +23,15 @@ public class IntakeRollersIOReal implements IntakeRollersIO {
     private static class Constants {
         private static final int ROLLER_MOTOR_ID = 52;
 
-        private static final FeedbackConfigs FEEDBACK_CONFIGS = new FeedbackConfigs()
-                .withSensorToMechanismRatio(20 / 19);
+        private static final double gearRatio = 3.33;
 
+        private static final FeedbackConfigs FEEDBACK_CONFIGS = new FeedbackConfigs()
+                .withSensorToMechanismRatio(gearRatio);
+
+        private static final Slot0Configs SLOT0_CONFIGS = new Slot0Configs()
+            .withKS(0.41261)
+            .withKV(0.052322)
+            .withKP(2.2346);
 
         private static final CurrentLimitsConfigs CURRENT_LIMITS_CONFIGS = new CurrentLimitsConfigs()
                 .withStatorCurrentLimit(80)
@@ -33,7 +39,8 @@ public class IntakeRollersIOReal implements IntakeRollersIO {
 
         static final TalonFXConfiguration ROLLER_MOTOR_CONFIGURATION = new TalonFXConfiguration()
                 .withCurrentLimits(CURRENT_LIMITS_CONFIGS)
-                .withFeedback(FEEDBACK_CONFIGS);
+                .withFeedback(FEEDBACK_CONFIGS)
+                .withSlot0(SLOT0_CONFIGS);
     }
 
     private final TalonFX rollerMotor = new TalonFX(Constants.ROLLER_MOTOR_ID, RobotConstants.canBus);
