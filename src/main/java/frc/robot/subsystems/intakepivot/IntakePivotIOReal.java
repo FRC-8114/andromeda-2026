@@ -37,13 +37,13 @@ public class IntakePivotIOReal implements IntakePivotIO {
         static final int MOTOR_ID = 51;
         static final int ENCODER_ID = 53;
         static final double GEAR_RATIO = 11.8125;
-        static final double MAGNET_OFFSET = -0.138427734375;
+        static final double MAGNET_OFFSET = 0.013427734375;
     }
 
     private static final MagnetSensorConfigs MAGNET_SENSOR_CONFIG = new MagnetSensorConfigs()
             .withSensorDirection(SensorDirectionValue.CounterClockwise_Positive)
             .withMagnetOffset(Constants.MAGNET_OFFSET)
-            .withAbsoluteSensorDiscontinuityPoint(1);
+            .withAbsoluteSensorDiscontinuityPoint(0.67);
 
     private static final CANcoderConfiguration ENCODER_CONFIG = new CANcoderConfiguration()
             .withMagnetSensor(MAGNET_SENSOR_CONFIG);

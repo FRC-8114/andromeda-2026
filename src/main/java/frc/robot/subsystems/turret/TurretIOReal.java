@@ -90,7 +90,7 @@ public class TurretIOReal implements TurretIO {
                 .withMagnetSensor(ENCODER_21T_MAGNET_CONFIG);
 
         static final Slot0Configs PIVOT_SLOT0 = new Slot0Configs()
-                .withKS(9.6)
+                .withKS(8)
                 .withKP(12)
                 .withKD(1)
                 .withStaticFeedforwardSign(StaticFeedforwardSignValue.UseClosedLoopSign);
@@ -135,7 +135,7 @@ public class TurretIOReal implements TurretIO {
     private final StatusSignal<Angle> encoder21TPosition = encoder21T.getAbsolutePosition();
     private final StatusSignalCollection turretSignals = new StatusSignalCollection();
 
-    private final PositionTorqueCurrentFOC positionControl = new PositionTorqueCurrentFOC(Math.PI);
+    private final PositionVoltage positionControl = new PositionVoltage(Math.PI);
     private final VoltageOut voltageControl = new VoltageOut(0);
     private final TorqueCurrentFOC currentControl = new TorqueCurrentFOC(0);
     private final MedianFilter crtMedianFilter = new MedianFilter(Constants.CRT_MEDIAN_TAPS);
