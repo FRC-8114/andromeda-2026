@@ -65,7 +65,7 @@ public record ChoreoTraj(
     public static final ChoreoTraj Trench2xOutpost = new ChoreoTraj(
         "Trench2xOutpost",
         OptionalInt.empty(),
-        18.39473,
+        13.17273,
         new Pose2d(4.25199, 0.62799, Rotation2d.fromRadians(0)),
         new Pose2d(3.34792, 0.52639, Rotation2d.fromRadians(0))
     );
@@ -73,7 +73,7 @@ public record ChoreoTraj(
     public static final ChoreoTraj Trench2xOutpost$0 = new ChoreoTraj(
         "Trench2xOutpost",
         OptionalInt.of(0),
-        6.59721,
+        6.19096,
         new Pose2d(4.25199, 0.62799, Rotation2d.fromRadians(0)),
         new Pose2d(6.59219, 0.67879, Rotation2d.fromRadians(0))
     );
@@ -81,7 +81,7 @@ public record ChoreoTraj(
     public static final ChoreoTraj Trench2xOutpost$1 = new ChoreoTraj(
         "Trench2xOutpost",
         OptionalInt.of(1),
-        1.666900000000001,
+        1.5028100000000002,
         new Pose2d(6.59219, 0.67879, Rotation2d.fromRadians(0)),
         new Pose2d(3.3439, 0.52639, Rotation2d.fromRadians(0))
     );
@@ -89,7 +89,7 @@ public record ChoreoTraj(
     public static final ChoreoTraj Trench2xOutpost$2 = new ChoreoTraj(
         "Trench2xOutpost",
         OptionalInt.of(2),
-        1.4559499999999996,
+        1.3207300000000002,
         new Pose2d(3.3439, 0.52639, Rotation2d.fromRadians(0)),
         new Pose2d(6.13499, 0.67879, Rotation2d.fromRadians(0))
     );
@@ -97,16 +97,8 @@ public record ChoreoTraj(
     public static final ChoreoTraj Trench2xOutpost$3 = new ChoreoTraj(
         "Trench2xOutpost",
         OptionalInt.of(3),
-        6.597809999999999,
+        4.15823,
         new Pose2d(6.13499, 0.67879, Rotation2d.fromRadians(0)),
-        new Pose2d(6.27074, 0.98957, Rotation2d.fromRadians(-1.5708))
-    );
-    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
-    public static final ChoreoTraj Trench2xOutpost$4 = new ChoreoTraj(
-        "Trench2xOutpost",
-        OptionalInt.of(4),
-        2.07686,
-        new Pose2d(6.27074, 0.98957, Rotation2d.fromRadians(-1.5708)),
         new Pose2d(3.34792, 0.52639, Rotation2d.fromRadians(0))
     );
     public static final ChoreoTraj Trench1xDepot = new ChoreoTraj(
@@ -132,7 +124,6 @@ public record ChoreoTraj(
         Map.entry("Trench2xOutpost$1", Trench2xOutpost$1),
         Map.entry("Trench2xOutpost$2", Trench2xOutpost$2),
         Map.entry("Trench2xOutpost$3", Trench2xOutpost$3),
-        Map.entry("Trench2xOutpost$4", Trench2xOutpost$4),
         Map.entry("Trench1xDepot", Trench1xDepot)
     );
 
