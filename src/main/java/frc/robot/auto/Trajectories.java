@@ -28,7 +28,7 @@ public final class Trajectories {
                 subsystems.get(IntakePivot.class).get(),
                 subsystems.get(IntakeRollers.class).get(),
                 subsystems.get(Shooter.class).get()));
-        chooser.addRoutine("Trench2xDepot", () -> trench2xDepot(
+        chooser.addRoutine("Trench1xDepot", () -> trench1xDepot(
                 autos,
                 subsystems.get(Intake.class).get(),
                 subsystems.get(Shooter.class).get()));
@@ -38,14 +38,6 @@ public final class Trajectories {
                 subsystems.get(Intake.class).get(),
                 subsystems.get(Climber.class).get()));
     }
-
-    // private static Command fullShootSequence(Shooter shooter) {
-    // return shooter.shootAt(
-    // Radians.of(1.107),
-    // Degrees.of(29),
-    // RPM.of(2000)
-    // );
-    // }
 
     private static AutoRoutine trench2xOutpost(Autos autos, IntakePivot intakePivot, IntakeRollers intakeRollers,
             Shooter shooter) {
@@ -64,7 +56,7 @@ public final class Trajectories {
                 Commands.parallel(
                         intakePivot.pump(),
                         shooter.shoot())
-                        .withTimeout(Seconds.of(12)),
+                        .withTimeout(Seconds.of(8)),
                 paths[2].cmd(), // drive to pre-sweep
                 Commands.deadline( // second sweep + rollers active
                         paths[3].cmd(),
@@ -82,9 +74,9 @@ public final class Trajectories {
         return routine;
     }
 
-    private static AutoRoutine trench2xDepot(Autos autos, Intake intake, Shooter shooter) {
-        AutoRoutine routine = autos.routine("Trench2xDepot");
-        AutoTrajectory[] paths = autos.split(routine, ChoreoTraj.Trench2xDepot);
+    private static AutoRoutine trench1xDepot(Autos autos, Intake intake, Shooter shooter) {
+        AutoRoutine routine = autos.routine("Trench1xDepot");
+        AutoTrajectory[] paths = autos.split(routine, ChoreoTraj.Trench1xDepot);
 
         routine.active().onTrue(Commands.sequence(
                 paths[0].resetOdometry(),
