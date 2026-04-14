@@ -24,69 +24,6 @@ public record ChoreoTraj(
     Pose2d initialPoseBlue,
     Pose2d endPoseBlue
 ) {
-    public static final ChoreoTraj CalibrateMOI = new ChoreoTraj(
-        "CalibrateMOI",
-        OptionalInt.empty(),
-        13.17337,
-        new Pose2d(1.8288, 1.8288, Rotation2d.fromRadians(0)),
-        new Pose2d(1.8288, 1.8288, Rotation2d.fromRadians(0))
-    );
-    public static final ChoreoTraj PPDepotBumpBump = new ChoreoTraj(
-        "PPDepotBumpBump",
-        OptionalInt.empty(),
-        2.96969,
-        new Pose2d(3.55011, 6.35529, Rotation2d.fromRadians(-1.5708)),
-        new Pose2d(10.52268, 5.82918, Rotation2d.fromRadians(-1.5708))
-    );
-    public static final ChoreoTraj PPDepotBumpTrench = new ChoreoTraj(
-        "PPDepotBumpTrench",
-        OptionalInt.empty(),
-        2.79747,
-        new Pose2d(3.54126, 6.35891, Rotation2d.fromRadians(-1.5708)),
-        new Pose2d(10.59566, 7.40085, Rotation2d.fromRadians(-1.56452))
-    );
-    public static final ChoreoTraj PPDepotTrenchBump = new ChoreoTraj(
-        "PPDepotTrenchBump",
-        OptionalInt.empty(),
-        2.45408,
-        new Pose2d(3.54372, 7.39698, Rotation2d.fromRadians(-1.5708)),
-        new Pose2d(10.52268, 5.82918, Rotation2d.fromRadians(-1.5708))
-    );
-    public static final ChoreoTraj PPDepotTrenchTrench = new ChoreoTraj(
-        "PPDepotTrenchTrench",
-        OptionalInt.empty(),
-        2.24683,
-        new Pose2d(3.54638, 7.40089, Rotation2d.fromRadians(-1.5708)),
-        new Pose2d(10.59566, 7.40085, Rotation2d.fromRadians(-1.56452))
-    );
-    public static final ChoreoTraj PPOutpostBumpBump = new ChoreoTraj(
-        "PPOutpostBumpBump",
-        OptionalInt.empty(),
-        2.96969,
-        new Pose2d(3.55011, 1.72191, Rotation2d.fromRadians(1.5708)),
-        new Pose2d(10.52268, 2.24802, Rotation2d.fromRadians(1.5708))
-    );
-    public static final ChoreoTraj PPOutpostBumpTrench = new ChoreoTraj(
-        "PPOutpostBumpTrench",
-        OptionalInt.empty(),
-        2.79747,
-        new Pose2d(3.54126, 1.71829, Rotation2d.fromRadians(1.5708)),
-        new Pose2d(10.59566, 0.67635, Rotation2d.fromRadians(1.56452))
-    );
-    public static final ChoreoTraj PPOutpostTrenchBump = new ChoreoTraj(
-        "PPOutpostTrenchBump",
-        OptionalInt.empty(),
-        2.45408,
-        new Pose2d(3.54372, 0.68022, Rotation2d.fromRadians(1.5708)),
-        new Pose2d(10.52268, 2.24802, Rotation2d.fromRadians(1.5708))
-    );
-    public static final ChoreoTraj PPOutpostTrenchTrench = new ChoreoTraj(
-        "PPOutpostTrenchTrench",
-        OptionalInt.empty(),
-        2.24683,
-        new Pose2d(3.54638, 0.67631, Rotation2d.fromRadians(1.5708)),
-        new Pose2d(10.59566, 0.67635, Rotation2d.fromRadians(1.56452))
-    );
     public static final ChoreoTraj ShootDepot = new ChoreoTraj(
         "ShootDepot",
         OptionalInt.empty(),
@@ -118,17 +55,17 @@ public record ChoreoTraj(
         new Pose2d(1.00236, 5.00743, Rotation2d.fromRadians(1.5708)),
         new Pose2d(1.00236, 4.56509, Rotation2d.fromRadians(1.5708))
     );
-    public static final ChoreoTraj Trench2xDepot = new ChoreoTraj(
-        "Trench2xDepot",
+    public static final ChoreoTraj CalibrateMOI = new ChoreoTraj(
+        "CalibrateMOI",
         OptionalInt.empty(),
-        7.75745,
-        new Pose2d(4.25199, 7.44921, Rotation2d.fromRadians(0)),
-        new Pose2d(3.34792, 7.50939, Rotation2d.fromRadians(-1.5708))
+        13.17337,
+        new Pose2d(1.8288, 1.8288, Rotation2d.fromRadians(0)),
+        new Pose2d(1.8288, 1.8288, Rotation2d.fromRadians(0))
     );
     public static final ChoreoTraj Trench2xOutpost = new ChoreoTraj(
         "Trench2xOutpost",
         OptionalInt.empty(),
-        19.20665,
+        13.17273,
         new Pose2d(4.25199, 0.62799, Rotation2d.fromRadians(0)),
         new Pose2d(3.34792, 0.52639, Rotation2d.fromRadians(0))
     );
@@ -136,7 +73,7 @@ public record ChoreoTraj(
     public static final ChoreoTraj Trench2xOutpost$0 = new ChoreoTraj(
         "Trench2xOutpost",
         OptionalInt.of(0),
-        7.40917,
+        6.19096,
         new Pose2d(4.25199, 0.62799, Rotation2d.fromRadians(0)),
         new Pose2d(6.59219, 0.67879, Rotation2d.fromRadians(0))
     );
@@ -144,7 +81,7 @@ public record ChoreoTraj(
     public static final ChoreoTraj Trench2xOutpost$1 = new ChoreoTraj(
         "Trench2xOutpost",
         OptionalInt.of(1),
-        1.6668700000000012,
+        1.5028100000000002,
         new Pose2d(6.59219, 0.67879, Rotation2d.fromRadians(0)),
         new Pose2d(3.3439, 0.52639, Rotation2d.fromRadians(0))
     );
@@ -152,7 +89,7 @@ public record ChoreoTraj(
     public static final ChoreoTraj Trench2xOutpost$2 = new ChoreoTraj(
         "Trench2xOutpost",
         OptionalInt.of(2),
-        1.45594,
+        1.3207300000000002,
         new Pose2d(3.3439, 0.52639, Rotation2d.fromRadians(0)),
         new Pose2d(6.13499, 0.67879, Rotation2d.fromRadians(0))
     );
@@ -160,17 +97,16 @@ public record ChoreoTraj(
     public static final ChoreoTraj Trench2xOutpost$3 = new ChoreoTraj(
         "Trench2xOutpost",
         OptionalInt.of(3),
-        6.597809999999999,
+        4.15823,
         new Pose2d(6.13499, 0.67879, Rotation2d.fromRadians(0)),
-        new Pose2d(6.27074, 0.98957, Rotation2d.fromRadians(-1.5708))
-    );
-    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
-    public static final ChoreoTraj Trench2xOutpost$4 = new ChoreoTraj(
-        "Trench2xOutpost",
-        OptionalInt.of(4),
-        2.07686,
-        new Pose2d(6.27074, 0.98957, Rotation2d.fromRadians(-1.5708)),
         new Pose2d(3.34792, 0.52639, Rotation2d.fromRadians(0))
+    );
+    public static final ChoreoTraj Trench1xDepot = new ChoreoTraj(
+        "Trench1xDepot",
+        OptionalInt.empty(),
+        7.23344,
+        new Pose2d(4.25199, 7.44921, Rotation2d.fromRadians(0)),
+        new Pose2d(3.34792, 7.50939, Rotation2d.fromRadians(-1.5708))
     );
 
     /**
@@ -178,26 +114,17 @@ public record ChoreoTraj(
      * This allows for trajectory data to be looked up with strings during runtime.
      */
     public static final Map<String, ChoreoTraj> ALL_TRAJECTORIES = Map.ofEntries(
-        Map.entry("CalibrateMOI", CalibrateMOI),
-        Map.entry("PPDepotBumpBump", PPDepotBumpBump),
-        Map.entry("PPDepotBumpTrench", PPDepotBumpTrench),
-        Map.entry("PPDepotTrenchBump", PPDepotTrenchBump),
-        Map.entry("PPDepotTrenchTrench", PPDepotTrenchTrench),
-        Map.entry("PPOutpostBumpBump", PPOutpostBumpBump),
-        Map.entry("PPOutpostBumpTrench", PPOutpostBumpTrench),
-        Map.entry("PPOutpostTrenchBump", PPOutpostTrenchBump),
-        Map.entry("PPOutpostTrenchTrench", PPOutpostTrenchTrench),
         Map.entry("ShootDepot", ShootDepot),
         Map.entry("ShootDepot$0", ShootDepot$0),
         Map.entry("ShootDepot$1", ShootDepot$1),
         Map.entry("ShootDepot$2", ShootDepot$2),
-        Map.entry("Trench2xDepot", Trench2xDepot),
+        Map.entry("CalibrateMOI", CalibrateMOI),
         Map.entry("Trench2xOutpost", Trench2xOutpost),
         Map.entry("Trench2xOutpost$0", Trench2xOutpost$0),
         Map.entry("Trench2xOutpost$1", Trench2xOutpost$1),
         Map.entry("Trench2xOutpost$2", Trench2xOutpost$2),
         Map.entry("Trench2xOutpost$3", Trench2xOutpost$3),
-        Map.entry("Trench2xOutpost$4", Trench2xOutpost$4)
+        Map.entry("Trench1xDepot", Trench1xDepot)
     );
 
     /**
