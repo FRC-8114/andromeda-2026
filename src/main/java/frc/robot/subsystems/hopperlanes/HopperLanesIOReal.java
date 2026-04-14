@@ -22,19 +22,19 @@ public class HopperLanesIOReal implements HopperLanesIO {
     private static final int indexerMotorId = 41;
 
     static final Slot0Configs pidConfig = new Slot0Configs()
-        .withKS(0.31077)
-        .withKV(0.8)
-        .withKP(8);
+            .withKS(0.31077)
+            .withKV(0.8)
+            .withKP(6);
 
     private static final double gearRatio = 6.66666;
 
     static final TalonFXConfiguration motorConfig = new TalonFXConfiguration()
-        .withFeedback(new FeedbackConfigs()
-            .withSensorToMechanismRatio(gearRatio))
-        .withCurrentLimits(new CurrentLimitsConfigs()
-            .withSupplyCurrentLimit(60)
-            .withSupplyCurrentLimitEnable(true))
-        .withSlot0(pidConfig);
+            .withFeedback(new FeedbackConfigs()
+                    .withSensorToMechanismRatio(gearRatio))
+            .withCurrentLimits(new CurrentLimitsConfigs()
+                    .withStatorCurrentLimit(40)
+                    .withSupplyCurrentLimit(40))
+            .withSlot0(pidConfig);
 
     private final TalonFX laneMotor = new TalonFX(indexerMotorId, RobotConstants.canBus);
 

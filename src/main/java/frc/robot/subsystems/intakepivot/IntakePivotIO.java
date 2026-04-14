@@ -27,7 +27,7 @@ public interface IntakePivotIO {
 
     void setTarget(Angle angle);
 
-    void setTargetWithFeedForward(Angle angle, Current feedforward);
+    void setTargetWithFeedForward(Angle angle, Voltage feedforward);
 
     void runVolts(Voltage volts);
     void runCurrent(Current current);

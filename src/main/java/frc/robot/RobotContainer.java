@@ -249,7 +249,7 @@ public class RobotContainer {
         // driverController.povUp().whileTrue(flywheels.runFlywheels(RPM.of(1800)));
 
         driverController.povUp().whileTrue(climber.move(false));
-        driverController.povDown().whileTrue(climber.move(true));
+        // driverController.povDown().whileTrue(climber.move(true));
 
         driverController.x().onTrue(climber.deploy());
         driverController.y().onTrue(climber.climb());
@@ -257,13 +257,13 @@ public class RobotContainer {
 
         driverController.rightBumper().whileTrue(hopperLanes.reverse());
 
-        // driverController.povDown().whileTrue(
-        // Commands.parallel(flywheels.runFlywheelsTunableVelocity(),
-        // turret.aimTunable(),
-        // shooterPitch.tuneAngle()).alongWith(
-        // Commands.waitSeconds(1)
-        // .andThen(turretFeeder.feed().until(turretFeeder.atSpeed)
-        // .andThen(hopperLanes.feed().alongWith(turretFeeder.feed())))));
+        driverController.povDown().whileTrue(
+        Commands.parallel(flywheels.runFlywheelsTunableVelocity(),
+        turret.aimTunable(),
+        shooterPitch.tuneAngle()).alongWith(
+        Commands.waitSeconds(1)
+        .andThen(turretFeeder.feed().until(turretFeeder.atSpeed)
+        .andThen(hopperLanes.feed().alongWith(turretFeeder.feed())))));
 
         driverController.b().onTrue(Commands.runOnce(intake::toggleStow));
 

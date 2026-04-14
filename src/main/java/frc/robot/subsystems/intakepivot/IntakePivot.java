@@ -15,6 +15,7 @@ import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Current;
+import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -32,7 +33,7 @@ public class IntakePivot extends SubsystemBase implements SysIDMechanism {
         static final Angle PUMP_HIGH_ANGLE = Rotations.of(0.20);
         static final double PUMP_DURATION_SECS = 0.25;
 
-        static final Current HOLD_DOWN_FEEDFORWARD = Amps.of(20);
+        static final Voltage HOLD_DOWN_FEEDFORWARD = Volts.of(.3);
         static final Angle ANGLE_TOLERANCE = Degrees.of(1);
     }
 

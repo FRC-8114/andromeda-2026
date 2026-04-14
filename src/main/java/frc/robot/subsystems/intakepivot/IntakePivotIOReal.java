@@ -15,6 +15,7 @@ import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.SoftwareLimitSwitchConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.MotionMagicTorqueCurrentFOC;
+import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.CANcoder;
@@ -50,9 +51,10 @@ public class IntakePivotIOReal implements IntakePivotIO {
 
     private static final Slot0Configs PID_CONFIG = new Slot0Configs()
             .withGravityType(GravityTypeValue.Arm_Cosine)
-            .withKS(10)
-            .withKP(600)
-            .withKD(90);
+            .withKG(0.1)
+            .withKS(0.5)
+            .withKP(6)
+            .withKD(0);
 
     private static final MotionMagicConfigs MOTION_MAGIC_CONFIG = new MotionMagicConfigs()
             .withMotionMagicCruiseVelocity(10)
@@ -71,9 +73,9 @@ public class IntakePivotIOReal implements IntakePivotIO {
             .withSensorToMechanismRatio(1.0);
 
     private static final CurrentLimitsConfigs CURRENT_LIMITS_CONFIG = new CurrentLimitsConfigs()
-            .withStatorCurrentLimit(90)
+            .withStatorCurrentLimit(60)
             .withStatorCurrentLimitEnable(true)
-            .withSupplyCurrentLimit(70)
+            .withSupplyCurrentLimit(40)
             .withSupplyCurrentLimitEnable(true);
 
     private static final MotorOutputConfigs MOTOR_OUTPUT_CONFIG = new MotorOutputConfigs()
@@ -91,7 +93,7 @@ public class IntakePivotIOReal implements IntakePivotIO {
     private final CANcoder pivotEncoder = new CANcoder(Constants.ENCODER_ID, RobotConstants.canBus);
     private final TalonFX pivotMotor = new TalonFX(Constants.MOTOR_ID, RobotConstants.canBus);
 
-    private final MotionMagicTorqueCurrentFOC control = new MotionMagicTorqueCurrentFOC(0);
+    private final MotionMagicVoltage control = new MotionMagicVoltage(0);
     private final TorqueCurrentFOC controlCurrent = new TorqueCurrentFOC(0);
     private final VoltageOut controlVoltage = new VoltageOut(0).withEnableFOC(true);
 
@@ -132,7 +134,7 @@ public class IntakePivotIOReal implements IntakePivotIO {
     }
 
     @Override
-    public void setTargetWithFeedForward(Angle angle, Current feedforward) {
+    public void setTargetWithFeedForward(Angle angle, Voltage feedforward) {
         targetAngle = angle;
         pivotMotor.setControl(control.withPosition(angle).withFeedForward(feedforward));
     }

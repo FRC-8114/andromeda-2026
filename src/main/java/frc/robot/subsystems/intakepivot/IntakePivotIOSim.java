@@ -46,7 +46,7 @@ public class IntakePivotIOSim implements IntakePivotIO {
     }
 
     @Override
-    public void setTargetWithFeedForward(Angle angle, Current feedforward) {
+    public void setTargetWithFeedForward(Angle angle, Voltage feedforward) {
         setTarget(angle); // feedforward not modeled in sim
     }
 

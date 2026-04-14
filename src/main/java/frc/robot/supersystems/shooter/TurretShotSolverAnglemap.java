@@ -14,6 +14,7 @@ import org.littletonrobotics.junction.Logger;
 import edu.wpi.first.math.InterpolatingMatrixTreeMap;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.Pair;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -22,6 +23,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N2;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Distance;
 import frc.robot.supersystems.shooter.ShotSolverUtil.KinematicsInfo;
 import frc.robot.supersystems.shooter.ShotSolverUtil.ShotSolution;
@@ -37,8 +39,8 @@ public class TurretShotSolverAnglemap implements Supplier<ShotSolution> {
                 private static final Translation3d TURRET_OFFSET = new Translation3d(TURRET_X_OFFSET, TURRET_Y_OFFSET,
                                 TURRET_Z_OFFSET);
 
-                public static final double FLYWHEEL_RADIUS_METERS = 0.050;
-                public static final double SPIN_TRANSFER_EFFICIENCY = 0.72;
+                public static final double FLYWHEEL_RADIUS_METERS = Units.inchesToMeters(2);
+                public static final double SPIN_TRANSFER_EFFICIENCY = 0.6487;
         }
 
         private Supplier<Pose3d> targetSupplier;
@@ -124,7 +126,7 @@ public class TurretShotSolverAnglemap implements Supplier<ShotSolution> {
 
                 Logger.recordOutput("Shooter/SpeedMetersPerSecond", turretVelocity.getNorm());
 
-                if (turretVelocity.getNorm() < 0.1) {
+                if (turretVelocity.getNorm() > 0.1) {
                         // comment below to disable velocity compensation (SotM)
                         for (int i = 0; i < 5; i++) {
                                 Translation2d relativeTarget = compensatedTarget.minus(turretTranslation);
@@ -144,6 +146,7 @@ public class TurretShotSolverAnglemap implements Supplier<ShotSolution> {
                 }
 
                 Logger.recordOutput("Shooter/SOTM/LastErrorReductionMeters", lastErrorReductionMeters);
+                Logger.recordOutput("Shooter/SOTM/CompensationPosition", new Pose2d(compensatedTarget, Rotation2d.kZero));
 
                 Translation2d shotVector = compensatedTarget.minus(turretTranslation);
                 Pair<Double, Double> rpmAndPitch = getRPMAndPitch(shotVector.getNorm());

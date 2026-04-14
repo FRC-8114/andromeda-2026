@@ -33,10 +33,10 @@ public class HopperLanes extends SubsystemBase implements SysIDMechanism {
 
         sysId = new SysIdRoutine(
                 new SysIdRoutine.Config(
-                        Volts.of(3).per(Second), Volts.of(50), null,
+                        null, null, null,
                         (state) -> Logger.recordOutput("HopperLanes/SysIdState", state.toString())),
                 new SysIdRoutine.Mechanism(
-                        (voltage) -> io.runCurrent(voltage.in(Volts)), null, this));
+                        io::runVolts, null, this));
     }
 
     public Command feed() {
