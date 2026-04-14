@@ -37,7 +37,7 @@ public class IntakePivotIOReal implements IntakePivotIO {
         static final int MOTOR_ID = 51;
         static final int ENCODER_ID = 53;
         static final double GEAR_RATIO = 11.8125;
-        static final double MAGNET_OFFSET = 0.013427734375;
+        static final double MAGNET_OFFSET = -0.144775390625;
     }
 
     private static final MagnetSensorConfigs MAGNET_SENSOR_CONFIG = new MagnetSensorConfigs()

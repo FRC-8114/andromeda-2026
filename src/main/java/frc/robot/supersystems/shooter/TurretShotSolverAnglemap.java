@@ -38,7 +38,7 @@ public class TurretShotSolverAnglemap implements Supplier<ShotSolution> {
                                 TURRET_Z_OFFSET);
 
                 public static final double FLYWHEEL_RADIUS_METERS = 0.050;
-                public static final double SPIN_TRANSFER_EFFICIENCY = 1.36;
+                public static final double SPIN_TRANSFER_EFFICIENCY = 0.72;
         }
 
         private Supplier<Pose3d> targetSupplier;
@@ -70,7 +70,7 @@ public class TurretShotSolverAnglemap implements Supplier<ShotSolution> {
                 putMeasurement(Feet.of(8), 13, 2000);
                 putMeasurement(Feet.of(9), 18, 2200);
                 putMeasurement(Feet.of(10), 18, 2100);
-                putMeasurement(Feet.of(11), 18, 2100);
+                putMeasurement(Feet.of(11), 18, 2150);
                 putMeasurement(Feet.of(12), 18, 2200);
                 putMeasurement(Feet.of(13), 21, 2175);
                 putMeasurement(Feet.of(14), 21, 2250);
@@ -121,6 +121,8 @@ public class TurretShotSolverAnglemap implements Supplier<ShotSolution> {
                 Translation2d compensatedTarget = target.getTranslation().toTranslation2d();
                 double previousStepErrorMeters = Double.NaN;
                 double lastErrorReductionMeters = 0.0;
+
+                Logger.recordOutput("Shooter/SpeedMetersPerSecond", turretVelocity.getNorm());
 
                 if (turretVelocity.getNorm() < 0.1) {
                         // comment below to disable velocity compensation (SotM)
