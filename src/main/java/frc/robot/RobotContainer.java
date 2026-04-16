@@ -7,8 +7,10 @@ package frc.robot;
 import choreo.auto.AutoChooser;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -52,6 +54,7 @@ import frc.robot.subsystems.turretfeeder.TurretFeederIOReal;
 import frc.robot.subsystems.turretfeeder.TurretFeederIOSim;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionConstants;
+import frc.robot.util.HubShiftUtil;
 import frc.robot.util.SubsystemRegistry;
 import java.util.Optional;
 
@@ -138,7 +141,7 @@ public class RobotContainer {
                         drive.getRawGyroVelocityRadPerSec()),
                 (pose, timestamp, stddev) -> {
                     // if (!DriverStation.isAutonomousEnabled()) {
-                        drive.addVisionMeasurement(pose, timestamp, stddev);
+                    drive.addVisionMeasurement(pose, timestamp, stddev);
                     // }
                 },
                 drive::setPose));
@@ -147,66 +150,6 @@ public class RobotContainer {
 
         SmartDashboard.putData("Auto Chooser", autoChooser);
         configureBindings();
-    }
-
-    public boolean isHubActive() {
-        Optional<Alliance> alliance = DriverStation.getAlliance();
-        // If we have no alliance, we cannot be enabled, therefore no hub.
-        if (alliance.isEmpty()) {
-            return false;
-        }
-        // Hub is always enabled in autonomous.
-        if (DriverStation.isAutonomousEnabled()) {
-            return true;
-        }
-        // At this point, if we're not teleop enabled, there is no hub.
-        if (!DriverStation.isTeleopEnabled()) {
-            return false;
-        }
-
-        // We're teleop enabled, compute.
-        double matchTime = DriverStation.getMatchTime();
-        String gameData = DriverStation.getGameSpecificMessage();
-        // If we have no game data, we cannot compute, assume hub is active, as its
-        // likely early in teleop.
-        if (gameData.isEmpty()) {
-            return true;
-        }
-        boolean redInactiveFirst = false;
-        switch (gameData.charAt(0)) {
-            case 'R' -> redInactiveFirst = true;
-            case 'B' -> redInactiveFirst = false;
-            default -> {
-                // If we have invalid game data, assume hub is active.
-                return true;
-            }
-        }
-
-        // Shift was is active for blue if red won auto, or red if blue won auto.
-        boolean shift1Active = switch (alliance.get()) {
-            case Red -> !redInactiveFirst;
-            case Blue -> redInactiveFirst;
-        };
-
-        if (matchTime > 130) {
-            // Transition shift, hub is active.
-            return true;
-        } else if (matchTime > 105) {
-            // Shift 1
-            return shift1Active;
-        } else if (matchTime > 80) {
-            // Shift 2
-            return !shift1Active;
-        } else if (matchTime > 55) {
-            // Shift 3
-            return shift1Active;
-        } else if (matchTime > 30) {
-            // Shift 4
-            return !shift1Active;
-        } else {
-            // End game, hub always active.
-            return true;
-        }
     }
 
     private Drive createDrive() {
@@ -227,15 +170,47 @@ public class RobotContainer {
     }
 
     private final CommandXboxController driverController = new CommandXboxController(0);
+    private final Trigger hubSwitchImminent = new Trigger(
+            () -> HubShiftUtil.isAllianceFlipImminent(5));
+    private boolean isShooting = false;
 
-    boolean isSOTMSpeedEnabled = false;
+    
+    private final SlewRateLimiter sotmRateLimiterX = new SlewRateLimiter(0.5);
+    private final SlewRateLimiter sotmRateLimiterY = new SlewRateLimiter(0.5);
+    private final SlewRateLimiter sotmRateLimiterOmega = new SlewRateLimiter(0.5);
+
+    private Command rumbleController(RumbleType type) {
+        return Commands.runEnd(() -> driverController.setRumble(type, 1),
+                () -> driverController.setRumble(type, 0));
+    }
+
+    private double getControllerOmega() {
+        double rightX = -driverController.getRightX();
+        double limited = sotmRateLimiterOmega.calculate(rightX);
+
+        return isShooting ? limited : rightX;
+    }
+
+    private double getControllerX() {
+        double leftX = -driverController.getLeftX();
+        double limited = sotmRateLimiterX.calculate(leftX);
+
+        return isShooting ? limited : leftX;
+    }
+
+    private double getControllerY() {
+        double leftY = -driverController.getLeftY();
+        double limited = sotmRateLimiterY.calculate(leftY);
+        
+        return isShooting ? limited : leftY;
+    }
 
     private void configureBindings() {
         drive.setDefaultCommand(
                 drive.joystickDrive(
-                        () -> -driverController.getLeftY(),
-                        () -> -driverController.getLeftX(),
-                        () -> -driverController.getRightX(),
+                        () -> getControllerY(),
+                        () -> getControllerX(),
+                        () -> getControllerOmega(),
                         () -> drive.getMaxLinearSpeedMetersPerSec()
                                 * (driverController.rightTrigger().getAsBoolean() ? 0.2 : 1),
                         () -> drive.getMaxAngularSpeedRadPerSec()
@@ -245,47 +220,37 @@ public class RobotContainer {
         driverController.b().onTrue(intake.deploy());
         driverController.leftTrigger().whileTrue(intake.intake());
 
-        // driverController.povUp().whileTrue(hopperLanes.feed());
-        // driverController.povUp().whileTrue(flywheels.runFlywheels(RPM.of(1800)));
+        hubSwitchImminent.onTrue(rumbleController(RumbleType.kRightRumble).withTimeout(1));
+        turret.isAtLimit.whileTrue(rumbleController(RumbleType.kLeftRumble));
 
         driverController.povUp().whileTrue(climber.move(false));
-        // driverController.povDown().whileTrue(climber.move(true));
+        driverController.povDown().whileTrue(climber.move(true));
 
-        driverController.x().onTrue(climber.deploy());
-        driverController.y().onTrue(climber.climb());
-        driverController.a().onTrue(climber.stow());
+        driverController.x().whileTrue(Commands.runOnce(drive::stopWithX, drive));
+        // driverController.x().onTrue(climber.deploy());
+        // driverController.y().onTrue(climber.climb());
+        // driverController.a().onTrue(climber.stow());
 
         driverController.rightBumper().whileTrue(hopperLanes.reverse());
 
-        driverController.povDown().whileTrue(
-        Commands.parallel(flywheels.runFlywheelsTunableVelocity(),
-        turret.aimTunable(),
-        shooterPitch.tuneAngle()).alongWith(
-        Commands.waitSeconds(1)
-        .andThen(turretFeeder.feed().until(turretFeeder.atSpeed)
-        .andThen(hopperLanes.feed().alongWith(turretFeeder.feed())))));
+        // driverController.povDown().whileTrue(
+        //         Commands.parallel(flywheels.runFlywheelsTunableVelocity(),
+        //                 turret.aimTunable(),
+        //                 shooterPitch.tuneAngle()).alongWith(
+        //                         Commands.waitSeconds(1)
+        //                                 .andThen(turretFeeder.feed().until(turretFeeder.atSpeed)
+        //                                         .andThen(hopperLanes.feed().alongWith(turretFeeder.feed())))));
 
         driverController.b().onTrue(Commands.runOnce(intake::toggleStow));
+
+        driverController.start().onTrue(Commands.runOnce(vision::triggerReseed));
 
         driverController.povRight().whileTrue(intake.pump());
         driverController.povLeft().onTrue(climber.doNext());
     }
 
     public void updateDashboard() {
-        SmartDashboard.putBoolean("HubShiftTeam", isHubActive());
-    }
-
-    public void enabledInit() {
-    }
-
-    public void teleopInit() {
-        vision.setIMUMode(VisionConstants.LIMELIGHT_IMU_MODE);
-    }
-
-    public void disabledInit() {
-        vision.setIMUMode(VisionConstants.LIMELIGHT_SEED_IMU_MODE);
-
-        driverController.getHID().setRumble(RumbleType.kBothRumble, 0.0);
+        SmartDashboard.putBoolean("HubShiftTeam", HubShiftUtil.isHubActive());
     }
 
     public Command getAutonomousCommand() {

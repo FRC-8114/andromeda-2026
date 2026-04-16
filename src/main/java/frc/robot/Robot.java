@@ -61,7 +61,6 @@ public class Robot extends LoggedRobot {
 
   @Override
   public void disabledInit() {
-    m_robotContainer.disabledInit();
   }
 
   @Override
@@ -70,7 +69,6 @@ public class Robot extends LoggedRobot {
 
   @Override
   public void disabledExit() {
-    m_robotContainer.enabledInit();
   }
 
   @Override
@@ -80,8 +78,6 @@ public class Robot extends LoggedRobot {
     if (m_autonomousCommand != null) {
       CommandScheduler.getInstance().schedule(m_autonomousCommand);
     }
-
-    m_robotContainer.enabledInit();
   }
 
   @Override
@@ -100,7 +96,6 @@ public class Robot extends LoggedRobot {
     }
 
     HubShiftUtil.initialize();
-    m_robotContainer.teleopInit();
   }
 
   @Override

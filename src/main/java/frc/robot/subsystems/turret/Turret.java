@@ -43,6 +43,9 @@ public class Turret extends SubsystemBase implements SysIDMechanism {
     @AutoLogOutput
     public final Trigger isAtTarget;
 
+    @AutoLogOutput
+    public final Trigger isAtLimit;
+
     private static final LoggedNetworkNumber tuneAngle = new LoggedNetworkNumber("Tuning/TuneTurretAngle", 180);
 
     public Turret(TurretIO pivotMotor) {
@@ -56,6 +59,7 @@ public class Turret extends SubsystemBase implements SysIDMechanism {
                         (voltage) -> pivotMotor.setCurrent(voltage.in(Volts)), null, this));
 
         isAtTarget = new Trigger(() -> checkAtAngle(currentTarget));
+        isAtLimit = new Trigger(() -> currentTarget.lte(Constants.MIN_ANGLE) || currentTarget.gte(Constants.MAX_ANGLE));
 
         setDefaultCommand(setAngle(Degrees.of(180)));
     }

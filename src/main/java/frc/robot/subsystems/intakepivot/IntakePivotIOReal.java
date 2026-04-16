@@ -52,8 +52,8 @@ public class IntakePivotIOReal implements IntakePivotIO {
     private static final Slot0Configs PID_CONFIG = new Slot0Configs()
             .withGravityType(GravityTypeValue.Arm_Cosine)
             .withKG(0.1)
-            .withKS(0.5)
-            .withKP(6)
+            .withKS(0.6)
+            .withKP(8)
             .withKD(0);
 
     private static final MotionMagicConfigs MOTION_MAGIC_CONFIG = new MotionMagicConfigs()

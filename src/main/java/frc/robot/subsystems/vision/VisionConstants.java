@@ -3,6 +3,7 @@ package frc.robot.subsystems.vision;
 
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.Meters;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -59,28 +60,33 @@ public class VisionConstants {
      * Back Left:
      * Pitch: 28.10
      * Yaw:45
-     * -14.5 + 1.84
-     * -13 + 1.907
+     * ignore -14.25 + 1.84
+     * ignore -12.75 + 1.907
      * height from floor: 8.222
      * 
+     * -10.968
+     * -12.535
      */
     // limelight is right-positive
     private static final Transform3d ROBOT_TO_CAMERA_BACKLEFT = new Transform3d(
-            new Translation3d(Inches.of(-13 + 1.907), Inches.of(-14.5 + 1.84), Inches.of(8.222)),
+            new Translation3d(Inches.of(-10.968), Inches.of(-12.535), Inches.of(8.222)),
             new Rotation3d(Degrees.of(0), Degrees.of(28.10), Degrees.of(135)));
 
     /*
      * Back Right:
      * Pitch:28.1
      * Yaw:45
-     * 14.5 - 1.799
-     * -13 + 1.924
+     * ignore 14.25 - 1.799
+     * ignore -12.75 + 1.924
      * height from floor: 11.487
+     * 
+     * -10.951
+     * 12.576
      * 
      */
     // right from the perspective of the robot
     private static final Transform3d ROBOT_TO_CAMERA_BACKRIGHT = new Transform3d(
-            new Translation3d(Inches.of(-13 + 1.924), Inches.of(14.5 - 1.799), Inches.of(11.487)),
+            new Translation3d(Inches.of(-10.951), Inches.of(12.576), Inches.of(11.487)),
             new Rotation3d(Degrees.of(0), Degrees.of(28.1), Degrees.of(225)));
 
     public static final CameraConfiguration[] cameras = {

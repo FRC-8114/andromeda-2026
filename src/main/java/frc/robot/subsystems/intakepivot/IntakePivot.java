@@ -31,7 +31,7 @@ public class IntakePivot extends SubsystemBase implements SysIDMechanism {
 
         static final Angle PUMP_LOW_ANGLE = Rotations.of(0.08);
         static final Angle PUMP_HIGH_ANGLE = Rotations.of(0.20);
-        static final double PUMP_DURATION_SECS = 0.25;
+        static final double PUMP_DURATION_SECS = 0.75;
 
         static final Voltage HOLD_DOWN_FEEDFORWARD = Volts.of(.3);
         static final Angle ANGLE_TOLERANCE = Degrees.of(1);

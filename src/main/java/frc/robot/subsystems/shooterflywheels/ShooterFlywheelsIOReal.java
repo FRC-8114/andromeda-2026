@@ -30,7 +30,7 @@ public class ShooterFlywheelsIOReal implements ShooterFlywheelsIO {
         static final Slot0Configs SLOT0_CONFIG = new Slot0Configs()
                 .withKS(0.5)
                 .withKV(0.09)
-                .withKP(0.2);
+                .withKP(0.4);
 
         static final CurrentLimitsConfigs CURRENT_LIMITS_CONFIG = new CurrentLimitsConfigs()
                 .withStatorCurrentLimit(70)

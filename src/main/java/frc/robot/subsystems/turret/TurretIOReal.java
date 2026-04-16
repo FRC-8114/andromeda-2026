@@ -48,8 +48,8 @@ public class TurretIOReal implements TurretIO {
         static final int ENCODER_19T_ID = 33;
         static final int ENCODER_21T_ID = 34;
 
-        static final double ENCODER_19T_OFFSET = -0.297607421875;
-        static final double ENCODER_21T_OFFSET = -0.3046875;
+        static final double ENCODER_19T_OFFSET = -0.33837890625;
+        static final double ENCODER_21T_OFFSET = -0.286376953125;
         static final double MOTOR_TO_TURRET_RATIO = 10.0;
 
         // CRT
@@ -92,7 +92,7 @@ public class TurretIOReal implements TurretIO {
         static final Slot0Configs PIVOT_SLOT0 = new Slot0Configs()
                 .withKS(8)
                 .withKP(12)
-                .withKD(1)
+                .withKD(1.3)
                 .withStaticFeedforwardSign(StaticFeedforwardSignValue.UseClosedLoopSign);
 
         static final MotionMagicConfigs PIVOT_MOTION_MAGIC = new MotionMagicConfigs()
@@ -158,6 +158,7 @@ public class TurretIOReal implements TurretIO {
 
         turretSignals.refreshAll();
 
+        // reseedPosition(Degrees.of(180));
         reseedPosition(Radians.of(getSeedAngleRad()));
     }
 
@@ -204,10 +205,9 @@ public class TurretIOReal implements TurretIO {
     }
 
     private boolean shouldReseed(OptionalDouble crtRad, AngularVelocity velocity) {
-        return false;
-        // return crtRad.isPresent()
-        //         && isWithinLimits(crtRad.getAsDouble())
-        //         && Math.abs(velocity.in(RadiansPerSecond)) <= Constants.RESEED_VELOCITY_THRESHOLD.in(RadiansPerSecond);
+        return crtRad.isPresent()
+                && isWithinLimits(crtRad.getAsDouble())
+                && Math.abs(velocity.in(RadiansPerSecond)) <= Constants.RESEED_VELOCITY_THRESHOLD.in(RadiansPerSecond);
     }
 
     private void updateReseedState(TurretIOInputs inputs, OptionalDouble crtRad, double positionRad,

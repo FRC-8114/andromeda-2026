@@ -19,6 +19,7 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.subsystems.drive.Drive;
 import edu.wpi.first.units.measure.AngularAcceleration;
 import edu.wpi.first.units.measure.AngularVelocity;
 import limelight.networktables.AngularAcceleration3d;
@@ -65,19 +66,16 @@ public class Vision extends SubsystemBase {
     }
 
     private static final VisionIO.RobotState defaultRobotState = new VisionIO.RobotState(
-        0.0,
-        new Rotation3d(),
-        new AngularVelocity3d(
-            RadiansPerSecond.of(0.0),
-            RadiansPerSecond.of(0.0),
-            RadiansPerSecond.of(0.0)
-        ),
-        new AngularAcceleration3d(
-            RadiansPerSecondPerSecond.of(0.0),
-            RadiansPerSecondPerSecond.of(0.0),
-            RadiansPerSecondPerSecond.of(0.0)
-        )
-    );
+            0.0,
+            new Rotation3d(),
+            new AngularVelocity3d(
+                    RadiansPerSecond.of(0.0),
+                    RadiansPerSecond.of(0.0),
+                    RadiansPerSecond.of(0.0)),
+            new AngularAcceleration3d(
+                    RadiansPerSecondPerSecond.of(0.0),
+                    RadiansPerSecondPerSecond.of(0.0),
+                    RadiansPerSecondPerSecond.of(0.0)));
 
     private final VisionIO[] visionIOs;
     private final VisionInputBuffers[] latestInputs;
@@ -87,13 +85,11 @@ public class Vision extends SubsystemBase {
     private final AtomicReference<VisionIO.RobotState> latestRobotState = new AtomicReference<>(defaultRobotState);
     private final ThreadGroup visionWorkThreadGroup = new ThreadGroup("visionWorkers");
     private AngularVelocity3d lastRobotAngularVelocity = new AngularVelocity3d(
-        RadiansPerSecond.of(0.0),
-        RadiansPerSecond.of(0.0),
-        RadiansPerSecond.of(0.0)
-    );
+            RadiansPerSecond.of(0.0),
+            RadiansPerSecond.of(0.0),
+            RadiansPerSecond.of(0.0));
     private double lastRobotAngularVelocityTimestampSecs = Double.NaN;
-    private boolean hasSeededPose = false;
-    private boolean hasBeenEnabled = false;
+    private boolean seedMethodSet = false;
 
     public static Vision fromCameraConstants(
             Supplier<RobotStateSample> robotStateSupplier,
@@ -140,16 +136,15 @@ public class Vision extends SubsystemBase {
             latestInputs[i] = new VisionInputBuffers();
 
             Thread worker = new Thread(
-                visionWorkThreadGroup,
-                () -> visionWorker(workerIndex),
-                inputs[i].getName() + "Worker"
-            );
+                    visionWorkThreadGroup,
+                    () -> visionWorker(workerIndex),
+                    inputs[i].getName() + "Worker");
             worker.setDaemon(true);
             worker.start();
         }
     }
 
-    public void setIMUMode(ImuMode imuMode) {
+    private void setIMUMode(ImuMode imuMode) {
         for (VisionIO visionIO : visionIOs) {
             visionIO.setIMUMode(imuMode);
         }
@@ -176,7 +171,8 @@ public class Vision extends SubsystemBase {
         setRobotState(Timer.getFPGATimestamp(), currentRotation, currentAngularVelocity);
     }
 
-    public void setRobotState(double timestampSeconds, Rotation3d currentRotation, AngularVelocity3d currentAngularVelocity) {
+    public void setRobotState(double timestampSeconds, Rotation3d currentRotation,
+            AngularVelocity3d currentAngularVelocity) {
         AngularAcceleration3d currentAngularAcceleration = defaultRobotState.currentAngularAcceleration();
 
         if (!Double.isNaN(lastRobotAngularVelocityTimestampSecs)) {
@@ -184,21 +180,21 @@ public class Vision extends SubsystemBase {
 
             if (dtSecs > 1.0e-6) {
                 currentAngularAcceleration = new AngularAcceleration3d(
-                    calculateAngularAcceleration(currentAngularVelocity.roll, lastRobotAngularVelocity.roll, dtSecs),
-                    calculateAngularAcceleration(currentAngularVelocity.pitch, lastRobotAngularVelocity.pitch, dtSecs),
-                    calculateAngularAcceleration(currentAngularVelocity.yaw, lastRobotAngularVelocity.yaw, dtSecs)
-                );
+                        calculateAngularAcceleration(currentAngularVelocity.roll, lastRobotAngularVelocity.roll,
+                                dtSecs),
+                        calculateAngularAcceleration(currentAngularVelocity.pitch, lastRobotAngularVelocity.pitch,
+                                dtSecs),
+                        calculateAngularAcceleration(currentAngularVelocity.yaw, lastRobotAngularVelocity.yaw, dtSecs));
             }
         }
 
         lastRobotAngularVelocity = currentAngularVelocity;
         lastRobotAngularVelocityTimestampSecs = timestampSeconds;
         latestRobotState.set(new VisionIO.RobotState(
-            timestampSeconds,
-            currentRotation,
-            currentAngularVelocity,
-            currentAngularAcceleration
-        ));
+                timestampSeconds,
+                currentRotation,
+                currentAngularVelocity,
+                currentAngularAcceleration));
     }
 
     private static AngularAcceleration calculateAngularAcceleration(
@@ -292,8 +288,14 @@ public class Vision extends SubsystemBase {
 
     @Override
     public void periodic() {
-        if (DriverStation.isEnabled()) {
-            hasBeenEnabled = true;
+        if (DriverStation.isAutonomous() || (DriverStation.isTeleop() && DriverStation.isDisabled())) {
+            // yaw shouldnt drift much during auto
+            setIMUMode(ImuMode.SyncInternalImu);
+
+            if (DriverStation.isEnabled()) {
+                // we have seeded from Choreo
+                seedMethodSet = true;
+            }
         }
 
         if (robotStateSupplier != null) {
@@ -313,20 +315,30 @@ public class Vision extends SubsystemBase {
             latestInputs[i].consumeLatestInputs(
                     "Vision/" + visionIOs[i].getName(),
                     (inputs) -> {
-                        if (DriverStation.isDisabled() && !hasBeenEnabled && !hasSeededPose && poseSeedConsumer != null) {
+                        if (DriverStation.isTeleop() && !seedMethodSet
+                                && poseSeedConsumer != null) {
                             seedObservationHolder[0] = choosePoseSeedObservation(seedObservationHolder[0], inputs);
                         }
                         processPoseObservations(inputs);
                     });
         }
 
-        if (DriverStation.isDisabled()
-                && !hasBeenEnabled
-                && !hasSeededPose
-                && poseSeedConsumer != null
-                && seedObservationHolder[0] != null) {
-            poseSeedConsumer.accept(seedObservationHolder[0].pose().toPose2d());
-            hasSeededPose = true;
+        if (DriverStation.isTeleopEnabled()) {
+            seedMethodSet = true;
         }
+    }
+
+    public void triggerReseed() {
+        VisionIO.PoseObservation seedObservationHolder[] = new VisionIO.PoseObservation[1];
+
+        for (int i = 0; i < latestInputs.length; i++) {
+            latestInputs[i].consumeLatestInputs(
+                    "Vision/" + visionIOs[i].getName(),
+                    (inputs) -> {
+                        seedObservationHolder[0] = choosePoseSeedObservation(seedObservationHolder[0], inputs);
+                    });
+        }
+
+        poseSeedConsumer.accept(seedObservationHolder[0].pose().toPose2d());
     }
 }

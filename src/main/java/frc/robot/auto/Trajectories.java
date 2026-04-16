@@ -25,8 +25,7 @@ public final class Trajectories {
         chooser.addRoutine("TUNE_MOI", () -> tuneMoi(autos));
         chooser.addRoutine("Trench2xOutpost", () -> trench2xOutpost(
                 autos,
-                subsystems.get(IntakePivot.class).get(),
-                subsystems.get(IntakeRollers.class).get(),
+                subsystems.get(Intake.class).get(),
                 subsystems.get(Shooter.class).get()));
         chooser.addRoutine("Trench1xDepot", () -> trench1xDepot(
                 autos,
@@ -39,7 +38,7 @@ public final class Trajectories {
                 subsystems.get(Climber.class).get()));
     }
 
-    private static AutoRoutine trench2xOutpost(Autos autos, IntakePivot intakePivot, IntakeRollers intakeRollers,
+    private static AutoRoutine trench2xOutpost(Autos autos, Intake intake,
             Shooter shooter) {
         AutoRoutine routine = autos.routine("Trench2xOutpost");
         AutoTrajectory[] paths = autos.split(routine, ChoreoTraj.Trench2xOutpost);
@@ -48,25 +47,21 @@ public final class Trajectories {
                 paths[0].resetOdometry(),
                 Commands.deadline( // do first sweep + rollers active
                         paths[0].cmd(),
-                        Commands.parallel(
-                                intakeRollers.intake(),
-                                intakePivot.deploy())),
+                        intake.intake()),
                 paths[1].cmd(), // drive to shoot
                 autos.stopCommand(), // NO MORE DRIFTING PLS
                 Commands.parallel(
-                        intakePivot.pump(),
+                        intake.pump(),
                         shooter.shoot())
                         .withTimeout(Seconds.of(8)),
                 paths[2].cmd(), // drive to pre-sweep
                 Commands.deadline( // second sweep + rollers active
                         paths[3].cmd(),
-                        Commands.parallel(
-                                intakeRollers.intake(),
-                                intakePivot.deploy())),
+                        intake.intake()),
                 paths[4].cmd(), // drive to shoot
                 autos.stopCommand(),
                 Commands.parallel(
-                        intakePivot.pump(),
+                        intake.pump(),
                         shooter.shoot())
                         .withTimeout(Seconds.of(4)),
                 autos.stopCommand()));

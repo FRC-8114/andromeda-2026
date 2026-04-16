@@ -76,7 +76,7 @@ public class Shooter extends SubsystemBase {
     }
 
     public Command prepareToShoot() {
-        return Commands.parallel(aimAtGoal(), spinUp(), turretFeeder.feed(), hopperLanes.reverse());
+        return Commands.parallel(aimAtGoal(), spinUp(), turretFeeder.feed(), hopperLanes.reverse().withTimeout(1));
     }
 
     public Command shootAt(Angle yaw, Angle pitch, AngularVelocity velocity) {
