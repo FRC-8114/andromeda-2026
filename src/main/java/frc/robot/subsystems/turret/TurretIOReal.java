@@ -4,6 +4,7 @@ import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
+import static edu.wpi.first.units.Units.Rotations;
 
 import java.util.OptionalDouble;
 
@@ -54,10 +55,9 @@ public class TurretIOReal implements TurretIO {
         // CRT
         static final long ENCODER_19T_TEETH = 19L;
         static final long ENCODER_21T_TEETH = 21L;
-        static final long ENCODER_19T_WRAP = 21L * 10L;
-        static final long ENCODER_21T_WRAP = 19L * 10L;
         static final long TURRET_GEAR_TEETH = 200L;
-        static final long CRT_MODULUS = 399L;
+        static final double CRT_COHERENCE_TOLERANCE_TEETH = 0.25;
+        static final Angle CRT_ZERO_OFFSET = Rotations.of(0.5);
 
         // Reseeding
         static final AngularVelocity RESEED_VELOCITY_THRESHOLD = RadiansPerSecond.of(Math.toRadians(5.0));
@@ -157,38 +157,75 @@ public class TurretIOReal implements TurretIO {
 
         turretSignals.refreshAll();
 
-        reseedPosition(Degrees.of(180));
-        // reseedPosition(Radians.of(getSeedAngleRad()));
+        // reseedPosition(Degrees.of(180));
+        reseedPosition(Radians.of(getCRTAngle().orElse(180)));
     }
 
     private void applyConfiguration(String key, StatusCode status) {
         Logger.recordOutput(key, status.getName());
     }
 
-    private double getAbsoluteCrtAngleRad() {
-        double raw19TTeeth = encoder19TPosition.getValueAsDouble() * Constants.ENCODER_19T_TEETH;
-        double raw21TTeeth = encoder21TPosition.getValueAsDouble() * Constants.ENCODER_21T_TEETH;
+    private OptionalDouble getAbsoluteCrtAngleRad() {
+        double raw19 = encoder19TPosition.getValueAsDouble() * Constants.ENCODER_19T_TEETH;
+        double raw21 = encoder21TPosition.getValueAsDouble() * Constants.ENCODER_21T_TEETH;
 
-        long wrapped19TTeeth = Math.round(raw19TTeeth) % Constants.ENCODER_19T_TEETH;
-        long wrapped21TTeeth = Math.round(raw21TTeeth) % Constants.ENCODER_21T_TEETH;
-        long coarseTurretTeeth = (wrapped19TTeeth * Constants.ENCODER_19T_WRAP
-                + wrapped21TTeeth * Constants.ENCODER_21T_WRAP)
-                % Constants.CRT_MODULUS;
+        long baseK21 = (long) Math.floor(raw21);
+        double fine = raw21 - baseK21;
 
-        double fractional21TTooth = raw21TTeeth - Math.round(raw21TTeeth);
-        double turretGearTeeth = coarseTurretTeeth + fractional21TTooth;
-        return MathUtil.inputModulus(
-                turretGearTeeth * ((2.0 * Math.PI) / Constants.TURRET_GEAR_TEETH),
+        long bestK = -1;
+        double bestErrorTeeth = Double.MAX_VALUE;
+
+        for (long k = baseK21; k < Constants.TURRET_GEAR_TEETH; k += Constants.ENCODER_21T_TEETH) {
+            double predicted19 = MathUtil.inputModulus(
+                    k + fine, 0.0, Constants.ENCODER_19T_TEETH);
+
+            double err = MathUtil.inputModulus(
+                    raw19 - predicted19,
+                    -Constants.ENCODER_19T_TEETH / 2.0,
+                    Constants.ENCODER_19T_TEETH / 2.0);
+
+            double absErr = Math.abs(err);
+            if (absErr < bestErrorTeeth) {
+                bestErrorTeeth = absErr;
+                bestK = k;
+            }
+        }
+
+        Logger.recordOutput("Turret/bestError", bestErrorTeeth);
+
+        // wallahi we're cooked
+        if (bestK < 0 || bestErrorTeeth > Constants.CRT_COHERENCE_TOLERANCE_TEETH) {
+            return OptionalDouble.empty();
+        }
+
+        double turretTeeth = bestK + fine;
+        double angleRad = MathUtil.inputModulus(
+                turretTeeth * (2.0 * Math.PI / Constants.TURRET_GEAR_TEETH),
                 0.0, 2.0 * Math.PI);
+
+        return OptionalDouble.of(angleRad);
     }
 
-    private double getSeedAngleRad() {
-        return MathUtil.inputModulus(getAbsoluteCrtAngleRad() + Math.PI, 0.0, 2.0 * Math.PI);
+    // crt minus filtering
+    private OptionalDouble getCRTAngle() {
+        OptionalDouble rawCRT = getAbsoluteCrtAngleRad();
+
+        if (rawCRT.isEmpty())
+            return OptionalDouble.empty();
+
+        return OptionalDouble.of(MathUtil.inputModulus(
+                getAbsoluteCrtAngleRad().getAsDouble() + Constants.CRT_ZERO_OFFSET.in(Radians), 0.0, 2.0 * Math.PI));
     }
 
-    private OptionalDouble getCrtFilteredRad() {
-        double v = crtMedianFilter.calculate(getSeedAngleRad());
-        return Double.isFinite(v) ? OptionalDouble.of(v) : OptionalDouble.empty();
+    private OptionalDouble getFilteredCRT() {
+        OptionalDouble crt = getCRTAngle();
+
+        if (crt.isEmpty())
+            return OptionalDouble.empty();
+
+        double filtered = crtMedianFilter.calculate(crt.getAsDouble());
+
+        return Double.isFinite(filtered) ? OptionalDouble.of(filtered) : OptionalDouble.empty();
     }
 
     private static boolean isWithinLimits(double angleRad) {
@@ -204,10 +241,9 @@ public class TurretIOReal implements TurretIO {
     }
 
     private boolean shouldReseed(OptionalDouble crtRad, AngularVelocity velocity) {
-        return false;
-        // return crtRad.isPresent()
-        //         && isWithinLimits(crtRad.getAsDouble())
-        //         && Math.abs(velocity.in(RadiansPerSecond)) <= Constants.RESEED_VELOCITY_THRESHOLD.in(RadiansPerSecond);
+        return crtRad.isPresent()
+                && isWithinLimits(crtRad.getAsDouble())
+                && Math.abs(velocity.in(RadiansPerSecond)) <= Constants.RESEED_VELOCITY_THRESHOLD.in(RadiansPerSecond);
     }
 
     private void updateReseedState(TurretIOInputs inputs, OptionalDouble crtRad, double positionRad,
@@ -243,7 +279,7 @@ public class TurretIOReal implements TurretIO {
 
         double positionRad = MathUtil.inputModulus(pivotPosition.getValue().in(Radians), 0.0, 2.0 * Math.PI);
         AngularVelocity velocity = pivotVelocity.getValue();
-        OptionalDouble crtRad = getCrtFilteredRad();
+        OptionalDouble crtRad = getFilteredCRT();
 
         inputs.positionRadians.mut_replace(positionRad, Radians);
         if (crtRad.isPresent()) {
