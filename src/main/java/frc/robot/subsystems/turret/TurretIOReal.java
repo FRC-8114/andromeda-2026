@@ -22,7 +22,6 @@ import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.SoftwareLimitSwitchConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.PositionTorqueCurrentFOC;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VoltageOut;
@@ -48,8 +47,8 @@ public class TurretIOReal implements TurretIO {
         static final int ENCODER_19T_ID = 33;
         static final int ENCODER_21T_ID = 34;
 
-        static final double ENCODER_19T_OFFSET = -0.33837890625;
-        static final double ENCODER_21T_OFFSET = -0.286376953125;
+        static final double ENCODER_19T_OFFSET = -0.296142578125;
+        static final double ENCODER_21T_OFFSET = -0.35205078125;
         static final double MOTOR_TO_TURRET_RATIO = 10.0;
 
         // CRT
@@ -90,9 +89,9 @@ public class TurretIOReal implements TurretIO {
                 .withMagnetSensor(ENCODER_21T_MAGNET_CONFIG);
 
         static final Slot0Configs PIVOT_SLOT0 = new Slot0Configs()
-                .withKS(8)
-                .withKP(12)
-                .withKD(1.3)
+                .withKS(2)
+                .withKP(8)
+                .withKD(0.9)
                 .withStaticFeedforwardSign(StaticFeedforwardSignValue.UseClosedLoopSign);
 
         static final MotionMagicConfigs PIVOT_MOTION_MAGIC = new MotionMagicConfigs()
@@ -158,8 +157,8 @@ public class TurretIOReal implements TurretIO {
 
         turretSignals.refreshAll();
 
-        // reseedPosition(Degrees.of(180));
-        reseedPosition(Radians.of(getSeedAngleRad()));
+        reseedPosition(Degrees.of(180));
+        // reseedPosition(Radians.of(getSeedAngleRad()));
     }
 
     private void applyConfiguration(String key, StatusCode status) {
@@ -205,9 +204,10 @@ public class TurretIOReal implements TurretIO {
     }
 
     private boolean shouldReseed(OptionalDouble crtRad, AngularVelocity velocity) {
-        return crtRad.isPresent()
-                && isWithinLimits(crtRad.getAsDouble())
-                && Math.abs(velocity.in(RadiansPerSecond)) <= Constants.RESEED_VELOCITY_THRESHOLD.in(RadiansPerSecond);
+        return false;
+        // return crtRad.isPresent()
+        //         && isWithinLimits(crtRad.getAsDouble())
+        //         && Math.abs(velocity.in(RadiansPerSecond)) <= Constants.RESEED_VELOCITY_THRESHOLD.in(RadiansPerSecond);
     }
 
     private void updateReseedState(TurretIOInputs inputs, OptionalDouble crtRad, double positionRad,

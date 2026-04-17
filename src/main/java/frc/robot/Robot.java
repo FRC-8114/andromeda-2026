@@ -29,6 +29,7 @@ public class Robot extends LoggedRobot {
       case REAL: {
         Logger.addDataReceiver(new WPILOGWriter());
         Logger.addDataReceiver(new NT4Publisher());
+
         break;
       }
       case SIMULATION: {

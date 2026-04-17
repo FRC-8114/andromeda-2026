@@ -25,7 +25,7 @@ import frc.robot.util.SysIDMechanism;
 
 public class Turret extends SubsystemBase implements SysIDMechanism {
     public static class Constants {
-        private static final Angle CONTROL_TOLERANCE = Degrees.of(1);
+        private static final Angle CONTROL_TOLERANCE = Degrees.of(5);
         private static final AngularVelocity READY_VELOCITY_TOLERANCE = RadiansPerSecond.of(Math.toRadians(8.0));
 
         // The reachable travel range wraps around +X, so robot-relative zero lies in
@@ -104,20 +104,13 @@ public class Turret extends SubsystemBase implements SysIDMechanism {
         return getClosestBoundary(normalizedRequested);
     }
 
-    static double calculateTravelErrorRadians(Angle currentAngle, Angle targetAngle) {
-        return MathUtil.inputModulus(
-                normalizeAngle(targetAngle).in(Radians) - normalizeAngle(currentAngle).in(Radians),
-                -Math.PI, Math.PI);
-    }
-
     private Angle getTurretPosition() {
         return normalizeAngle(inputs.positionRadians);
     }
 
     private boolean checkAtAngle(Angle target) {
         Angle position = getTurretPosition();
-        double error = calculateTravelErrorRadians(position, resolveTargetAngle(position, target));
-        return Math.abs(error) <= Constants.CONTROL_TOLERANCE.in(Radians)
+        return position.isNear(currentTarget, Constants.CONTROL_TOLERANCE)
                 && Math.abs(inputs.velocityRadPerSec.in(RadiansPerSecond)) <= Constants.READY_VELOCITY_TOLERANCE
                         .in(RadiansPerSecond);
     }
@@ -127,11 +120,10 @@ public class Turret extends SubsystemBase implements SysIDMechanism {
         Angle resolvedTarget = resolveTargetAngle(position, target);
         currentTarget = resolvedTarget;
 
-        double error = Math.abs(calculateTravelErrorRadians(position, resolvedTarget));
-        if (error > Constants.CONTROL_TOLERANCE.in(Radians)) {
+        if (!isAtTarget.getAsBoolean()) {
             pivotMotor.setTarget(resolvedTarget);
         } else {
-            pivotMotor.setVoltage(0.0);
+            stop();
         }
     }
 
@@ -152,7 +144,9 @@ public class Turret extends SubsystemBase implements SysIDMechanism {
     }
 
     public Command followAngle(Supplier<Angle> angle) {
-        return runEnd(() -> commandTarget(angle.get()), this::stop);
+        return runEnd(() -> {
+            commandTarget(angle.get());
+        }, this::stop);
     }
 
     public Command aimTunable() {

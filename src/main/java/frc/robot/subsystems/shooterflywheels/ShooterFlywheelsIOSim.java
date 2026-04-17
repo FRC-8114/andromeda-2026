@@ -2,7 +2,6 @@ package frc.robot.subsystems.shooterflywheels;
 
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
-import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.Volts;
 
 import edu.wpi.first.math.MathUtil;

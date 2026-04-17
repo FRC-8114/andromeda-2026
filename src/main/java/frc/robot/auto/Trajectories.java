@@ -1,18 +1,10 @@
 package frc.robot.auto;
 
-import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.RPM;
-import static edu.wpi.first.units.Units.Radians;
-import static edu.wpi.first.units.Units.Seconds;
-
 import choreo.auto.AutoChooser;
 import choreo.auto.AutoRoutine;
 import choreo.auto.AutoTrajectory;
-import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.subsystems.climber.Climber;
-import frc.robot.subsystems.intakepivot.IntakePivot;
-import frc.robot.subsystems.intakerollers.IntakeRollers;
 import frc.robot.supersystems.intake.Intake;
 import frc.robot.supersystems.shooter.Shooter;
 import frc.robot.util.SubsystemRegistry;
@@ -36,6 +28,11 @@ public final class Trajectories {
                 subsystems.get(Shooter.class).get(),
                 subsystems.get(Intake.class).get(),
                 subsystems.get(Climber.class).get()));
+        chooser.addRoutine("Trench1xDepotClimb", () -> trench1xDepotClimb(
+            autos,
+            subsystems.get(Intake.class).get(),
+            subsystems.get(Shooter.class).get(),
+            subsystems.get(Climber.class).get()));
     }
 
     private static AutoRoutine trench2xOutpost(Autos autos, Intake intake,
@@ -53,7 +50,7 @@ public final class Trajectories {
                 Commands.parallel(
                         intake.pump(),
                         shooter.shoot())
-                        .withTimeout(Seconds.of(8)),
+                        .withTimeout(8),
                 paths[2].cmd(), // drive to pre-sweep
                 Commands.deadline( // second sweep + rollers active
                         paths[3].cmd(),
@@ -63,8 +60,27 @@ public final class Trajectories {
                 Commands.parallel(
                         intake.pump(),
                         shooter.shoot())
-                        .withTimeout(Seconds.of(4)),
+                        .withTimeout(4),
                 autos.stopCommand()));
+
+        return routine;
+    }
+
+    private static AutoRoutine trench1xDepotClimb(Autos autos, Intake intake, Shooter shooter, Climber climber) {
+        AutoRoutine routine = autos.routine("Trench1xDepotClimb");
+        AutoTrajectory[] paths = autos.split(routine, ChoreoTraj.Trench1xDepotClimb);
+
+        routine.active().onTrue(Commands.sequence(
+                paths[0].resetOdometry(),
+                Commands.deadline( // do first sweep + rollers active
+                        paths[0].cmd(),
+                        intake.intake()),
+                paths[1].cmd(),
+                Commands.deadline(paths[2].cmd(), shooter.shoot()),
+                Commands.parallel(paths[3].cmd(), climber.deploy()),
+                autos.stopCommand(),
+                climber.climb()
+        ));
 
         return routine;
     }
@@ -83,8 +99,7 @@ public final class Trajectories {
                 Commands.parallel(
                         intake.pump(),
                         shooter.shoot())
-                        .withTimeout(Seconds.of(12))
-        ));
+                        .withTimeout(12)));
 
         return routine;
     }
@@ -103,7 +118,7 @@ public final class Trajectories {
                         shooter.shoot(),
                         Commands.sequence(
                                 intake.intake()
-                                        .withTimeout(Seconds.of(3.5)),
+                                        .withTimeout(3.5),
                                 intake.pump()))
                         .withTimeout(6),
                 Commands.parallel(

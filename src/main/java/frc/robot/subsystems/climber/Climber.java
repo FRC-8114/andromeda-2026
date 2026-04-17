@@ -1,12 +1,13 @@
 package frc.robot.subsystems.climber;
 
+import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Volts;
 
 import java.util.Set;
 
+import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -21,7 +22,9 @@ public class Climber extends SubsystemBase {
     private enum ClimbState {
         STOW, DEPLOY, CLIMB, UNCLIMB
     }
-    private ClimbState state = ClimbState.STOW;
+
+    @AutoLogOutput
+    private ClimbState climbState = ClimbState.STOW;
 
     private final ClimberIO io;
     private final ClimberIOInputsAutoLogged inputs = new ClimberIOInputsAutoLogged();
@@ -30,34 +33,35 @@ public class Climber extends SubsystemBase {
         this.io = io;
     }
 
-    public final Trigger stowCurrentSpike = new Trigger(() -> inputs.currentAmps >= 30);
-    public final Trigger isStowed = new Trigger(() -> MathUtil.isNear(ClimberConstants.stowRotations, inputs.positionRot, rotationTolerance));
-    public final Trigger isDeployed = new Trigger(() -> MathUtil.isNear(ClimberConstants.deployRotations, inputs.positionRot, rotationTolerance));
-    public final Trigger isClimbed = new Trigger(() -> MathUtil.isNear(ClimberConstants.climbRotations, inputs.positionRot, rotationTolerance));
+    public final Trigger stowCurrentSpike = new Trigger(() -> inputs.appliedCurrent.gte(Amps.of(30)));
+
+    public final Trigger isStowed = new Trigger(() -> inputs.drumPosition.isNear(ClimberConstants.stowRotations, rotationTolerance));
+    public final Trigger isDeployed = new Trigger(() -> inputs.drumPosition.isNear(ClimberConstants.deployRotations, rotationTolerance));
+    public final Trigger isClimbed = new Trigger(() -> inputs.drumPosition.isNear(ClimberConstants.climbRotations, rotationTolerance));
 
     public Command deploy() {
         return run(() -> io.setPosition(ClimberConstants.deployRotations))
             .until(isDeployed)
-            .andThen(runOnce(() -> {this.state = ClimbState.DEPLOY;}));
+            .andThen(runOnce(() -> {this.climbState = ClimbState.DEPLOY;}));
     }
 
     public Command climb() {
         return run(() -> io.setPosition(ClimberConstants.climbRotations))
             .until(isClimbed)
-            .andThen(runOnce(() -> {this.state = ClimbState.CLIMB;}));
+            .andThen(runOnce(() -> {this.climbState = ClimbState.CLIMB;}));
     }
 
     public Command unclimb() {
         return run(() -> io.setPosition(ClimberConstants.deployRotations))
             .until(isDeployed)
-            .andThen(runOnce(() -> {this.state = ClimbState.UNCLIMB;}));
+            .andThen(runOnce(() -> {this.climbState = ClimbState.UNCLIMB;}));
     }
 
     public Command stow() {
         double startStow = Timer.getFPGATimestamp();
         return run(() -> io.setPosition(ClimberConstants.stowRotations))
             .until(isStowed.or(stowCurrentSpike.and(() -> (Timer.getFPGATimestamp() - startStow) > 1 )))
-            .andThen(runOnce(() -> {this.state = ClimbState.STOW;}));
+            .andThen(runOnce(() -> {this.climbState = ClimbState.STOW;}));
     }
 
     public Command move(boolean down) {
@@ -66,12 +70,11 @@ public class Climber extends SubsystemBase {
 
     public Command doNext() {
         return Commands.defer(() -> {
-            return switch (state) {
+            return switch (climbState) {
                 case DEPLOY -> climb();
                 case CLIMB -> unclimb();
                 case UNCLIMB -> stow();
                 case STOW -> deploy();
-                default -> Commands.none();
             };
         }, Set.of(this));
     }
@@ -80,6 +83,5 @@ public class Climber extends SubsystemBase {
     public void periodic() {
         io.updateInputs(inputs);
         Logger.processInputs("Climber", inputs);
-        Logger.recordOutput("Climber/ClimbState", state);
     }
 }

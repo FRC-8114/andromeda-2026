@@ -1,7 +1,5 @@
 package frc.robot.supersystems.shooter;
 
-import static edu.wpi.first.units.Units.Meters;
-
 import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.Logger;
@@ -15,7 +13,6 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import frc.robot.FieldConstants;
 import frc.robot.subsystems.drive.Drive;

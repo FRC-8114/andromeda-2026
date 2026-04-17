@@ -1,7 +1,6 @@
 package frc.robot.subsystems.hopperlanes;
 
 import static edu.wpi.first.units.Units.RPM;
-import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Volts;
 
 import java.util.List;
@@ -39,9 +38,14 @@ public class HopperLanes extends SubsystemBase implements SysIDMechanism {
                         io::runVolts, null, this));
     }
 
+    // public Command feed() {
+    //     return runEnd(
+    //             () -> io.setVelocity(indexerVelocity),
+    //             io::stopMotor);
+    // }
     public Command feed() {
         return runEnd(
-                () -> io.setVelocity(indexerVelocity),
+                () -> io.setVelocity(RPM.of(tuneIndexerVelocity.get())),
                 io::stopMotor);
     }
 

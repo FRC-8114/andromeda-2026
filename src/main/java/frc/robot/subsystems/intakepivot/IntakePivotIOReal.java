@@ -1,8 +1,5 @@
 package frc.robot.subsystems.intakepivot;
 
-import static edu.wpi.first.units.Units.Rotations;
-
-import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.StatusSignalCollection;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
@@ -14,7 +11,6 @@ import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.SoftwareLimitSwitchConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.MotionMagicTorqueCurrentFOC;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VoltageOut;
@@ -53,8 +49,8 @@ public class IntakePivotIOReal implements IntakePivotIO {
             .withGravityType(GravityTypeValue.Arm_Cosine)
             .withKG(0.1)
             .withKS(0.6)
-            .withKP(8)
-            .withKD(0);
+            .withKP(14)
+            .withKD(3);
 
     private static final MotionMagicConfigs MOTION_MAGIC_CONFIG = new MotionMagicConfigs()
             .withMotionMagicCruiseVelocity(10)
@@ -73,9 +69,10 @@ public class IntakePivotIOReal implements IntakePivotIO {
             .withSensorToMechanismRatio(1.0);
 
     private static final CurrentLimitsConfigs CURRENT_LIMITS_CONFIG = new CurrentLimitsConfigs()
-            .withStatorCurrentLimit(60)
+            .withStatorCurrentLimit(
+                60)
             .withStatorCurrentLimitEnable(true)
-            .withSupplyCurrentLimit(40)
+            .withSupplyCurrentLimit(60)
             .withSupplyCurrentLimitEnable(true);
 
     private static final MotorOutputConfigs MOTOR_OUTPUT_CONFIG = new MotorOutputConfigs()
@@ -127,34 +124,28 @@ public class IntakePivotIOReal implements IntakePivotIO {
         pivotMotor.setPosition(absolutePosition);
     }
 
-    @Override
     public void setTarget(Angle angle) {
         targetAngle = angle;
         pivotMotor.setControl(control.withPosition(angle));
     }
 
-    @Override
     public void setTargetWithFeedForward(Angle angle, Voltage feedforward) {
         targetAngle = angle;
         pivotMotor.setControl(control.withPosition(angle).withFeedForward(feedforward));
     }
 
-    @Override
     public void runVolts(Voltage volts) {
         pivotMotor.setControl(controlVoltage.withOutput(volts));
     }
 
-    @Override
     public void runCurrent(Current current) {
         pivotMotor.setControl(controlCurrent.withOutput(current));
     }
 
-    @Override
     public void stop() {
         pivotMotor.stopMotor();
     }
 
-    @Override
     public void updateInputs(IntakePivotInputs inputs) {
         pivotSignals.refreshAll();
 

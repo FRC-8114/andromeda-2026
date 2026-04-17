@@ -34,6 +34,8 @@ public class TurretShotSolverAnglemap implements Supplier<ShotSolution> {
                 private static final Distance TURRET_Y_OFFSET = Inches.of(6.875); // positive Y is left
                 private static final Distance TURRET_Z_OFFSET = Inches.of(20.5); // positive Z is up
 
+                private static final double FIXED_DISTANCE_OFFSET = 0;
+                private static final double FIXED_RPM_OFFSET = 0;
                 // private static final Distance passingShotClearance = Inches.of(18.0);
 
                 private static final Translation3d TURRET_OFFSET = new Translation3d(TURRET_X_OFFSET, TURRET_Y_OFFSET,
@@ -86,9 +88,9 @@ public class TurretShotSolverAnglemap implements Supplier<ShotSolution> {
 
         private Pair<Double, Double> getRPMAndPitch(double distance) {
                 Logger.recordOutput("Shooter/Distance", distance);
-                var mat = distanceToPitchAndRPM.get(distance).getData();
+                var mat = distanceToPitchAndRPM.get(distance + Constants.FIXED_DISTANCE_OFFSET).getData();
 
-                return Pair.of(mat[1], mat[0]);
+                return Pair.of(mat[1] + Constants.FIXED_RPM_OFFSET, mat[0]);
         }
 
         private double estimateTimeOfFlight(double horizontalDist) {

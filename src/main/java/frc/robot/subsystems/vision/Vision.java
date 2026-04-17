@@ -19,7 +19,6 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.subsystems.drive.Drive;
 import edu.wpi.first.units.measure.AngularAcceleration;
 import edu.wpi.first.units.measure.AngularVelocity;
 import limelight.networktables.AngularAcceleration3d;
@@ -129,6 +128,8 @@ public class Vision extends SubsystemBase {
         this.poseSeedConsumer = poseSeedConsumer;
         visionIOs = inputs;
         latestInputs = new VisionInputBuffers[inputs.length];
+
+        setIMUMode(ImuMode.SyncInternalImu);
 
         for (int i = 0; i < inputs.length; i++) {
             final int workerIndex = i;
