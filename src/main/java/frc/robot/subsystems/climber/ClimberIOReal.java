@@ -93,6 +93,6 @@ public class ClimberIOReal implements ClimberIO {
         inputs.drumPosition.mut_replace(positionSignal.getValue());
         inputs.drumVelocity.mut_replace(drumVelocitySignal.getValue());
         inputs.appliedVoltage.mut_replace(voltageSignal.getValue());
-        inputs.appliedCurrent.mut_replace(torqueCurrentSignal.getValue());
+        inputs.torqueCurrent.mut_replace(torqueCurrentSignal.getValue());
     }
 }

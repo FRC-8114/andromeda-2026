@@ -22,7 +22,6 @@ import frc.robot.util.SysIDMechanism;
 public class ShooterFlywheels extends SubsystemBase implements SysIDMechanism {
     private static class Constants {
         static final double FLYWHEEL_TOLERANCE_RPM = 50.0;
-
     }
 
     private final ShooterFlywheelsIO io;

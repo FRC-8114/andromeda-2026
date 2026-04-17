@@ -25,7 +25,7 @@ import frc.robot.util.SysIDMechanism;
 
 public class Turret extends SubsystemBase implements SysIDMechanism {
     public static class Constants {
-        private static final Angle CONTROL_TOLERANCE = Degrees.of(5);
+        private static final Angle CONTROL_TOLERANCE = Degrees.of(4);
         private static final AngularVelocity READY_VELOCITY_TOLERANCE = RadiansPerSecond.of(Math.toRadians(8.0));
 
         // The reachable travel range wraps around +X, so robot-relative zero lies in
@@ -110,9 +110,9 @@ public class Turret extends SubsystemBase implements SysIDMechanism {
 
     private boolean checkAtAngle(Angle target) {
         Angle position = getTurretPosition();
-        return position.isNear(currentTarget, Constants.CONTROL_TOLERANCE)
-                && Math.abs(inputs.velocityRadPerSec.in(RadiansPerSecond)) <= Constants.READY_VELOCITY_TOLERANCE
-                        .in(RadiansPerSecond);
+        return position.isNear(currentTarget, Constants.CONTROL_TOLERANCE);
+                // && Math.abs(inputs.velocityRadPerSec.in(RadiansPerSecond)) <= Constants.READY_VELOCITY_TOLERANCE
+                //         .in(RadiansPerSecond);
     }
 
     private void commandTarget(Angle target) {

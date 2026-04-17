@@ -57,6 +57,6 @@ public class ClimberIOSim implements ClimberIO {
         inputs.drumPosition.mut_replace(climberSim.getAngularPositionRad(), Radians);
         inputs.drumVelocity.mut_replace(climberSim.getAngularVelocityRadPerSec(), RadiansPerSecond);
         inputs.appliedVoltage.mut_replace(appliedVolts, Volts);
-        inputs.appliedCurrent.mut_replace(Math.abs(climberSim.getCurrentDrawAmps()), Amps);
+        inputs.torqueCurrent.mut_replace(Math.abs(climberSim.getCurrentDrawAmps()), Amps);
     }
 }

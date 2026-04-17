@@ -33,7 +33,7 @@ public class Climber extends SubsystemBase {
         this.io = io;
     }
 
-    public final Trigger stowCurrentSpike = new Trigger(() -> inputs.appliedCurrent.gte(Amps.of(30)));
+    public final Trigger stowCurrentSpike = new Trigger(() -> inputs.torqueCurrent.gte(Amps.of(30)));
 
     public final Trigger isStowed = new Trigger(() -> inputs.drumPosition.isNear(ClimberConstants.stowRotations, rotationTolerance));
     public final Trigger isDeployed = new Trigger(() -> inputs.drumPosition.isNear(ClimberConstants.deployRotations, rotationTolerance));

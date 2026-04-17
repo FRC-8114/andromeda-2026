@@ -19,7 +19,7 @@ public interface ClimberIO {
     public static class ClimberIOInputs {
         public MutAngle drumPosition = Rotations.mutable(0);
         public MutAngularVelocity drumVelocity = RPM.mutable(0);
-        public MutCurrent appliedCurrent = Amps.mutable(0);
+        public MutCurrent torqueCurrent = Amps.mutable(0);
         public MutVoltage appliedVoltage = Volts.mutable(0);
     }
 

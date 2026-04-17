@@ -5,11 +5,13 @@ import static edu.wpi.first.units.Units.Volts;
 
 import java.util.List;
 
+import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -25,7 +27,12 @@ public class HopperLanes extends SubsystemBase implements SysIDMechanism {
 
     private SysIdRoutine sysId;
 
-    private final LoggedNetworkNumber tuneIndexerVelocity = new LoggedNetworkNumber("Tuning/IndexerVelocityRPM", indexerVelocity.in(RPM));
+    private final LoggedNetworkNumber tuneIndexerVelocity = new LoggedNetworkNumber("Tuning/IndexerVelocityRPM",
+            indexerVelocity.in(RPM));
+
+    @AutoLogOutput
+    public final Trigger isStuck = new Trigger(
+            () -> Math.abs(inputs.velocityRPM) < 10 && inputs.appliedTorqueCurrent > 5);
 
     public HopperLanes(HopperLanesIO io) {
         this.io = io;
@@ -38,16 +45,17 @@ public class HopperLanes extends SubsystemBase implements SysIDMechanism {
                         io::runVolts, null, this));
     }
 
-    // public Command feed() {
-    //     return runEnd(
-    //             () -> io.setVelocity(indexerVelocity),
-    //             io::stopMotor);
-    // }
     public Command feed() {
         return runEnd(
-                () -> io.setVelocity(RPM.of(tuneIndexerVelocity.get())),
+                () -> io.setVelocity(indexerVelocity),
                 io::stopMotor);
     }
+
+    // public Command feed() {
+    // return Commands.either(reverse(), runEnd(
+    // () -> io.setVelocity(RPM.of(tuneIndexerVelocity.get())),
+    // io::stopMotor), isStuck);
+    // }
 
     public final Trigger atSpeed = new Trigger(
             () -> RPM.of(inputs.velocityRPM).isNear(indexerVelocity, indexerVelocityTolerance));

@@ -94,8 +94,6 @@ public class IntakePivotIOReal implements IntakePivotIO {
     private final TorqueCurrentFOC controlCurrent = new TorqueCurrentFOC(0);
     private final VoltageOut controlVoltage = new VoltageOut(0).withEnableFOC(true);
 
-    // private final StatusSignal<Angle> encoderPositionSignal;
-
     private final StatusSignal<Angle> positionSignal;
     private final StatusSignal<AngularVelocity> velocitySignal;
     private final StatusSignal<Voltage> voltageSignal;
@@ -108,7 +106,6 @@ public class IntakePivotIOReal implements IntakePivotIO {
         pivotMotor.getConfigurator().apply(MOTOR_CONFIG);
         pivotEncoder.getConfigurator().apply(ENCODER_CONFIG);
 
-        // encoderPositionSignal = pivotEncoder.getPosition();
         positionSignal = pivotMotor.getPosition();
         velocitySignal = pivotMotor.getVelocity();
         voltageSignal = pivotMotor.getMotorVoltage();

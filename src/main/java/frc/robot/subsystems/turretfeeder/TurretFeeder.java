@@ -44,18 +44,18 @@ public class TurretFeeder extends SubsystemBase implements SysIDMechanism {
     public final Trigger atSpeed = new Trigger(
         () -> RPM.of(inputs.beltVelocityRPM).isNear(turretLoaderVelocity, velocityTolerance));
 
-    // public Command feed() {
-    //     return runEnd(
-    //         () -> io.setVelocity(turretLoaderVelocity),
-    //         () -> io.stopMotor()
-    //     );
-    // }
     public Command feed() {
         return runEnd(
-            () -> io.setVelocity(RPM.of(tuneTurretLoaderVelocity.get())),
+            () -> io.setVelocity(turretLoaderVelocity),
             () -> io.stopMotor()
         );
     }
+    // public Command feed() {
+    //     return runEnd(
+    //         () -> io.setVelocity(RPM.of(tuneTurretLoaderVelocity.get())),
+    //         () -> io.stopMotor()
+    //     );
+    // }
 
     public Command feedTunable() {
         return runEnd(
