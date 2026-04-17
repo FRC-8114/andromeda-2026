@@ -4,8 +4,6 @@ import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
 
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.Logger;
@@ -26,8 +24,6 @@ import limelight.networktables.AngularVelocity3d;
 import limelight.networktables.LimelightSettings.ImuMode;
 
 public class Vision extends SubsystemBase {
-    private static final long workerSleepMillis = 10;
-
     @FunctionalInterface
     public interface VisionMeasurementConsumer {
         void accept(Pose2d visionRobotPoseMeters, double timestampSeconds, Matrix<N3, N1> visionMeasurementStdDevs);
@@ -44,26 +40,6 @@ public class Vision extends SubsystemBase {
             AngularVelocity3d currentAngularVelocity) {
     }
 
-    private static class VisionInputBuffers {
-        private VisionIOInputsAutoLogged publishedBuffer = new VisionIOInputsAutoLogged();
-        private VisionIOInputsAutoLogged writeBuffer = new VisionIOInputsAutoLogged();
-
-        public VisionIOInputsAutoLogged getWriteBuffer() {
-            return writeBuffer;
-        }
-
-        public synchronized void publishWriteBuffer() {
-            VisionIOInputsAutoLogged previousPublishedBuffer = publishedBuffer;
-            publishedBuffer = writeBuffer;
-            writeBuffer = previousPublishedBuffer;
-        }
-
-        public synchronized void consumeLatestInputs(String key, Consumer<VisionIOInputsAutoLogged> consumer) {
-            Logger.processInputs(key, publishedBuffer);
-            consumer.accept(publishedBuffer);
-        }
-    }
-
     private static final VisionIO.RobotState defaultRobotState = new VisionIO.RobotState(
             0.0,
             new Rotation3d(),
@@ -77,12 +53,11 @@ public class Vision extends SubsystemBase {
                     RadiansPerSecondPerSecond.of(0.0)));
 
     private final VisionIO[] visionIOs;
-    private final VisionInputBuffers[] latestInputs;
+    private final VisionIOInputsAutoLogged[] latestInputs;
     private final Supplier<RobotStateSample> robotStateSupplier;
     private final VisionMeasurementConsumer visionMeasurementConsumer;
     private final PoseSeedConsumer poseSeedConsumer;
-    private final AtomicReference<VisionIO.RobotState> latestRobotState = new AtomicReference<>(defaultRobotState);
-    private final ThreadGroup visionWorkThreadGroup = new ThreadGroup("visionWorkers");
+    private VisionIO.RobotState latestRobotState = defaultRobotState;
     private AngularVelocity3d lastRobotAngularVelocity = new AngularVelocity3d(
             RadiansPerSecond.of(0.0),
             RadiansPerSecond.of(0.0),
@@ -127,44 +102,18 @@ public class Vision extends SubsystemBase {
         this.visionMeasurementConsumer = visionMeasurementConsumer;
         this.poseSeedConsumer = poseSeedConsumer;
         visionIOs = inputs;
-        latestInputs = new VisionInputBuffers[inputs.length];
+        latestInputs = new VisionIOInputsAutoLogged[inputs.length];
 
         setIMUMode(ImuMode.SyncInternalImu);
 
         for (int i = 0; i < inputs.length; i++) {
-            final int workerIndex = i;
-
-            latestInputs[i] = new VisionInputBuffers();
-
-            Thread worker = new Thread(
-                    visionWorkThreadGroup,
-                    () -> visionWorker(workerIndex),
-                    inputs[i].getName() + "Worker");
-            worker.setDaemon(true);
-            worker.start();
+            latestInputs[i] = new VisionIOInputsAutoLogged();
         }
     }
 
-    private void setIMUMode(ImuMode imuMode) {
+    public void setIMUMode(ImuMode imuMode) {
         for (VisionIO visionIO : visionIOs) {
             visionIO.setIMUMode(imuMode);
-        }
-    }
-
-    private void visionWorker(int index) {
-        VisionIO io = visionIOs[index];
-        VisionInputBuffers inputBuffers = latestInputs[index];
-
-        while (!Thread.currentThread().isInterrupted()) {
-            io.setRobotState(latestRobotState.get());
-            io.updateInputs(inputBuffers.getWriteBuffer());
-            inputBuffers.publishWriteBuffer();
-
-            try {
-                Thread.sleep(workerSleepMillis);
-            } catch (InterruptedException interruptedException) {
-                Thread.currentThread().interrupt();
-            }
         }
     }
 
@@ -191,11 +140,11 @@ public class Vision extends SubsystemBase {
 
         lastRobotAngularVelocity = currentAngularVelocity;
         lastRobotAngularVelocityTimestampSecs = timestampSeconds;
-        latestRobotState.set(new VisionIO.RobotState(
+        latestRobotState = new VisionIO.RobotState(
                 timestampSeconds,
                 currentRotation,
                 currentAngularVelocity,
-                currentAngularAcceleration));
+                currentAngularAcceleration);
     }
 
     private static AngularAcceleration calculateAngularAcceleration(
@@ -313,15 +262,17 @@ public class Vision extends SubsystemBase {
         VisionIO.PoseObservation[] seedObservationHolder = new VisionIO.PoseObservation[1];
 
         for (int i = 0; i < latestInputs.length; i++) {
-            latestInputs[i].consumeLatestInputs(
-                    "Vision/" + visionIOs[i].getName(),
-                    (inputs) -> {
-                        if (DriverStation.isTeleop() && !seedMethodSet
-                                && poseSeedConsumer != null) {
-                            seedObservationHolder[0] = choosePoseSeedObservation(seedObservationHolder[0], inputs);
-                        }
-                        processPoseObservations(inputs);
-                    });
+            VisionIO io = visionIOs[i];
+            VisionIOInputsAutoLogged inputs = latestInputs[i];
+
+            io.setRobotState(latestRobotState);
+            io.updateInputs(inputs);
+            Logger.processInputs("Vision/" + io.getName(), inputs);
+
+            if (DriverStation.isTeleop() && !seedMethodSet && poseSeedConsumer != null) {
+                seedObservationHolder[0] = choosePoseSeedObservation(seedObservationHolder[0], inputs);
+            }
+            processPoseObservations(inputs);
         }
 
         if (DriverStation.isTeleopEnabled()) {
@@ -333,13 +284,11 @@ public class Vision extends SubsystemBase {
         VisionIO.PoseObservation seedObservationHolder[] = new VisionIO.PoseObservation[1];
 
         for (int i = 0; i < latestInputs.length; i++) {
-            latestInputs[i].consumeLatestInputs(
-                    "Vision/" + visionIOs[i].getName(),
-                    (inputs) -> {
-                        seedObservationHolder[0] = choosePoseSeedObservation(seedObservationHolder[0], inputs);
-                    });
+            seedObservationHolder[0] = choosePoseSeedObservation(seedObservationHolder[0], latestInputs[i]);
         }
 
-        poseSeedConsumer.accept(seedObservationHolder[0].pose().toPose2d());
+        if (poseSeedConsumer != null && seedObservationHolder[0] != null) {
+            poseSeedConsumer.accept(seedObservationHolder[0].pose().toPose2d());
+        }
     }
 }
