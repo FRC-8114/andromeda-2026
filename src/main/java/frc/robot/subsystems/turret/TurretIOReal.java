@@ -10,6 +10,7 @@ import java.util.OptionalDouble;
 
 import org.littletonrobotics.junction.Logger;
 
+import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.StatusSignalCollection;
@@ -48,15 +49,15 @@ public class TurretIOReal implements TurretIO {
         static final int ENCODER_19T_ID = 33;
         static final int ENCODER_21T_ID = 34;
 
-        static final double ENCODER_19T_OFFSET = -0.296142578125;
-        static final double ENCODER_21T_OFFSET = -0.35205078125;
+        static final double ENCODER_19T_OFFSET = -0.784912109375;
+        static final double ENCODER_21T_OFFSET = -0.473876953125;
         static final double MOTOR_TO_TURRET_RATIO = 10.0;
 
         // CRT
         static final long ENCODER_19T_TEETH = 19L;
         static final long ENCODER_21T_TEETH = 21L;
         static final long TURRET_GEAR_TEETH = 200L;
-        static final double CRT_COHERENCE_TOLERANCE_TEETH = 0.25;
+        static final double CRT_COHERENCE_TOLERANCE_TEETH = 5;
         static final Angle CRT_ZERO_OFFSET = Rotations.of(0.5);
 
         // Reseeding
@@ -68,8 +69,11 @@ public class TurretIOReal implements TurretIO {
         static final double MIN_ANGLE_RAD = Turret.Constants.MIN_ANGLE.in(Radians);
         static final double MAX_ANGLE_RAD = Turret.Constants.MAX_ANGLE.in(Radians);
 
+        static final double MIN_TEETH = Turret.Constants.MIN_ANGLE.in(Rotations) * Constants.TURRET_GEAR_TEETH;
+        static final double MAX_TEETH = Turret.Constants.MAX_ANGLE.in(Rotations) * Constants.TURRET_GEAR_TEETH;
+
         // Signals
-        static final double SIGNAL_UPDATE_HZ = 50.0;
+        static final double POSITIONAL_SIGNAL_UPDATE_HZ = 50.0;
 
         // Configs
         static final MagnetSensorConfigs ENCODER_19T_MAGNET_CONFIG = new MagnetSensorConfigs()
@@ -131,8 +135,11 @@ public class TurretIOReal implements TurretIO {
     private final StatusSignal<Voltage> pivotMotorVoltage = pivotMotor.getMotorVoltage();
     private final StatusSignal<Current> pivotTorqueCurrent = pivotMotor.getTorqueCurrent();
     private final StatusSignal<Angle> encoder19TPosition = encoder19T.getAbsolutePosition();
+    private final StatusSignal<AngularVelocity> encoder19TVelocity = encoder19T.getVelocity();
     private final StatusSignal<Angle> encoder21TPosition = encoder21T.getAbsolutePosition();
+    private final StatusSignal<AngularVelocity> encoder21TVelocity = encoder21T.getVelocity();
     private final StatusSignalCollection turretSignals = new StatusSignalCollection();
+    private final StatusSignalCollection positionalTurretSignals = new StatusSignalCollection();
 
     private final PositionVoltage positionControl = new PositionVoltage(Math.PI);
     private final VoltageOut voltageControl = new VoltageOut(0);
@@ -150,32 +157,49 @@ public class TurretIOReal implements TurretIO {
                 pivotMotor.getConfigurator().apply(Constants.PIVOT_CONFIG));
 
         turretSignals.addSignals(
-                pivotPosition, pivotVelocity, pivotMotorVoltage, pivotTorqueCurrent,
-                encoder19TPosition, encoder21TPosition);
-        turretSignals.setUpdateFrequencyForAll(Constants.SIGNAL_UPDATE_HZ);
+                pivotMotorVoltage, pivotTorqueCurrent);
+        turretSignals.setUpdateFrequencyForAll(50);
+
+        positionalTurretSignals.addSignals(pivotPosition, pivotVelocity, encoder19TPosition, encoder21TPosition,
+                encoder19TVelocity, encoder21TVelocity);
+        positionalTurretSignals.setUpdateFrequencyForAll(Constants.POSITIONAL_SIGNAL_UPDATE_HZ);
+
         ParentDevice.optimizeBusUtilizationForAll(pivotMotor, encoder19T, encoder21T);
 
         turretSignals.refreshAll();
+        positionalTurretSignals.refreshAll();
 
-        // reseedPosition(Degrees.of(180));
-        reseedPosition(Radians.of(getCRTAngle().orElse(180)));
+        reseedPosition(Degrees.of(180));
+        // reseedPosition(Radians.of(getCRTAngleRadians().orElse(180)));
     }
 
     private void applyConfiguration(String key, StatusCode status) {
         Logger.recordOutput(key, status.getName());
     }
 
-    private OptionalDouble getAbsoluteCrtAngleRad() {
-        double raw19 = encoder19TPosition.getValueAsDouble() * Constants.ENCODER_19T_TEETH;
-        double raw21 = encoder21TPosition.getValueAsDouble() * Constants.ENCODER_21T_TEETH;
+    private final double RATIO_19 = (double) Constants.ENCODER_19T_TEETH / Constants.TURRET_GEAR_TEETH;
+    private final double RATIO_21 = (double) Constants.ENCODER_21T_TEETH / Constants.TURRET_GEAR_TEETH;
+
+    private OptionalDouble getAbsoluteCrtAngleRadians() {
+        double raw19 = encoder19TPosition.getValueAsDouble();
+        double raw21 = encoder21TPosition.getValueAsDouble();
+
+        
+
+        double bestError = Double.MAX_VALUE;
+        double secondError = Double.MAX_VALUE;
+        double bestRotation = Double.NaN;
 
         long baseK21 = (long) Math.floor(raw21);
         double fine = raw21 - baseK21;
 
-        long bestK = -1;
+        long bestK = Long.MIN_VALUE;
         double bestErrorTeeth = Double.MAX_VALUE;
 
-        for (long k = baseK21; k < Constants.TURRET_GEAR_TEETH; k += Constants.ENCODER_21T_TEETH) {
+        long startK = (baseK21 + Constants.ENCODER_21T_TEETH)
+                * (long) Math.ceil((Constants.MIN_TEETH - baseK21) / (double) Constants.ENCODER_21T_TEETH);
+
+        for (long k = startK; k <= Constants.MAX_TEETH; k += Constants.ENCODER_21T_TEETH) {
             double predicted19 = MathUtil.inputModulus(
                     k + fine, 0.0, Constants.ENCODER_19T_TEETH);
 
@@ -191,34 +215,32 @@ public class TurretIOReal implements TurretIO {
             }
         }
 
+        Logger.recordOutput("Turret/bestK", bestK);
         Logger.recordOutput("Turret/bestError", bestErrorTeeth);
 
         // wallahi we're cooked
-        if (bestK < 0 || bestErrorTeeth > Constants.CRT_COHERENCE_TOLERANCE_TEETH) {
+        if (bestK == Long.MIN_VALUE || bestErrorTeeth > Constants.CRT_COHERENCE_TOLERANCE_TEETH) {
             return OptionalDouble.empty();
         }
 
         double turretTeeth = bestK + fine;
-        double angleRad = MathUtil.inputModulus(
-                turretTeeth * (2.0 * Math.PI / Constants.TURRET_GEAR_TEETH),
-                0.0, 2.0 * Math.PI);
-
-        return OptionalDouble.of(angleRad);
+        return OptionalDouble.of(turretTeeth * (2.0 * Math.PI / Constants.TURRET_GEAR_TEETH));
     }
 
     // crt minus filtering
-    private OptionalDouble getCRTAngle() {
-        OptionalDouble rawCRT = getAbsoluteCrtAngleRad();
+    private OptionalDouble getCRTAngleRadians() {
+        OptionalDouble rawCRT = getAbsoluteCrtAngleRadians();
 
         if (rawCRT.isEmpty())
             return OptionalDouble.empty();
 
         return OptionalDouble.of(MathUtil.inputModulus(
-                getAbsoluteCrtAngleRad().getAsDouble() + Constants.CRT_ZERO_OFFSET.in(Radians), 0.0, 2.0 * Math.PI));
+                getAbsoluteCrtAngleRadians().getAsDouble() + Constants.CRT_ZERO_OFFSET.in(Radians), 0.0,
+                2.0 * Math.PI));
     }
 
     private OptionalDouble getFilteredCRT() {
-        OptionalDouble crt = getCRTAngle();
+        OptionalDouble crt = getCRTAngleRadians();
 
         if (crt.isEmpty())
             return OptionalDouble.empty();
@@ -241,9 +263,11 @@ public class TurretIOReal implements TurretIO {
     }
 
     private boolean shouldReseed(OptionalDouble crtRad, AngularVelocity velocity) {
-        return crtRad.isPresent()
-                && isWithinLimits(crtRad.getAsDouble())
-                && Math.abs(velocity.in(RadiansPerSecond)) <= Constants.RESEED_VELOCITY_THRESHOLD.in(RadiansPerSecond);
+        return false;
+        // return crtRad.isPresent()
+        // && isWithinLimits(crtRad.getAsDouble())
+        // && Math.abs(velocity.in(RadiansPerSecond)) <=
+        // Constants.RESEED_VELOCITY_THRESHOLD.in(RadiansPerSecond);
     }
 
     private void updateReseedState(TurretIOInputs inputs, OptionalDouble crtRad, double positionRad,
@@ -275,7 +299,9 @@ public class TurretIOReal implements TurretIO {
 
     @Override
     public void updateInputs(TurretIOInputs inputs) {
-        StatusCode signalStatus = turretSignals.refreshAll();
+        turretSignals.refreshAll();
+
+        StatusCode signalStatus = positionalTurretSignals.refreshAll();
 
         double positionRad = MathUtil.inputModulus(pivotPosition.getValue().in(Radians), 0.0, 2.0 * Math.PI);
         AngularVelocity velocity = pivotVelocity.getValue();

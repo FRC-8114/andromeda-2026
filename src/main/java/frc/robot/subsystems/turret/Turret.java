@@ -3,6 +3,7 @@ package frc.robot.subsystems.turret;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
+import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
@@ -25,7 +26,7 @@ import frc.robot.util.SysIDMechanism;
 
 public class Turret extends SubsystemBase implements SysIDMechanism {
     public static class Constants {
-        private static final Angle CONTROL_TOLERANCE = Degrees.of(4);
+        private static final Angle CONTROL_TOLERANCE = Degrees.of(3);
         private static final AngularVelocity READY_VELOCITY_TOLERANCE = RadiansPerSecond.of(Math.toRadians(8.0));
 
         // The reachable travel range wraps around +X, so robot-relative zero lies in
@@ -38,7 +39,7 @@ public class Turret extends SubsystemBase implements SysIDMechanism {
     private final TurretIOInputsAutoLogged inputs = new TurretIOInputsAutoLogged();
     private final SysIdRoutine sysId;
 
-    private Angle currentTarget = Constants.MIN_ANGLE;
+    private Angle currentTarget = Rotations.of(0.5);
 
     @AutoLogOutput
     public final Trigger isAtTarget;

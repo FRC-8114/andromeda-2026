@@ -10,9 +10,6 @@ import frc.robot.supersystems.shooter.Shooter;
 import frc.robot.util.SubsystemRegistry;
 
 public final class Trajectories {
-    private Trajectories() {
-    }
-
     public static void addAutos(AutoChooser chooser, Autos autos, SubsystemRegistry subsystems) {
         chooser.addRoutine("TUNE_MOI", () -> tuneMoi(autos));
         chooser.addRoutine("Trench2xOutpost", () -> trench2xOutpost(
@@ -29,10 +26,10 @@ public final class Trajectories {
                 subsystems.get(Intake.class).get(),
                 subsystems.get(Climber.class).get()));
         chooser.addRoutine("Trench1xDepotClimb", () -> trench1xDepotClimb(
-            autos,
-            subsystems.get(Intake.class).get(),
-            subsystems.get(Shooter.class).get(),
-            subsystems.get(Climber.class).get()));
+                autos,
+                subsystems.get(Intake.class).get(),
+                subsystems.get(Shooter.class).get(),
+                subsystems.get(Climber.class).get()));
     }
 
     private static AutoRoutine trench2xOutpost(Autos autos, Intake intake,
@@ -79,8 +76,7 @@ public final class Trajectories {
                 Commands.deadline(paths[2].cmd(), shooter.shoot()),
                 Commands.parallel(paths[3].cmd(), climber.deploy()),
                 autos.stopCommand(),
-                climber.climb()
-        ));
+                climber.climb()));
 
         return routine;
     }
