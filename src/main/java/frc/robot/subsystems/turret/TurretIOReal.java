@@ -4,13 +4,13 @@ import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
+import static edu.wpi.first.units.Units.Rotation;
 import static edu.wpi.first.units.Units.Rotations;
 
 import java.util.OptionalDouble;
 
 import org.littletonrobotics.junction.Logger;
 
-import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.StatusSignalCollection;
@@ -68,9 +68,6 @@ public class TurretIOReal implements TurretIO {
         // Pre-converted travel limits for hot-path comparisons
         static final double MIN_ANGLE_RAD = Turret.Constants.MIN_ANGLE.in(Radians);
         static final double MAX_ANGLE_RAD = Turret.Constants.MAX_ANGLE.in(Radians);
-
-        static final double MIN_TEETH = Turret.Constants.MIN_ANGLE.in(Rotations) * Constants.TURRET_GEAR_TEETH;
-        static final double MAX_TEETH = Turret.Constants.MAX_ANGLE.in(Rotations) * Constants.TURRET_GEAR_TEETH;
 
         // Signals
         static final double POSITIONAL_SIGNAL_UPDATE_HZ = 50.0;
@@ -177,55 +174,82 @@ public class TurretIOReal implements TurretIO {
         Logger.recordOutput(key, status.getName());
     }
 
-    private final double RATIO_19 = (double) Constants.ENCODER_19T_TEETH / Constants.TURRET_GEAR_TEETH;
-    private final double RATIO_21 = (double) Constants.ENCODER_21T_TEETH / Constants.TURRET_GEAR_TEETH;
+    private final double RATIO_19 = (double) Constants.TURRET_GEAR_TEETH / Constants.ENCODER_19T_TEETH;
+    private final double RATIO_21 = (double) Constants.TURRET_GEAR_TEETH / Constants.ENCODER_21T_TEETH;
 
     private OptionalDouble getAbsoluteCrtAngleRadians() {
-        double raw19 = encoder19TPosition.getValueAsDouble();
-        double raw21 = encoder21TPosition.getValueAsDouble();
+    double abs21 = encoder21TPosition.getValueAsDouble();  // pivot
+    double abs19 = encoder19TPosition.getValueAsDouble();  // predictor
 
-        
+    double minMechanismRotations = Turret.Constants.MIN_ANGLE.plus(Constants.CRT_ZERO_OFFSET).in(Rotations);
+    double maxMechanismRotations = Turret.Constants.MIN_ANGLE.plus(Constants.CRT_ZERO_OFFSET).in(Rotations);
 
-        double bestError = Double.MAX_VALUE;
-        double secondError = Double.MAX_VALUE;
-        double bestRotation = Double.NaN;
+    double matchTolerance = Constants.CRT_COHERENCE_TOLERANCE_TEETH / Constants.ENCODER_19T_TEETH;
 
-        long baseK21 = (long) Math.floor(raw21);
-        double fine = raw21 - baseK21;
-
-        long bestK = Long.MIN_VALUE;
-        double bestErrorTeeth = Double.MAX_VALUE;
-
-        long startK = (baseK21 + Constants.ENCODER_21T_TEETH)
-                * (long) Math.ceil((Constants.MIN_TEETH - baseK21) / (double) Constants.ENCODER_21T_TEETH);
-
-        for (long k = startK; k <= Constants.MAX_TEETH; k += Constants.ENCODER_21T_TEETH) {
-            double predicted19 = MathUtil.inputModulus(
-                    k + fine, 0.0, Constants.ENCODER_19T_TEETH);
-
-            double err = MathUtil.inputModulus(
-                    raw19 - predicted19,
-                    -Constants.ENCODER_19T_TEETH / 2.0,
-                    Constants.ENCODER_19T_TEETH / 2.0);
-
-            double absErr = Math.abs(err);
-            if (absErr < bestErrorTeeth) {
-                bestErrorTeeth = absErr;
-                bestK = k;
-            }
-        }
-
-        Logger.recordOutput("Turret/bestK", bestK);
-        Logger.recordOutput("Turret/bestError", bestErrorTeeth);
-
-        // wallahi we're cooked
-        if (bestK == Long.MIN_VALUE || bestErrorTeeth > Constants.CRT_COHERENCE_TOLERANCE_TEETH) {
-            return OptionalDouble.empty();
-        }
-
-        double turretTeeth = bestK + fine;
-        return OptionalDouble.of(turretTeeth * (2.0 * Math.PI / Constants.TURRET_GEAR_TEETH));
+    if (
+        Math.abs(RATIO_21) < 1e-12
+        || !Double.isFinite(minMechanismRotations)
+        || !Double.isFinite(maxMechanismRotations)
+        || minMechanismRotations > maxMechanismRotations
+        || !Double.isFinite(matchTolerance)
+        || matchTolerance < 0.0) {
+        Logger.recordOutput("Turret/CRTStatus", "INVALID_CONFIG");
+        return OptionalDouble.empty();
     }
+
+    double nMinD = Math.min(RATIO_21 * minMechanismRotations,
+                            RATIO_21 * maxMechanismRotations) - abs21;
+    double nMaxD = Math.max(RATIO_21 * minMechanismRotations,
+                            RATIO_21 * maxMechanismRotations) - abs21;
+    int minN = (int) Math.floor(nMinD) - 1;
+    int maxN = (int) Math.ceil(nMaxD) + 1;
+
+    double bestErr = Double.MAX_VALUE;
+    double secondErr = Double.MAX_VALUE;
+    double bestRot = Double.NaN;
+    int iterations = 0;
+
+    for (int n = minN; n <= maxN; n++) {
+        iterations++;
+
+        double mechRot = (abs21 + n) / RATIO_21;
+        if (mechRot < minMechanismRotations - 1e-6
+         || mechRot > maxMechanismRotations + 1e-6) {
+            continue;
+        }
+
+        double predicted19 = MathUtil.inputModulus(RATIO_19 * mechRot, 0.0, 1.0);
+        double diff = MathUtil.inputModulus(predicted19 - abs19, -0.5, 0.5);
+        double err = Math.abs(diff);
+
+        if (err < bestErr) {
+            secondErr = bestErr;
+            bestErr = err;
+            bestRot = mechRot;
+        } else if (err < secondErr) {
+            secondErr = err;
+        }
+    }
+
+    Logger.recordOutput("Turret/CRTIterations", iterations);
+    Logger.recordOutput("Turret/CRTBestErrorRot", bestErr);
+    Logger.recordOutput("Turret/CRTSecondErrorRot", secondErr);
+
+    if (!Double.isFinite(bestRot) || bestErr > matchTolerance) {
+        Logger.recordOutput("Turret/CRTStatus", "NO_SOLUTION");
+        return OptionalDouble.empty();
+    }
+    if (secondErr <= matchTolerance && Math.abs(secondErr - bestErr) < 1e-3) {
+        Logger.recordOutput("Turret/CRTStatus", "AMBIGUOUS");
+        return OptionalDouble.empty();
+    }
+
+    Logger.recordOutput("Turret/CRTStatus", "OK");
+
+    double mechRotShifted = bestRot - Constants.CRT_ZERO_OFFSET.in(Rotation);
+
+    return OptionalDouble.of(mechRotShifted * 2.0 * Math.PI);
+}
 
     // crt minus filtering
     private OptionalDouble getCRTAngleRadians() {
