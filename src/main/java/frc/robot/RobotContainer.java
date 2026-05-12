@@ -99,7 +99,7 @@ public class RobotContainer {
     public RobotContainer() {
         switch (RobotConstants.getRobotMode()) {
             case REAL: {
-                turret = subsystemRegistry.register(new Turret(new TurretIOReal()));
+                turret = subsystemRegistry.register(new Turret(new TurretIOSim()));
                 flywheels = subsystemRegistry.register(new ShooterFlywheels(new ShooterFlywheelsIOReal()));
                 shooterPitch = subsystemRegistry.register(new ShooterPitch(new ShooterPitchIOReal()));
                 turretFeeder = subsystemRegistry.register(new TurretFeeder(new TurretFeederIOReal()));
