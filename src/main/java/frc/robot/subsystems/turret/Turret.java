@@ -111,7 +111,7 @@ public class Turret extends SubsystemBase implements SysIDMechanism {
 
     private boolean checkAtAngle(Angle target) {
         Angle position = getTurretPosition();
-        return position.isNear(currentTarget, Constants.CONTROL_TOLERANCE);
+        return position.isNear(target, Constants.CONTROL_TOLERANCE);
                 // && Math.abs(inputs.velocityRadPerSec.in(RadiansPerSecond)) <= Constants.READY_VELOCITY_TOLERANCE
                 //         .in(RadiansPerSecond);
     }
